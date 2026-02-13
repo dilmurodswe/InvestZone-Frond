@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+# Run lint-staged with error reporting
+npx lint-staged --no-stash || exit 1
