@@ -19,7 +19,7 @@ export const useProfileQuery = () => {
         )
     }
     const isAdmin = res?.data?.role === "admin"
-    const isManager = res?.data?.role === "manager"
+    const isManager = res?.data?.role === "office_manager"
 
     return {
         ...res,
