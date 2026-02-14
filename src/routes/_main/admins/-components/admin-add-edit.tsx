@@ -32,9 +32,12 @@ interface Form extends Omit<Admin, "role"> {
 }
 
 const adminOptions: { id: Admin["role"]; name: string }[] = [
-    { id: "manager", name: "Manager" },
-    { id: "delivery", name: "Delivery" },
-    { id: "service", name: "Service" },
+    { id: "admin", name: "Admin" },
+    { id: "office_manager", name: "Office Manager" },
+    { id: "warehouse_employee", name: "Warehouse Employee" },
+    { id: "production_manager", name: "Production Manager" },
+    { id: "financier", name: "Financier" },
+    { id: "master", name: "Master" },
 ]
 
 function AdminAddEdit() {
@@ -47,7 +50,7 @@ function AdminAddEdit() {
             first_name: "",
             last_name: "",
             phone_number: "",
-            role: "manager",
+            role: "admin",
             confirm_password: "",
         },
         values:
