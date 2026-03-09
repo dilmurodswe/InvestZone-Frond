@@ -1,6 +1,4 @@
-import Phone from "@/components/custom/phone"
 import { Badge } from "@/components/ui/badge"
-import { dateTimeColumn, moneyColumn } from "@/lib/utils/common-cell-renderers"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Supplier } from "../-types"
 import { useState, useRef, useEffect } from "react"

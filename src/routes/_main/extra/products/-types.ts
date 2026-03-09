@@ -1,0 +1,20 @@
+export type Category = {
+    id: number
+    name: string
+}
+
+export type SubCategory = {
+    id: number
+    name: string
+    parent: number
+}
+
+export type Product = {
+    id: number
+    name: string
+    category: number
+    sub_category: number
+    code: number
+    articul: string
+    price: number
+}

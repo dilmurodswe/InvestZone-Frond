@@ -1,19 +1,19 @@
-import { Badge } from "@/components/ui/badge"
 import type { ColumnDef } from "@tanstack/react-table"
-import type { Client } from "../-types"
+import type { Category } from "../-types"
 import { useState, useRef, useEffect } from "react"
-import { useClientStore } from "../-hooks/use-client-store"
+import { useCategoryStore } from "../-hooks/use-category-store"
 import { useModal } from "@/hooks/use-modal"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { useNavigate } from "@tanstack/react-router"
 
-function ClientActions({ client }: { client: Client }) {
+function CategoryActions({ category }: { category: Category }) {
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
     const btnRef = useRef<HTMLButtonElement>(null)
     const ref = useRef<HTMLDivElement>(null)
-    const { setClient } = useClientStore()
-    const editModal = useModal()
-    const deleteModal = useModal("delete-client")
+    const { setCategory } = useCategoryStore()
+    const addModal = useModal("add-category")
+    const deleteModal = useModal("delete-category")
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -38,7 +38,14 @@ function ClientActions({ client }: { client: Client }) {
 
     return (
         <div ref={ref} className="relative flex justify-end">
-            <button ref={btnRef} onClick={handleOpen} className="p-1 rounded hover:bg-muted">
+            <button
+                ref={btnRef}
+                onClick={(e) => {
+                    e.stopPropagation()
+                    handleOpen()
+                }}
+                className="p-1 rounded hover:bg-muted"
+            >
                 <MoreHorizontal className="w-5 h-5" />
             </button>
             {open && (
@@ -49,14 +56,24 @@ function ClientActions({ client }: { client: Client }) {
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
                         className="flex items-center gap-2 text-sm hover:bg-muted"
-                        onClick={() => { setClient(client); editModal.openModal(); setOpen(false) }}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setCategory(category)
+                            addModal.openModal()
+                            setOpen(false)
+                        }}
                     >
                         <Pencil className="w-4 h-4" /> Edit
                     </button>
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
                         className="flex items-center gap-2 text-sm text-red-500 hover:bg-muted"
-                        onClick={() => { setClient(client); deleteModal.openModal(); setOpen(false) }}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setCategory(category)
+                            deleteModal.openModal()
+                            setOpen(false)
+                        }}
                     >
                         <Trash2 className="w-4 h-4" /> Delete
                     </button>
@@ -66,58 +83,33 @@ function ClientActions({ client }: { client: Client }) {
     )
 }
 
-export const useClientCols = (): ColumnDef<Client>[] => {
+export const useCategoryCols = (): ColumnDef<Category>[] => {
+    const navigate = useNavigate()
+
     return [
         {
-            accessorKey: "company_name",
-            header: "Company",
+            accessorKey: "name",
+            header: "Category Name",
             cell: ({ row: { original } }) => (
-                <div className="text-sm font-medium">{original.company_name}</div>
-            ),
-        },
-        {
-            accessorKey: "company_email",
-            header: "Email",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm text-muted-foreground">{original.company_email || "—"}</span>
-            ),
-        },
-        {
-            accessorKey: "customer_type",
-            header: "Client type",
-            cell: ({ row: { original } }) => (
-                original.customer_type ? (
-                    <Badge variant="secondary" className="capitalize font-semibold text-xs">
-                        {original.customer_type}
-                    </Badge>
-                ) : <span>—</span>
-            ),
-        },
-        {
-            accessorKey: "region_address",
-            header: "Address",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.region_address || "—"}</span>
-            ),
-        },
-        {
-            accessorKey: "inn",
-            header: "INN",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.inn || "—"}</span>
-            ),
-        },
-        {
-            accessorKey: "full_name",
-            header: "CEO/Staff",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.full_name}</span>
+                <button
+                    className="w-full text-left text-sm font-medium hover:cursor-pointer hoverbg-primary"
+                    onClick={() =>
+                        navigate({
+                            to: "/extra/products/$categoryId",
+                            params: { categoryId: String(original.id) },
+                        })
+                    }
+                >
+                    {original.name}
+                </button>
             ),
         },
         {
             id: "actions",
             header: "",
-            cell: ({ row: { original } }) => <ClientActions client={original} />,
+            cell: ({ row: { original } }) => (
+                <CategoryActions category={original} />
+            ),
         },
     ]
 }

@@ -20,6 +20,10 @@ import { Route as MainDashboardIndexRouteImport } from './routes/_main/dashboard
 import { Route as MainClientsIndexRouteImport } from './routes/_main/clients/index'
 import { Route as MainAdminsIndexRouteImport } from './routes/_main/admins/index'
 import { Route as AuthLoginIndexRouteImport } from './routes/_auth/login/index'
+import { Route as MainExtraRawMaterialsIndexRouteImport } from './routes/_main/extra/raw-materials/index'
+import { Route as MainExtraProductsIndexRouteImport } from './routes/_main/extra/products/index'
+import { Route as MainExtraProductsCategoryIdIndexRouteImport } from './routes/_main/extra/products/$categoryId/index'
+import { Route as MainExtraProductsCategoryIdSubcategoryIdIndexRouteImport } from './routes/_main/extra/products/$categoryId/$subcategoryId/index'
 
 const MainRoute = MainRouteImport.update({
   id: '/_main',
@@ -74,6 +78,29 @@ const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => AuthRoute,
 } as any)
+const MainExtraRawMaterialsIndexRoute =
+  MainExtraRawMaterialsIndexRouteImport.update({
+    id: '/extra/raw-materials/',
+    path: '/extra/raw-materials/',
+    getParentRoute: () => MainRoute,
+  } as any)
+const MainExtraProductsIndexRoute = MainExtraProductsIndexRouteImport.update({
+  id: '/extra/products/',
+  path: '/extra/products/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainExtraProductsCategoryIdIndexRoute =
+  MainExtraProductsCategoryIdIndexRouteImport.update({
+    id: '/extra/products/$categoryId/',
+    path: '/extra/products/$categoryId/',
+    getParentRoute: () => MainRoute,
+  } as any)
+const MainExtraProductsCategoryIdSubcategoryIdIndexRoute =
+  MainExtraProductsCategoryIdSubcategoryIdIndexRouteImport.update({
+    id: '/extra/products/$categoryId/$subcategoryId/',
+    path: '/extra/products/$categoryId/$subcategoryId/',
+    getParentRoute: () => MainRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
@@ -85,6 +112,10 @@ export interface FileRoutesByFullPath {
   '/raw-materials/': typeof MainRawMaterialsIndexRoute
   '/ready-products/': typeof MainReadyProductsIndexRoute
   '/suppliers/': typeof MainSuppliersIndexRoute
+  '/extra/products/': typeof MainExtraProductsIndexRoute
+  '/extra/raw-materials/': typeof MainExtraRawMaterialsIndexRoute
+  '/extra/products/$categoryId/': typeof MainExtraProductsCategoryIdIndexRoute
+  '/extra/products/$categoryId/$subcategoryId/': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
@@ -96,6 +127,10 @@ export interface FileRoutesByTo {
   '/raw-materials': typeof MainRawMaterialsIndexRoute
   '/ready-products': typeof MainReadyProductsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
+  '/extra/products': typeof MainExtraProductsIndexRoute
+  '/extra/raw-materials': typeof MainExtraRawMaterialsIndexRoute
+  '/extra/products/$categoryId': typeof MainExtraProductsCategoryIdIndexRoute
+  '/extra/products/$categoryId/$subcategoryId': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -110,6 +145,10 @@ export interface FileRoutesById {
   '/_main/raw-materials/': typeof MainRawMaterialsIndexRoute
   '/_main/ready-products/': typeof MainReadyProductsIndexRoute
   '/_main/suppliers/': typeof MainSuppliersIndexRoute
+  '/_main/extra/products/': typeof MainExtraProductsIndexRoute
+  '/_main/extra/raw-materials/': typeof MainExtraRawMaterialsIndexRoute
+  '/_main/extra/products/$categoryId/': typeof MainExtraProductsCategoryIdIndexRoute
+  '/_main/extra/products/$categoryId/$subcategoryId/': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -123,6 +162,10 @@ export interface FileRouteTypes {
     | '/raw-materials/'
     | '/ready-products/'
     | '/suppliers/'
+    | '/extra/products/'
+    | '/extra/raw-materials/'
+    | '/extra/products/$categoryId/'
+    | '/extra/products/$categoryId/$subcategoryId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -134,6 +177,10 @@ export interface FileRouteTypes {
     | '/raw-materials'
     | '/ready-products'
     | '/suppliers'
+    | '/extra/products'
+    | '/extra/raw-materials'
+    | '/extra/products/$categoryId'
+    | '/extra/products/$categoryId/$subcategoryId'
   id:
     | '__root__'
     | '/_auth'
@@ -147,6 +194,10 @@ export interface FileRouteTypes {
     | '/_main/raw-materials/'
     | '/_main/ready-products/'
     | '/_main/suppliers/'
+    | '/_main/extra/products/'
+    | '/_main/extra/raw-materials/'
+    | '/_main/extra/products/$categoryId/'
+    | '/_main/extra/products/$categoryId/$subcategoryId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -233,6 +284,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_main/extra/raw-materials/': {
+      id: '/_main/extra/raw-materials/'
+      path: '/extra/raw-materials'
+      fullPath: '/extra/raw-materials/'
+      preLoaderRoute: typeof MainExtraRawMaterialsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/extra/products/': {
+      id: '/_main/extra/products/'
+      path: '/extra/products'
+      fullPath: '/extra/products/'
+      preLoaderRoute: typeof MainExtraProductsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/extra/products/$categoryId/': {
+      id: '/_main/extra/products/$categoryId/'
+      path: '/extra/products/$categoryId'
+      fullPath: '/extra/products/$categoryId/'
+      preLoaderRoute: typeof MainExtraProductsCategoryIdIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/extra/products/$categoryId/$subcategoryId/': {
+      id: '/_main/extra/products/$categoryId/$subcategoryId/'
+      path: '/extra/products/$categoryId/$subcategoryId'
+      fullPath: '/extra/products/$categoryId/$subcategoryId/'
+      preLoaderRoute: typeof MainExtraProductsCategoryIdSubcategoryIdIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
   }
 }
 
@@ -255,6 +334,10 @@ interface MainRouteChildren {
   MainRawMaterialsIndexRoute: typeof MainRawMaterialsIndexRoute
   MainReadyProductsIndexRoute: typeof MainReadyProductsIndexRoute
   MainSuppliersIndexRoute: typeof MainSuppliersIndexRoute
+  MainExtraProductsIndexRoute: typeof MainExtraProductsIndexRoute
+  MainExtraRawMaterialsIndexRoute: typeof MainExtraRawMaterialsIndexRoute
+  MainExtraProductsCategoryIdIndexRoute: typeof MainExtraProductsCategoryIdIndexRoute
+  MainExtraProductsCategoryIdSubcategoryIdIndexRoute: typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
 }
 
 const MainRouteChildren: MainRouteChildren = {
@@ -266,6 +349,11 @@ const MainRouteChildren: MainRouteChildren = {
   MainRawMaterialsIndexRoute: MainRawMaterialsIndexRoute,
   MainReadyProductsIndexRoute: MainReadyProductsIndexRoute,
   MainSuppliersIndexRoute: MainSuppliersIndexRoute,
+  MainExtraProductsIndexRoute: MainExtraProductsIndexRoute,
+  MainExtraRawMaterialsIndexRoute: MainExtraRawMaterialsIndexRoute,
+  MainExtraProductsCategoryIdIndexRoute: MainExtraProductsCategoryIdIndexRoute,
+  MainExtraProductsCategoryIdSubcategoryIdIndexRoute:
+    MainExtraProductsCategoryIdSubcategoryIdIndexRoute,
 }
 
 const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)

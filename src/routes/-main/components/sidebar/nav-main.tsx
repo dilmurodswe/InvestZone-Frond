@@ -2,7 +2,6 @@ import {
     ChevronRight,
     LayoutDashboardIcon,
     MessageCircle,
-    MessageSquareCodeIcon,
     PanelLeftOpenIcon,
     PanelRightOpenIcon,
     UserIcon,
@@ -30,7 +29,7 @@ import { useProfileQuery } from "@/hooks/react-query/use-profile-query"
 import { Link, linkOptions, useLocation } from "@tanstack/react-router"
 
 export function NavMain() {
-    const { isAdmin, isManager } = useProfileQuery()
+    const { isAdmin } = useProfileQuery()
     const { setOpenMobile, open } = useSidebar()
     const pathname = useLocation({ select: (l) => l.pathname })
 

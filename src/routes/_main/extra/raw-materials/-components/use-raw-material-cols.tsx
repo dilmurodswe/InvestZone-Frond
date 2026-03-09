@@ -1,19 +1,18 @@
-import { Badge } from "@/components/ui/badge"
 import type { ColumnDef } from "@tanstack/react-table"
-import type { Client } from "../-types"
+import type { RawMaterial } from "../-types"
 import { useState, useRef, useEffect } from "react"
-import { useClientStore } from "../-hooks/use-client-store"
+import { useRawMaterialStore } from "../-hooks/use-raw-material-store"
 import { useModal } from "@/hooks/use-modal"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 
-function ClientActions({ client }: { client: Client }) {
+function RawMaterialActions({ rawMaterial }: { rawMaterial: RawMaterial }) {
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
     const btnRef = useRef<HTMLButtonElement>(null)
     const ref = useRef<HTMLDivElement>(null)
-    const { setClient } = useClientStore()
-    const editModal = useModal()
-    const deleteModal = useModal("delete-client")
+    const { setRawMaterial } = useRawMaterialStore()
+    const addModal = useModal("add-raw-material")
+    const deleteModal = useModal("delete-raw-material")
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -38,7 +37,14 @@ function ClientActions({ client }: { client: Client }) {
 
     return (
         <div ref={ref} className="relative flex justify-end">
-            <button ref={btnRef} onClick={handleOpen} className="p-1 rounded hover:bg-muted">
+            <button
+                ref={btnRef}
+                onClick={(e) => {
+                    e.stopPropagation()
+                    handleOpen()
+                }}
+                className="p-1 rounded hover:bg-muted"
+            >
                 <MoreHorizontal className="w-5 h-5" />
             </button>
             {open && (
@@ -49,14 +55,24 @@ function ClientActions({ client }: { client: Client }) {
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
                         className="flex items-center gap-2 text-sm hover:bg-muted"
-                        onClick={() => { setClient(client); editModal.openModal(); setOpen(false) }}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setRawMaterial(rawMaterial)
+                            addModal.openModal()
+                            setOpen(false)
+                        }}
                     >
                         <Pencil className="w-4 h-4" /> Edit
                     </button>
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
                         className="flex items-center gap-2 text-sm text-red-500 hover:bg-muted"
-                        onClick={() => { setClient(client); deleteModal.openModal(); setOpen(false) }}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setRawMaterial(rawMaterial)
+                            deleteModal.openModal()
+                            setOpen(false)
+                        }}
                     >
                         <Trash2 className="w-4 h-4" /> Delete
                     </button>
@@ -66,58 +82,35 @@ function ClientActions({ client }: { client: Client }) {
     )
 }
 
-export const useClientCols = (): ColumnDef<Client>[] => {
+export const useRawMaterialCols = (): ColumnDef<RawMaterial>[] => {
     return [
         {
-            accessorKey: "company_name",
-            header: "Company",
+            accessorKey: "name",
+            header: "Name",
             cell: ({ row: { original } }) => (
-                <div className="text-sm font-medium">{original.company_name}</div>
+                <span className="text-sm font-medium">{original.name}</span>
             ),
         },
         {
-            accessorKey: "company_email",
-            header: "Email",
+            accessorKey: "standard",
+            header: "Standard",
             cell: ({ row: { original } }) => (
-                <span className="text-sm text-muted-foreground">{original.company_email || "—"}</span>
+                <span className="text-sm">{original.standard}</span>
             ),
         },
         {
-            accessorKey: "customer_type",
-            header: "Client type",
+            accessorKey: "mark",
+            header: "Mark",
             cell: ({ row: { original } }) => (
-                original.customer_type ? (
-                    <Badge variant="secondary" className="capitalize font-semibold text-xs">
-                        {original.customer_type}
-                    </Badge>
-                ) : <span>—</span>
-            ),
-        },
-        {
-            accessorKey: "region_address",
-            header: "Address",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.region_address || "—"}</span>
-            ),
-        },
-        {
-            accessorKey: "inn",
-            header: "INN",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.inn || "—"}</span>
-            ),
-        },
-        {
-            accessorKey: "full_name",
-            header: "CEO/Staff",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.full_name}</span>
+                <span className="text-sm">{original.mark}</span>
             ),
         },
         {
             id: "actions",
             header: "",
-            cell: ({ row: { original } }) => <ClientActions client={original} />,
+            cell: ({ row: { original } }) => (
+                <RawMaterialActions rawMaterial={original} />
+            ),
         },
     ]
 }

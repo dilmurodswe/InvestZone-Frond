@@ -34,4 +34,22 @@ export const API = {
             ID: { INDEX: "common/suppliers/{id}" },
         },
     },
+    EXTRA: {
+        CATEGORIES: {
+            INDEX: "extra/categories",
+            ID: { INDEX: "extra/categories/{id}" },
+        },
+        SUBCATEGORIES: {
+            INDEX: "extra/subcategories",
+            ID: { INDEX: "extra/subcategories/{id}" },
+        },
+        PRODUCTS: {
+            INDEX: "extra/products",
+            ID: { INDEX: "extra/products/{id}" },
+        },
+        RAW_MATERIALS: {
+            INDEX: "extra/raw-materials",
+            ID: { INDEX: "extra/raw-materials/{id}" },
+        },
+    },
 } as const
