@@ -2,4 +2,5 @@ import type { Profile } from "@/types/profile"
 
 export type Admin = Profile & {
     date_joined: string
+    employee_code: number | null
 }

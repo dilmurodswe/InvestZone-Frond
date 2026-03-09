@@ -23,8 +23,15 @@ export const API = {
     CLIENT: {
         INDEX: "client",
         USERS: {
-            INDEX: "client/users",
-            ID: { INDEX: "client/users/{id}" },
+            INDEX: "common/clients",
+            ID: { INDEX: "common/clients/{id}" },
+        },
+    },
+    SUPPLIER: {
+        INDEX: "supplier",
+        USERS: {
+            INDEX: "common/suppliers",
+            ID: { INDEX: "common/suppliers/{id}" },
         },
     },
 } as const

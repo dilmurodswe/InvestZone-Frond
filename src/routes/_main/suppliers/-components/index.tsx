@@ -8,20 +8,20 @@ import Group from "@/components/semantic/group"
 import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
 import { PlusIcon } from "lucide-react"
-import { useClientStore } from "../-hooks/use-client-store"
-import { useClientsQuery } from "../-hooks/use-clients-query"
-import ClientAddEditModal from "./client-add-edit"
-import { useClientCols } from "./use-admin-cols"
-import ClientDeleteModal from "./client-delete-modal"
+import { useSupplierStore } from "../-hooks/use-supplier-store"
+import SupplierAddEditModal from "./supplier-add-edit"
+import { useSupplierCols } from "./use-supplier-cols"
+import { useSuppliersQuery } from "../-hooks/use-suppliers-query"
+import SupplierDeleteModal from "./supplier-delete-modal"
 
 export default function Index() {
-    const { clientList, data, isFetching } = useClientsQuery()
-    const { setClient } = useClientStore()
+    const { supplierList, data, isFetching } = useSuppliersQuery()
+    const { setSupplier } = useSupplierStore()
     const { openModal } = useModal()
-    const cols = useClientCols()
+    const cols = useSupplierCols()
     return (
         <>
-            <Navbar links={[{ label: "Clients" }]} />
+            <Navbar links={[{ label: "Suppliers" }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <div className="flex flex-wrap gap-y-4 gap-x-2">
@@ -31,37 +31,37 @@ export default function Index() {
                     <Button
                         onClick={() => {
                             openModal()
-                            setClient(null)
+                            setSupplier(null)
                         }}
                     >
                         <PlusIcon />
-                        Add Client
+                        Add Supplier
                     </Button>
                 </Group>
-                {!!clientList.length && !isFetching && (
+                {!!supplierList.length && !isFetching && (
                     <CustomTable
                         columns={cols}
-                        data={clientList}
+                        data={supplierList}
                         count={data?.count}
                     />
                 )}
-                {!clientList.length && !isFetching && (
+                {!supplierList.length && !isFetching && (
                     <NoData>
                         <Button
                             onClick={() => {
                                 openModal()
-                                setClient(null)
+                                setSupplier(null)
                             }}
                             variant={"ghost"}
                             className="text-primary"
                         >
                             <PlusIcon />
-                            Add Client
+                            Add Supplier
                         </Button>
                     </NoData>
                 )}
-                <ClientAddEditModal />
-                <ClientDeleteModal key="delete" />
+                <SupplierAddEditModal />
+                <SupplierDeleteModal key="delete" />
             </Layout>
         </>
     )

@@ -1,6 +1,8 @@
 import {
     ChevronRight,
     LayoutDashboardIcon,
+    MessageCircle,
+    MessageSquareCodeIcon,
     PanelLeftOpenIcon,
     PanelRightOpenIcon,
     UserIcon,
@@ -55,8 +57,40 @@ export function NavMain() {
                 linkOptions({
                     to: "/clients",
                     icon: <UserIcon />,
-                    enabled: isAdmin || isManager,
+                    enabled: isAdmin,
                     title: "Clients",
+                }),
+                linkOptions({
+                    to: "/suppliers",
+                    icon: <UserIcon />,
+                    enabled: isAdmin,
+                    title: "Suppliers",
+                }),
+            ],
+        }),
+        linkOptions({
+            to: "/extra",
+            icon: <MessageCircle />,
+            enabled: true,
+            title: "Warehouse",
+            childs: [
+                linkOptions({
+                    to: "/extra",
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Extra",
+                }),
+                linkOptions({
+                    to: "/ready-products",
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Ready Product",
+                }),
+                linkOptions({
+                    to: "/raw-materials",
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Raw Materials",
                 }),
             ],
         }),

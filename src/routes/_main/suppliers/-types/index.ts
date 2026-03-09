@@ -1,6 +1,6 @@
 export type CustomerType = "LLC" | "INDIV" | "TD"
 
-export interface Client {
+export interface Supplier {
     id: number
     company_name: string
     customer_type: CustomerType | null

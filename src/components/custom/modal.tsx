@@ -14,6 +14,7 @@ type Props = {
     description?: ReactNode
     children?: ReactNode
     className?: string
+    wrapperClassname?: string
     size?: string
     onClose?: () => void
 }
@@ -24,6 +25,7 @@ const Modal = ({
     children,
     modalKey = "default",
     className = "",
+    wrapperClassname = "",
     size = "lg",
     onClose,
 }: Props) => {
@@ -42,6 +44,7 @@ const Modal = ({
                 <DialogContent
                     className={`max-w-${size} ` + className}
                     aria-describedby=""
+                    wrapperClassname={wrapperClassname}
                 >
                     {title && <DialogTitle>{title}</DialogTitle>}
                     {!title && (

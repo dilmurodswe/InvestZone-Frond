@@ -11,10 +11,10 @@ import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { useClientStore } from "../-hooks/use-client-store"
-import type { Client, CustomerType } from "../-types"
+import { useSupplierStore } from "../-hooks/use-supplier-store"
+import type { Supplier, CustomerType } from "../-types"
 
-export default function ClientAddEditModal() {
+export default function SupplierAddEditModal() {
     return (
         <Modal
             wrapperClassname="md:w-[min(95vw,860px)]! md:max-w-none max-h-[calc(100vh-16px)] rounded-2xl"
@@ -33,10 +33,10 @@ const customerTypeOptions: { id: CustomerType; name: string }[] = [
 function Content() {
     const { closeModal } = useModal()
     const { invalidateByExactMatch } = useRevalidate()
-    const { client } = useClientStore()
+    const { supplier } = useSupplierStore()
     const { post, patch, isPending } = useRequest()
 
-    const form = useForm<Client>({
+    const form = useForm<Supplier>({
         defaultValues: {
             company_name: "",
             customer_type: null,
@@ -60,27 +60,27 @@ function Content() {
             notes: "",
             balance: null,
         },
-        values: client ? { ...client } : undefined,
+        values: supplier ? { ...supplier } : undefined,
     })
 
     const onSuccess = () => {
-        invalidateByExactMatch([API.CLIENT.USERS.INDEX])
+        invalidateByExactMatch([API.SUPPLIER.USERS.INDEX])
         closeModal()
-        toast.success(client ? "Updated successfully" : "Client added successfully")
+        toast.success(supplier ? "Updated successfully" : "Supplier added successfully")
     }
 
     const onSubmit = form.handleSubmit((vals) => {
         const payload = { ...vals }
-        if (client) {
-            patch(API.CLIENT.USERS.ID.INDEX.replace("{id}", String(client.id)), payload, { onSuccess })
+        if (supplier) {
+            patch(API.SUPPLIER.USERS.ID.INDEX.replace("{id}", String(supplier.id)), payload, { onSuccess })
         } else {
-            post(API.CLIENT.USERS.INDEX, payload, { onSuccess })
+            post(API.SUPPLIER.USERS.INDEX, payload, { onSuccess })
         }
     })
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-6 p-6">
-            <CardTitle>{client ? `Edit / ${client.company_name}` : "Add Client"}</CardTitle>
+            <CardTitle>{supplier ? `Edit / ${supplier.company_name}` : "Add Supplier"}</CardTitle>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <UncontrolledInput methods={form} name="company_name" label="Company name" />
@@ -88,7 +88,7 @@ function Content() {
                     methods={form}
                     name="customer_type"
                     options={customerTypeOptions}
-                    label="Client type"
+                    label="Supplier type"
                     placeholder="Select type"
                 />
                 <PhoneField methods={form} name="company_phone" label="Phone number" />
@@ -117,7 +117,7 @@ function Content() {
                 className="w-full border rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
             />
 
-            <FormAction submitName={client ? "Save" : "Add"} loading={isPending} />
+            <FormAction submitName={supplier ? "Save" : "Add"} loading={isPending} />
         </form>
     )
 }

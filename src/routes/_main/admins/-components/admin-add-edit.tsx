@@ -29,6 +29,7 @@ interface Form extends Omit<Admin, "role"> {
     role: Admin["role"] | null
     password: string
     confirm_password: string
+    employee_code: number | null
 }
 
 const adminOptions: { id: Admin["role"]; name: string }[] = [
@@ -52,6 +53,7 @@ function AdminAddEdit() {
             phone_number: "",
             role: "admin",
             confirm_password: "",
+            employee_code: null,
         },
         values:
             admin ?
@@ -111,6 +113,28 @@ function AdminAddEdit() {
                 name="phone_number"
                 label="Phone number"
             />
+            <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Employee Code</label>
+                <input
+                    type="number"
+                    {...form.register("employee_code", {
+                        validate: (v) => !v || String(v).length === 6 || "Employee code must be 6 digits",
+                        setValueAs: (v) => v === "" ? null : Number(v),
+                    })}
+                    onInput={(e) => {
+                        // 6 raqamdan ko'p kiritilmasin
+                        if (e.currentTarget.value.length > 6) {
+                            e.currentTarget.value = e.currentTarget.value.slice(0, 6)
+                        }
+                    }}
+                    className="border rounded px-3 py-2 text-sm"
+                />
+                {form.formState.errors.employee_code && (
+                    <p className="text-red-500 text-xs">
+                        {form.formState.errors.employee_code.message}
+                    </p>
+                )}
+            </div>
             <SelectField
                 methods={form}
                 name="role"

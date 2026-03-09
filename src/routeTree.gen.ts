@@ -12,6 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MainRouteImport } from './routes/_main'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
+import { Route as MainSuppliersIndexRouteImport } from './routes/_main/suppliers/index'
+import { Route as MainReadyProductsIndexRouteImport } from './routes/_main/ready-products/index'
+import { Route as MainRawMaterialsIndexRouteImport } from './routes/_main/raw-materials/index'
+import { Route as MainExtraIndexRouteImport } from './routes/_main/extra/index'
 import { Route as MainDashboardIndexRouteImport } from './routes/_main/dashboard/index'
 import { Route as MainClientsIndexRouteImport } from './routes/_main/clients/index'
 import { Route as MainAdminsIndexRouteImport } from './routes/_main/admins/index'
@@ -28,6 +32,26 @@ const AuthRoute = AuthRouteImport.update({
 const MainIndexRoute = MainIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainSuppliersIndexRoute = MainSuppliersIndexRouteImport.update({
+  id: '/suppliers/',
+  path: '/suppliers/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainReadyProductsIndexRoute = MainReadyProductsIndexRouteImport.update({
+  id: '/ready-products/',
+  path: '/ready-products/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainRawMaterialsIndexRoute = MainRawMaterialsIndexRouteImport.update({
+  id: '/raw-materials/',
+  path: '/raw-materials/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainExtraIndexRoute = MainExtraIndexRouteImport.update({
+  id: '/extra/',
+  path: '/extra/',
   getParentRoute: () => MainRoute,
 } as any)
 const MainDashboardIndexRoute = MainDashboardIndexRouteImport.update({
@@ -57,6 +81,10 @@ export interface FileRoutesByFullPath {
   '/admins/': typeof MainAdminsIndexRoute
   '/clients/': typeof MainClientsIndexRoute
   '/dashboard/': typeof MainDashboardIndexRoute
+  '/extra/': typeof MainExtraIndexRoute
+  '/raw-materials/': typeof MainRawMaterialsIndexRoute
+  '/ready-products/': typeof MainReadyProductsIndexRoute
+  '/suppliers/': typeof MainSuppliersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
@@ -64,6 +92,10 @@ export interface FileRoutesByTo {
   '/admins': typeof MainAdminsIndexRoute
   '/clients': typeof MainClientsIndexRoute
   '/dashboard': typeof MainDashboardIndexRoute
+  '/extra': typeof MainExtraIndexRoute
+  '/raw-materials': typeof MainRawMaterialsIndexRoute
+  '/ready-products': typeof MainReadyProductsIndexRoute
+  '/suppliers': typeof MainSuppliersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -74,12 +106,34 @@ export interface FileRoutesById {
   '/_main/admins/': typeof MainAdminsIndexRoute
   '/_main/clients/': typeof MainClientsIndexRoute
   '/_main/dashboard/': typeof MainDashboardIndexRoute
+  '/_main/extra/': typeof MainExtraIndexRoute
+  '/_main/raw-materials/': typeof MainRawMaterialsIndexRoute
+  '/_main/ready-products/': typeof MainReadyProductsIndexRoute
+  '/_main/suppliers/': typeof MainSuppliersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login/' | '/admins/' | '/clients/' | '/dashboard/'
+  fullPaths:
+    | '/'
+    | '/login/'
+    | '/admins/'
+    | '/clients/'
+    | '/dashboard/'
+    | '/extra/'
+    | '/raw-materials/'
+    | '/ready-products/'
+    | '/suppliers/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/admins' | '/clients' | '/dashboard'
+  to:
+    | '/'
+    | '/login'
+    | '/admins'
+    | '/clients'
+    | '/dashboard'
+    | '/extra'
+    | '/raw-materials'
+    | '/ready-products'
+    | '/suppliers'
   id:
     | '__root__'
     | '/_auth'
@@ -89,6 +143,10 @@ export interface FileRouteTypes {
     | '/_main/admins/'
     | '/_main/clients/'
     | '/_main/dashboard/'
+    | '/_main/extra/'
+    | '/_main/raw-materials/'
+    | '/_main/ready-products/'
+    | '/_main/suppliers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,6 +175,34 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof MainIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/suppliers/': {
+      id: '/_main/suppliers/'
+      path: '/suppliers'
+      fullPath: '/suppliers/'
+      preLoaderRoute: typeof MainSuppliersIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/ready-products/': {
+      id: '/_main/ready-products/'
+      path: '/ready-products'
+      fullPath: '/ready-products/'
+      preLoaderRoute: typeof MainReadyProductsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/raw-materials/': {
+      id: '/_main/raw-materials/'
+      path: '/raw-materials'
+      fullPath: '/raw-materials/'
+      preLoaderRoute: typeof MainRawMaterialsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/extra/': {
+      id: '/_main/extra/'
+      path: '/extra'
+      fullPath: '/extra/'
+      preLoaderRoute: typeof MainExtraIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/dashboard/': {
@@ -165,6 +251,10 @@ interface MainRouteChildren {
   MainAdminsIndexRoute: typeof MainAdminsIndexRoute
   MainClientsIndexRoute: typeof MainClientsIndexRoute
   MainDashboardIndexRoute: typeof MainDashboardIndexRoute
+  MainExtraIndexRoute: typeof MainExtraIndexRoute
+  MainRawMaterialsIndexRoute: typeof MainRawMaterialsIndexRoute
+  MainReadyProductsIndexRoute: typeof MainReadyProductsIndexRoute
+  MainSuppliersIndexRoute: typeof MainSuppliersIndexRoute
 }
 
 const MainRouteChildren: MainRouteChildren = {
@@ -172,6 +262,10 @@ const MainRouteChildren: MainRouteChildren = {
   MainAdminsIndexRoute: MainAdminsIndexRoute,
   MainClientsIndexRoute: MainClientsIndexRoute,
   MainDashboardIndexRoute: MainDashboardIndexRoute,
+  MainExtraIndexRoute: MainExtraIndexRoute,
+  MainRawMaterialsIndexRoute: MainRawMaterialsIndexRoute,
+  MainReadyProductsIndexRoute: MainReadyProductsIndexRoute,
+  MainSuppliersIndexRoute: MainSuppliersIndexRoute,
 }
 
 const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)

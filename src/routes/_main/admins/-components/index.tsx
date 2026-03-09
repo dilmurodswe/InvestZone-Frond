@@ -19,9 +19,17 @@ export default function Index() {
     const { setAdmin } = useAdminStore()
 
     const addModal = useModal("add-admin")
-    const deleteModal = useModal("delete-admin")
+    // const deleteModal = useModal("delete-admin")
 
     const cols = useAdminCols()
+    const roleOptions = [
+        { id: "admin", name: "Admin" },
+        { id: "office_manager", name: "Office Manager" },
+        { id: "warehouse_employee", name: "Warehouse Employee" },
+        { id: "production_manager", name: "Production Manager" },
+        { id: "financier", name: "Financier" },
+        { id: "master", name: "Master" },
+    ]
 
     return (
         <>
@@ -30,7 +38,9 @@ export default function Index() {
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <div className="flex flex-wrap gap-x-2 gap-y-4">
                         <FilterInput />
-                        <FilterSelect filterKey="role" placeholder={"Role"} />
+                        <FilterSelect filterKey="role"
+                            placeholder="Role"
+                            options={roleOptions} />
                     </div>
                     <Button
                         onClick={() => {
@@ -48,14 +58,6 @@ export default function Index() {
                         columns={cols}
                         data={adminList}
                         count={data?.count}
-                        onEdit={({ original }) => {
-                            setAdmin(original)
-                            addModal.openModal()
-                        }}
-                        onDelete={({ original }) => {
-                            setAdmin(original)
-                            deleteModal.openModal()
-                        }}
                     />
                 )}
 

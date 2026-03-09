@@ -81,7 +81,7 @@ export default function FilterSelect<Option extends Record<string, any>>({
     }
 
     return (
-        <div className={cn("inline-flex flex-col gap-1.5", wrapperClassname)}>
+        <div className={cn("inline-flex flex-col gap-1.5 min-w-[180px]", wrapperClassname)}>
             {label && (
                 <Label htmlFor={props.name} required={required}>
                     {label}
