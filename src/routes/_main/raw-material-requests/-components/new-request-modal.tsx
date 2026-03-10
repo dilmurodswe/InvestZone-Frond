@@ -1,0 +1,252 @@
+import Modal from "@/components/custom/modal"
+import FormAction from "@/components/custom/form-action"
+import { CardTitle } from "@/components/ui/card"
+import { useModal } from "@/hooks/use-modal"
+import { useRequest } from "@/hooks/react-query/use-request"
+import { useRevalidate } from "@/hooks/react-query/use-revalidate"
+import { useState, useRef } from "react"
+import { Trash2, Plus, Upload, Loader2 } from "lucide-react"
+import { toast } from "sonner"
+import { useRawMaterialsSelectQuery } from "../-hooks/use-raw-materials-select-query"
+import { useSuppliersSelectQuery } from "../-hooks/use-suppliers-select-query"
+import { useFileUpload } from "../-hooks/use-file-upload"
+import { API } from "@/lib/constants/api-endpoints"
+
+export default function NewRequestModal() {
+    return (
+        <Modal modalKey="new-request" title={null}>
+            <NewRequestForm />
+        </Modal>
+    )
+}
+
+type RowItem = {
+    id: number
+    raw_material: string
+    ton: string
+}
+
+type UploadedFile = {
+    id: number
+    file: string
+    name: string
+}
+
+function NewRequestForm() {
+    const { closeModal } = useModal("new-request")
+    const { invalidateByExactMatch } = useRevalidate()
+    const { post, isPending } = useRequest()
+    const { rawMaterialOptions } = useRawMaterialsSelectQuery()
+    const { supplierOptions } = useSuppliersSelectQuery()
+    const { uploadFile, isUploading } = useFileUpload()
+
+    const [rows, setRows] = useState<RowItem[]>([
+        { id: 1, raw_material: "", ton: "" },
+    ])
+    const [supplier, setSupplier] = useState("")
+    const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
+    const addRow = () => {
+        setRows((prev) => [
+            ...prev,
+            { id: Date.now(), raw_material: "", ton: "" },
+        ])
+    }
+
+    const removeRow = (id: number) => {
+        setRows((prev) => prev.filter((r) => r.id !== id))
+    }
+
+    const updateRow = (
+        id: number,
+        field: keyof Omit<RowItem, "id">,
+        value: string,
+    ) => {
+        setRows((prev) =>
+            prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)),
+        )
+    }
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+        e.target.value = ""
+        try {
+            const result = await uploadFile(file)
+            setUploadedFile({ id: result.id, file: result.file, name: file.name })
+        } catch {
+            toast.error("File upload failed")
+        }
+    }
+
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault()
+        const file = e.dataTransfer.files?.[0]
+        if (!file) return
+        try {
+            const result = await uploadFile(file)
+            setUploadedFile({ id: result.id, file: result.file, name: file.name })
+        } catch {
+            toast.error("File upload failed")
+        }
+    }
+
+    const onSuccess = () => {
+        invalidateByExactMatch([API.RAW_MATERIAL_REQUESTS.ITEMS.INDEX])
+        closeModal()
+        toast.success("Request created successfully")
+    }
+
+    const onSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        const payload = {
+            supplier: Number(supplier),
+            row_items: rows.map((r) => ({
+                raw_material: Number(r.raw_material),
+                ton: Number(r.ton),
+            })),
+            row_request_files: uploadedFile ? { file: uploadedFile.file } : undefined,
+        }
+        post(API.RAW_MATERIAL_REQUESTS.INDEX, payload, { onSuccess })
+    }
+
+    return (
+        <form onSubmit={onSubmit} className="flex flex-col gap-4 min-w-[420px]">
+            <CardTitle>New request</CardTitle>
+
+            {/* Row items */}
+            <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-[1fr_120px_32px] gap-2 text-xs text-muted-foreground px-1">
+                    <span>Raw material</span>
+                    <span>Tonn</span>
+                    <span />
+                </div>
+                {rows.map((row) => (
+                    <div
+                        key={row.id}
+                        className="grid grid-cols-[1fr_120px_32px] gap-2 items-center"
+                    >
+                        <select
+                            className="border rounded px-3 py-2 text-sm bg-background"
+                            value={row.raw_material}
+                            onChange={(e) =>
+                                updateRow(row.id, "raw_material", e.target.value)
+                            }
+                        >
+                            <option value="">Select</option>
+                            {rawMaterialOptions.map((rm) => (
+                                <option key={rm.id} value={rm.id}>
+                                    {rm.name}
+                                </option>
+                            ))}
+                        </select>
+                        <input
+                            type="number"
+                            placeholder="Tonn"
+                            className="border rounded px-3 py-2 text-sm"
+                            value={row.ton}
+                            onChange={(e) =>
+                                updateRow(row.id, "ton", e.target.value)
+                            }
+                        />
+                        <button
+                            type="button"
+                            onClick={() => removeRow(row.id)}
+                            className="p-1 rounded hover:bg-muted text-red-500 disabled:opacity-30"
+                            disabled={rows.length === 1}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    </div>
+                ))}
+
+                <button
+                    type="button"
+                    onClick={addRow}
+                    className="flex items-center justify-center gap-2 border border-dashed rounded py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
+                >
+                    <Plus className="w-4 h-4" />
+                    Add
+                </button>
+            </div>
+
+            {/* Supplier */}
+            <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Supplier</label>
+                <select
+                    className="border rounded px-3 py-2 text-sm bg-background"
+                    value={supplier}
+                    onChange={(e) => setSupplier(e.target.value)}
+                >
+                    <option value="">Select</option>
+                    {supplierOptions.map((s) => (
+                        <option key={s.id} value={s.id}>
+                            {s.company_name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {/* File - bitta */}
+            <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium">File</label>
+
+                {!uploadedFile && !isUploading && (
+                    <div
+                        className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => fileInputRef.current?.click()}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={handleDrop}
+                    >
+                        <Upload className="w-6 h-6 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                            File upload
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                            Select or drag and drop file
+                        </span>
+                    </div>
+                )}
+
+                {isUploading && (
+                    <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center gap-2">
+                        <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+                        <span className="text-sm text-muted-foreground">
+                            Uploading...
+                        </span>
+                    </div>
+                )}
+
+                {uploadedFile && !isUploading && (
+                    <div className="relative w-32 h-32 rounded-lg overflow-hidden border bg-muted/30 group mx-auto">
+                        <img
+                            src={uploadedFile.file}
+                            alt={uploadedFile.name}
+                            className="w-full h-full object-cover"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setUploadedFile(null)}
+                            className="absolute top-1 right-1 bg-white/80 rounded-full p-1 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <Trash2 className="w-3 h-3" />
+                        </button>
+                    </div>
+                )}
+
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileChange}
+                />
+            </div>
+
+            <FormAction
+                submitName="Send"
+                loading={isPending || isUploading}
+            />
+        </form>
+    )
+}

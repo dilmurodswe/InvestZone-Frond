@@ -15,6 +15,7 @@ import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainSuppliersIndexRouteImport } from './routes/_main/suppliers/index'
 import { Route as MainReadyProductsIndexRouteImport } from './routes/_main/ready-products/index'
 import { Route as MainRawMaterialsIndexRouteImport } from './routes/_main/raw-materials/index'
+import { Route as MainRawMaterialRequestsIndexRouteImport } from './routes/_main/raw-material-requests/index'
 import { Route as MainExtraIndexRouteImport } from './routes/_main/extra/index'
 import { Route as MainDashboardIndexRouteImport } from './routes/_main/dashboard/index'
 import { Route as MainClientsIndexRouteImport } from './routes/_main/clients/index'
@@ -53,6 +54,12 @@ const MainRawMaterialsIndexRoute = MainRawMaterialsIndexRouteImport.update({
   path: '/raw-materials/',
   getParentRoute: () => MainRoute,
 } as any)
+const MainRawMaterialRequestsIndexRoute =
+  MainRawMaterialRequestsIndexRouteImport.update({
+    id: '/raw-material-requests/',
+    path: '/raw-material-requests/',
+    getParentRoute: () => MainRoute,
+  } as any)
 const MainExtraIndexRoute = MainExtraIndexRouteImport.update({
   id: '/extra/',
   path: '/extra/',
@@ -109,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/clients/': typeof MainClientsIndexRoute
   '/dashboard/': typeof MainDashboardIndexRoute
   '/extra/': typeof MainExtraIndexRoute
+  '/raw-material-requests/': typeof MainRawMaterialRequestsIndexRoute
   '/raw-materials/': typeof MainRawMaterialsIndexRoute
   '/ready-products/': typeof MainReadyProductsIndexRoute
   '/suppliers/': typeof MainSuppliersIndexRoute
@@ -124,6 +132,7 @@ export interface FileRoutesByTo {
   '/clients': typeof MainClientsIndexRoute
   '/dashboard': typeof MainDashboardIndexRoute
   '/extra': typeof MainExtraIndexRoute
+  '/raw-material-requests': typeof MainRawMaterialRequestsIndexRoute
   '/raw-materials': typeof MainRawMaterialsIndexRoute
   '/ready-products': typeof MainReadyProductsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
@@ -142,6 +151,7 @@ export interface FileRoutesById {
   '/_main/clients/': typeof MainClientsIndexRoute
   '/_main/dashboard/': typeof MainDashboardIndexRoute
   '/_main/extra/': typeof MainExtraIndexRoute
+  '/_main/raw-material-requests/': typeof MainRawMaterialRequestsIndexRoute
   '/_main/raw-materials/': typeof MainRawMaterialsIndexRoute
   '/_main/ready-products/': typeof MainReadyProductsIndexRoute
   '/_main/suppliers/': typeof MainSuppliersIndexRoute
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/dashboard/'
     | '/extra/'
+    | '/raw-material-requests/'
     | '/raw-materials/'
     | '/ready-products/'
     | '/suppliers/'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/dashboard'
     | '/extra'
+    | '/raw-material-requests'
     | '/raw-materials'
     | '/ready-products'
     | '/suppliers'
@@ -191,6 +203,7 @@ export interface FileRouteTypes {
     | '/_main/clients/'
     | '/_main/dashboard/'
     | '/_main/extra/'
+    | '/_main/raw-material-requests/'
     | '/_main/raw-materials/'
     | '/_main/ready-products/'
     | '/_main/suppliers/'
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/raw-materials'
       fullPath: '/raw-materials/'
       preLoaderRoute: typeof MainRawMaterialsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/raw-material-requests/': {
+      id: '/_main/raw-material-requests/'
+      path: '/raw-material-requests'
+      fullPath: '/raw-material-requests/'
+      preLoaderRoute: typeof MainRawMaterialRequestsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/extra/': {
@@ -331,6 +351,7 @@ interface MainRouteChildren {
   MainClientsIndexRoute: typeof MainClientsIndexRoute
   MainDashboardIndexRoute: typeof MainDashboardIndexRoute
   MainExtraIndexRoute: typeof MainExtraIndexRoute
+  MainRawMaterialRequestsIndexRoute: typeof MainRawMaterialRequestsIndexRoute
   MainRawMaterialsIndexRoute: typeof MainRawMaterialsIndexRoute
   MainReadyProductsIndexRoute: typeof MainReadyProductsIndexRoute
   MainSuppliersIndexRoute: typeof MainSuppliersIndexRoute
@@ -346,6 +367,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainClientsIndexRoute: MainClientsIndexRoute,
   MainDashboardIndexRoute: MainDashboardIndexRoute,
   MainExtraIndexRoute: MainExtraIndexRoute,
+  MainRawMaterialRequestsIndexRoute: MainRawMaterialRequestsIndexRoute,
   MainRawMaterialsIndexRoute: MainRawMaterialsIndexRoute,
   MainReadyProductsIndexRoute: MainReadyProductsIndexRoute,
   MainSuppliersIndexRoute: MainSuppliersIndexRoute,

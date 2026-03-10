@@ -1,5 +1,6 @@
 import {
     ChevronRight,
+    GalleryVerticalEnd,
     LayoutDashboardIcon,
     MessageCircle,
     PanelLeftOpenIcon,
@@ -90,6 +91,20 @@ export function NavMain() {
                     icon: "",
                     enabled: isAdmin,
                     title: "Raw Materials",
+                }),
+            ],
+        }),
+        linkOptions({
+            to: "/raw-material-requests",
+            icon: <GalleryVerticalEnd />,
+            enabled: true,
+            title: "Office manager",
+            childs: [
+                linkOptions({
+                    to: "/raw-material-requests",
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Raw material requests",
                 }),
             ],
         }),

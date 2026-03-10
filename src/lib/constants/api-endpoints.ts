@@ -52,4 +52,25 @@ export const API = {
             ID: { INDEX: "extra/raw-materials/{id}" },
         },
     },
+    RAW_MATERIAL_REQUESTS: {
+        INDEX: "raw-material/requests",
+        ID: {
+            INDEX: "raw-material/requests/{id}",
+            PATCH: "raw-material/{id}/patch",
+        },
+        ITEMS: { INDEX: "raw-material/items" },
+        ITEMS_ID: { INDEX: "raw-material/items/{id}" },
+        REQUEST_ITEMS_ID: { INDEX: "raw-material/request-items/{id}" },
+        REQUEST_FILES: {
+            INDEX: "raw-material/request-files/{id}", // GET - fayllar ro'yxati
+            POST: "raw-material/request-files", // POST - yangi fayl
+            DELETE: "raw-material/request-files/delete/{id}", // DELETE
+        },
+    },
+    RAW_MATERIAL_ITEMS: {
+        INDEX: "raw-material/requests/list",
+    },
+    COMMON: {
+        UPLOADS: { INDEX: "common/uploads" },
+    },
 } as const
