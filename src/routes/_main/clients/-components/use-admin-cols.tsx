@@ -38,7 +38,14 @@ function ClientActions({ client }: { client: Client }) {
 
     return (
         <div ref={ref} className="relative flex justify-end">
-            <button ref={btnRef} onClick={handleOpen} className="p-1 rounded hover:bg-muted">
+            <button
+                ref={btnRef}
+                onClick={(e) => {
+                    e.stopPropagation()
+                    handleOpen()
+                }}
+                className="p-1 rounded hover:bg-muted"
+            >
                 <MoreHorizontal className="w-5 h-5" />
             </button>
             {open && (
@@ -49,14 +56,24 @@ function ClientActions({ client }: { client: Client }) {
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
                         className="flex items-center gap-2 text-sm hover:bg-muted"
-                        onClick={() => { setClient(client); editModal.openModal(); setOpen(false) }}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setClient(client)
+                            editModal.openModal()
+                            setOpen(false)
+                        }}
                     >
                         <Pencil className="w-4 h-4" /> Edit
                     </button>
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
                         className="flex items-center gap-2 text-sm text-red-500 hover:bg-muted"
-                        onClick={() => { setClient(client); deleteModal.openModal(); setOpen(false) }}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setClient(client)
+                            deleteModal.openModal()
+                            setOpen(false)
+                        }}
                     >
                         <Trash2 className="w-4 h-4" /> Delete
                     </button>
@@ -67,51 +84,88 @@ function ClientActions({ client }: { client: Client }) {
 }
 
 export const useClientCols = (): ColumnDef<Client>[] => {
+    const { setClient } = useClientStore()
+    const detailModal = useModal("client-detail")
+
+    const handleRowClick = (client: Client) => {
+        setClient(client)
+        detailModal.openModal()
+    }
+
     return [
         {
             accessorKey: "company_name",
             header: "Company",
             cell: ({ row: { original } }) => (
-                <div className="text-sm font-medium">{original.company_name}</div>
+                <button
+                    className="text-sm font-medium text-left hover:text-primary hover:underline transition-colors"
+                    onClick={() => handleRowClick(original)}
+                >
+                    {original.company_name}
+                </button>
             ),
         },
         {
             accessorKey: "company_email",
             header: "Email",
             cell: ({ row: { original } }) => (
-                <span className="text-sm text-muted-foreground">{original.company_email || "—"}</span>
+                <span
+                    className="text-sm text-muted-foreground cursor-pointer"
+                    onClick={() => handleRowClick(original)}
+                >
+                    {original.company_email || "—"}
+                </span>
             ),
         },
         {
             accessorKey: "customer_type",
             header: "Client type",
             cell: ({ row: { original } }) => (
-                original.customer_type ? (
-                    <Badge variant="secondary" className="capitalize font-semibold text-xs">
-                        {original.customer_type}
-                    </Badge>
-                ) : <span>—</span>
+                <span className="cursor-pointer" onClick={() => handleRowClick(original)}>
+                    {original.customer_type ? (
+                        <Badge variant="secondary" className="capitalize font-semibold text-xs">
+                            {original.customer_type}
+                        </Badge>
+                    ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                </span>
             ),
         },
         {
             accessorKey: "region_address",
             header: "Address",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.region_address || "—"}</span>
+                <span
+                    className="text-sm cursor-pointer"
+                    onClick={() => handleRowClick(original)}
+                >
+                    {original.region_address || "—"}
+                </span>
             ),
         },
         {
             accessorKey: "inn",
             header: "INN",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.inn || "—"}</span>
+                <span
+                    className="text-sm cursor-pointer"
+                    onClick={() => handleRowClick(original)}
+                >
+                    {original.inn || "—"}
+                </span>
             ),
         },
         {
             accessorKey: "full_name",
             header: "CEO/Staff",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.full_name}</span>
+                <span
+                    className="text-sm cursor-pointer"
+                    onClick={() => handleRowClick(original)}
+                >
+                    {original.full_name}
+                </span>
             ),
         },
         {

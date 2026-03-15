@@ -23,25 +23,38 @@ export const useRequestCols = (
             accessorKey: "quantity",
             header: "Quantity",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.quantity ?? "—"} t</span>
+                <button
+                    className="w-full text-left text-sm"
+                    onClick={() => onRowClick(original)}
+                >
+                    {original.quantity ?? "—"} t
+                </button>
             ),
         },
         {
             accessorKey: "supplier",
             header: "Supplier",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.supplier ?? "—"}</span>
+                <button
+                    className="w-full text-left text-sm"
+                    onClick={() => onRowClick(original)}
+                >
+                    {original.supplier ?? "—"}
+                </button>
             ),
         },
         {
             accessorKey: "created_at",
             header: "Date",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">
+                <button
+                    className="w-full text-left text-sm"
+                    onClick={() => onRowClick(original)}
+                >
                     {original.created_at
                         ? new Date(original.created_at).toLocaleDateString()
                         : "—"}
-                </span>
+                </button>
             ),
         },
         {
@@ -50,7 +63,11 @@ export const useRequestCols = (
             cell: ({ row: { original } }) => (
                 <StatusBadge
                     status={original.status}
-                    onClick={(e) => onStatusClick(original, e.currentTarget)}
+                    onClick={(e) => {
+                        // Faqat dropdown ochiladi, detail OCHILMAYDI
+                        // Detail onStatusChanged callback orqali ochiladi (status o'zgargandan keyin)
+                        onStatusClick(original, e.currentTarget)
+                    }}
                 />
             ),
         },
@@ -58,18 +75,12 @@ export const useRequestCols = (
             accessorKey: "tolerant",
             header: "Tolerants",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">
+                <button
+                    className="w-full text-left text-sm"
+                    onClick={() => onRowClick(original)}
+                >
                     {original.tolerant ? `${original.tolerant}%` : "—"}
-                </span>
-            ),
-        },
-        {
-            accessorKey: "accepted_ton",
-            header: "Accepted tonn",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm">
-                    {original.accepted_ton ? `${original.accepted_ton} t` : "—"}
-                </span>
+                </button>
             ),
         },
         {
@@ -77,16 +88,25 @@ export const useRequestCols = (
             header: "Difference",
             cell: ({ row: { original } }) => {
                 const val = original.differance
-                if (!val) return <span className="text-sm">—</span>
+                if (!val)
+                    return (
+                        <button
+                            className="w-full text-left text-sm"
+                            onClick={() => onRowClick(original)}
+                        >
+                            —
+                        </button>
+                    )
                 const isPositive = val > 0
                 return (
-                    <span
-                        className="text-sm font-semibold"
+                    <button
+                        className="w-full text-left text-sm font-semibold"
                         style={{ color: isPositive ? "#16C647" : "#E73C50" }}
+                        onClick={() => onRowClick(original)}
                     >
                         {isPositive ? "+" : ""}
                         {val.toLocaleString()} $
-                    </span>
+                    </button>
                 )
             },
         },

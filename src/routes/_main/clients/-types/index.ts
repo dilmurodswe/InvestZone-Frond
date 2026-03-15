@@ -23,5 +23,5 @@ export interface Client {
     email: string
     notes: string
     balance: number | null
-    date_joined: string
+    created_at: string
 }

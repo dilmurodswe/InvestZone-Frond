@@ -13,12 +13,14 @@ import SupplierAddEditModal from "./supplier-add-edit"
 import { useSupplierCols } from "./use-supplier-cols"
 import { useSuppliersQuery } from "../-hooks/use-suppliers-query"
 import SupplierDeleteModal from "./supplier-delete-modal"
+import SupplierDetailModal from "./supplier-detail-modal"
 
 export default function Index() {
     const { supplierList, data, isFetching } = useSuppliersQuery()
     const { setSupplier } = useSupplierStore()
     const { openModal } = useModal()
     const cols = useSupplierCols()
+
     return (
         <>
             <Navbar links={[{ label: "Suppliers" }]} />
@@ -38,6 +40,7 @@ export default function Index() {
                         Add Supplier
                     </Button>
                 </Group>
+
                 {!!supplierList.length && !isFetching && (
                     <CustomTable
                         columns={cols}
@@ -52,7 +55,7 @@ export default function Index() {
                                 openModal()
                                 setSupplier(null)
                             }}
-                            variant={"ghost"}
+                            variant="ghost"
                             className="text-primary"
                         >
                             <PlusIcon />
@@ -60,8 +63,10 @@ export default function Index() {
                         </Button>
                     </NoData>
                 )}
+
                 <SupplierAddEditModal />
                 <SupplierDeleteModal key="delete" />
+                <SupplierDetailModal />
             </Layout>
         </>
     )

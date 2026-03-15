@@ -117,7 +117,7 @@ function NewRequestForm() {
 
             {/* Row items */}
             <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-[1fr_120px_32px] gap-2 text-xs text-muted-foreground px-1">
+                <div className="grid grid-cols-[1fr_80px_auto] gap-2 text-xs text-muted-foreground px-1">
                     <span>Raw material</span>
                     <span>Tonn</span>
                     <span />
@@ -125,7 +125,7 @@ function NewRequestForm() {
                 {rows.map((row) => (
                     <div
                         key={row.id}
-                        className="grid grid-cols-[1fr_120px_32px] gap-2 items-center"
+                        className="grid grid-cols-[1fr_80px_auto] gap-2 items-center"
                     >
                         <select
                             className="border rounded px-3 py-2 text-sm bg-background"

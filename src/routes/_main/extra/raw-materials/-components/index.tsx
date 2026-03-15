@@ -10,6 +10,7 @@ import { useRawMaterialStore } from "../-hooks/use-raw-material-store"
 import { useRawMaterialsQuery } from "../-hooks/use-raw-materials-query"
 import RawMaterialAddEditModal from "./raw-material-add-edit"
 import RawMaterialDeleteModal from "./raw-material-delete-modal"
+import RawMaterialDetailModal from "./raw-material-detail-modal"
 import { useRawMaterialCols } from "./use-raw-material-cols"
 import { useNavigate } from "@tanstack/react-router"
 
@@ -19,6 +20,7 @@ export default function Index() {
     const addModal = useModal("add-raw-material")
     const cols = useRawMaterialCols()
     const navigate = useNavigate()
+
     return (
         <>
             <Navbar links={[{ label: "Warehouse" }]} />
@@ -45,18 +47,16 @@ export default function Index() {
                 </Group>
 
                 {!!rawMaterialList.length && (
-                    <CustomTable
-                        columns={cols}
-                        data={rawMaterialList}
-                        count={data?.count}
-                        isLoading={isFetching}
-                    />
-                )}
-
-                {!rawMaterialList.length && !isFetching && (
-                    <NoData>
-                        ...
-                    </NoData>
+                    <div className="overflow-x-auto w-full">
+                        <div className="min-w-max">
+                            <CustomTable
+                                columns={cols}
+                                data={rawMaterialList}
+                                count={data?.count}
+                                isLoading={isFetching}
+                            />
+                        </div>
+                    </div>
                 )}
 
                 {!rawMaterialList.length && !isFetching && (
@@ -77,6 +77,7 @@ export default function Index() {
 
                 <RawMaterialAddEditModal />
                 <RawMaterialDeleteModal key="delete-raw-material" />
+                <RawMaterialDetailModal />
             </Layout>
         </>
     )

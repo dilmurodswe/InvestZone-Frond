@@ -13,12 +13,14 @@ import { useClientsQuery } from "../-hooks/use-clients-query"
 import ClientAddEditModal from "./client-add-edit"
 import { useClientCols } from "./use-admin-cols"
 import ClientDeleteModal from "./client-delete-modal"
+import ClientDetailModal from "./client-detail-modal"
 
 export default function Index() {
     const { clientList, data, isFetching } = useClientsQuery()
     const { setClient } = useClientStore()
     const { openModal } = useModal()
     const cols = useClientCols()
+
     return (
         <>
             <Navbar links={[{ label: "Clients" }]} />
@@ -38,6 +40,7 @@ export default function Index() {
                         Add Client
                     </Button>
                 </Group>
+
                 {!!clientList.length && !isFetching && (
                     <CustomTable
                         columns={cols}
@@ -52,7 +55,7 @@ export default function Index() {
                                 openModal()
                                 setClient(null)
                             }}
-                            variant={"ghost"}
+                            variant="ghost"
                             className="text-primary"
                         >
                             <PlusIcon />
@@ -60,8 +63,10 @@ export default function Index() {
                         </Button>
                     </NoData>
                 )}
+
                 <ClientAddEditModal />
                 <ClientDeleteModal key="delete" />
+                <ClientDetailModal />
             </Layout>
         </>
     )

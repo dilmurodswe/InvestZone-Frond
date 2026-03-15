@@ -1,10 +1,12 @@
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, CellContext } from "@tanstack/react-table"
 import type { Product } from "../../../-types"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { useProductStore } from "../-hooks/use-product-store"
 import { useModal } from "@/hooks/use-modal"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { useProductsQuery } from "../-hooks/use-products-query"
 
+// ─── Actions dropdown ─────────────────────────────────────────────────────────
 function ProductActions({ product }: { product: Product }) {
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -82,40 +84,138 @@ function ProductActions({ product }: { product: Product }) {
     )
 }
 
+// ─── Truncated cell with — fallback ───────────────────────────────────────────
+function TruncatedCell({
+    value,
+    onClick,
+    maxWidth = 160,
+}: {
+    value: string | number | null | undefined
+    onClick: () => void
+    maxWidth?: number
+}) {
+    const isEmpty = value === undefined || value === null || value === ""
+    return (
+        <span
+            onClick={onClick}
+            title={isEmpty ? undefined : String(value)}
+            className="text-sm cursor-pointer block truncate"
+            style={{ maxWidth }}
+        >
+            {isEmpty ? (
+                <span className="text-muted-foreground">—</span>
+            ) : (
+                String(value)
+            )}
+        </span>
+    )
+}
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
 export const useProductCols = (): ColumnDef<Product>[] => {
+    const { productList } = useProductsQuery()
+    const { setProduct } = useProductStore()
+    const detailModal = useModal("product-detail")
+
+    const extraKeys = useMemo(() => {
+        const keys = new Set<string>()
+        for (const p of productList) {
+            if (p.extra_fields) {
+                for (const k of Object.keys(p.extra_fields)) {
+                    keys.add(k)
+                }
+            }
+        }
+        return Array.from(keys)
+    }, [productList])
+
+    const handleRowClick = (product: Product) => {
+        setProduct(product)
+        detailModal.openModal()
+    }
+
+    const extraCols: ColumnDef<Product>[] = extraKeys.map((key) => ({
+        id: `extra_${key}`,
+        header: key,
+        cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+            <TruncatedCell
+                value={original.extra_fields?.[key] ?? null}
+                onClick={() => handleRowClick(original)}
+            />
+        ),
+    }))
+
     return [
         {
             accessorKey: "name",
             header: "Product Name",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm font-medium">{original.name}</span>
+            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+                <TruncatedCell
+                    value={original.name}
+                    onClick={() => handleRowClick(original)}
+                    maxWidth={200}
+                />
             ),
         },
         {
             accessorKey: "code",
             header: "Code",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.code}</span>
+            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+                <TruncatedCell
+                    value={original.code}
+                    onClick={() => handleRowClick(original)}
+                    maxWidth={100}
+                />
             ),
         },
         {
             accessorKey: "articul",
             header: "Articul",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.articul}</span>
+            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+                <TruncatedCell
+                    value={original.articul}
+                    onClick={() => handleRowClick(original)}
+                    maxWidth={120}
+                />
             ),
         },
         {
             accessorKey: "price",
             header: "Price",
-            cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.price}</span>
+            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+                <TruncatedCell
+                    value={original.price}
+                    onClick={() => handleRowClick(original)}
+                    maxWidth={100}
+                />
             ),
+        },
+        ...extraCols,
+        {
+            id: "description",
+            header: "Description",
+            cell: ({ row: { original } }: CellContext<Product, unknown>) => {
+                const plain = original.description
+                    ? original.description
+                        .replace(/<[^>]*>/g, " ")
+                        .replace(/\s+/g, " ")
+                        .trim()
+                    : null
+                return (
+                    <TruncatedCell
+                        value={plain}
+                        onClick={() => handleRowClick(original)}
+                        maxWidth={200}
+                    />
+                )
+            },
         },
         {
             id: "actions",
             header: "",
-            cell: ({ row: { original } }) => <ProductActions product={original} />,
+            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+                <ProductActions product={original} />
+            ),
         },
     ]
 }

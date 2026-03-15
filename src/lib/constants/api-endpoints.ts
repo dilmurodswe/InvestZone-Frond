@@ -1,17 +1,9 @@
 export const API = {
     AUTH: {
-        LOGIN: {
-            INDEX: "auth/login",
-        },
-        REFRESH: {
-            INDEX: "auth/refresh",
-        },
-        VERIFY: {
-            INDEX: "auth/verify",
-        },
-        ME: {
-            INDEX: "auth/me",
-        },
+        LOGIN: { INDEX: "auth/login" },
+        REFRESH: { INDEX: "auth/refresh" },
+        VERIFY: { INDEX: "auth/verify" },
+        ME: { INDEX: "auth/me" },
     },
     ADMIN: {
         INDEX: "admin",
@@ -62,10 +54,11 @@ export const API = {
         ITEMS_ID: { INDEX: "raw-material/items/{id}" },
         REQUEST_ITEMS_ID: { INDEX: "raw-material/request-items/{id}" },
         REQUEST_FILES: {
-            INDEX: "raw-material/request-files/{id}", // GET - fayllar ro'yxati
-            POST: "raw-material/request-files", // POST - yangi fayl
-            DELETE: "raw-material/request-files/delete/{id}", // DELETE
+            INDEX: "raw-material/request-files/{id}",
+            POST: "raw-material/request-files",
+            DELETE: "raw-material/request-files/delete/{id}",
         },
+        ITEM_DETAIL: { INDEX: "raw-material/item-detail" },
     },
     RAW_MATERIAL_ITEMS: {
         INDEX: "raw-material/requests/list",

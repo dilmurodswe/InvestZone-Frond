@@ -14,6 +14,7 @@ import { useProductsQuery } from "../-hooks/use-products-query"
 import ProductAddEditModal from "./product-add-edit"
 import ProductDeleteModal from "./product-delete-modal"
 import { useProductCols } from "./use-product-cols"
+import ProductDetailModal from "./product-detail-modal"
 
 export default function Index() {
     const { productList, data, isFetching } = useProductsQuery()
@@ -36,14 +37,19 @@ export default function Index() {
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <div className="flex flex-wrap gap-x-2 gap-y-4 ">
-                        <Button className="bg-[#131314] hover:bg-[#131314]" onClick={() => navigate({ to: "/extra/products" })}>
+                        <Button
+                            className="bg-[#131314] hover:bg-[#131314]"
+                            onClick={() => navigate({ to: "/extra/products" })}
+                        >
                             Product List
                         </Button>
-                        <Button variant="outline" onClick={() => navigate({ to: "/extra/raw-materials" })}>
+                        <Button
+                            variant="outline"
+                            onClick={() => navigate({ to: "/extra/raw-materials" })}
+                        >
                             Raw Material List
                         </Button>
                     </div>
-
 
                     <Button
                         onClick={() => {
@@ -77,12 +83,16 @@ export default function Index() {
                 </Group>
 
                 {!!productList.length && (
-                    <CustomTable
-                        columns={cols}
-                        data={productList}
-                        count={data?.count}
-                        isLoading={isFetching}
-                    />
+                    <div className="overflow-x-auto w-full">
+                        <div className="min-w-max">
+                            <CustomTable
+                                columns={cols}
+                                data={productList}
+                                count={data?.count}
+                                isLoading={isFetching}
+                            />
+                        </div>
+                    </div>
                 )}
 
                 {!productList.length && !isFetching && (
@@ -103,6 +113,7 @@ export default function Index() {
 
                 <ProductAddEditModal />
                 <ProductDeleteModal key="delete-product" />
+                <ProductDetailModal />
             </Layout>
         </>
     )
