@@ -1,13 +1,13 @@
-import { X, Upload, Trash2, Loader2 } from "lucide-react"
-import { useRef, useState, useCallback } from "react"
-import type { RawMaterialRequest } from "../-types"
 import { useGet } from "@/hooks/react-query/use-get"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
-import { useFileUpload } from "../-hooks/use-file-upload"
 import { API } from "@/lib/constants/api-endpoints"
 import { getArray } from "@/lib/utils/get-array"
+import { Loader2, Trash2, Upload, X } from "lucide-react"
+import { useCallback, useRef, useState } from "react"
 import { toast } from "sonner"
+import { useFileUpload } from "../-hooks/use-file-upload"
+import type { RawMaterialRequest } from "../-types"
 import ItemDetailModal from "./item-detail-modal"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -46,7 +46,11 @@ type RequestFile = {
 }
 
 // Removed: standard, mark, party_number, roll
-const TABLE_FIELDS: { key: keyof RowEdit; label: string; isNumber?: boolean }[] = [
+const TABLE_FIELDS: {
+    key: keyof RowEdit
+    label: string
+    isNumber?: boolean
+}[] = [
     { key: "ton", label: "Ton", isNumber: true },
     { key: "weight", label: "Weight", isNumber: true },
     { key: "netto", label: "Netto", isNumber: true },
@@ -209,7 +213,10 @@ function DetailContent({
     // ── Header auto-save onBlur ──
     const handleHeaderBlur = useCallback(() => {
         patch(
-            API.RAW_MATERIAL_REQUESTS.ID.PATCH.replace("{id}", String(request.id)),
+            API.RAW_MATERIAL_REQUESTS.ID.PATCH.replace(
+                "{id}",
+                String(request.id),
+            ),
             {
                 status: request.status,
                 tolerant: tolerant ? Number(tolerant) : 0,
@@ -221,13 +228,19 @@ function DetailContent({
                 },
             },
         )
-    }, [patch, request.id, request.status, tolerant, differance, invalidateByExactMatch])
+    }, [
+        patch,
+        request.id,
+        request.status,
+        tolerant,
+        differance,
+        invalidateByExactMatch,
+    ])
 
     return (
         <>
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                 <div className="bg-background rounded-xl shadow-2xl w-full max-w-full mx-4 max-h-[90vh] overflow-y-auto p-6 flex flex-col gap-5">
-
                     {/* ── Header ── */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 flex-wrap">
@@ -235,7 +248,9 @@ function DetailContent({
                                 №{request.contract_number ?? "—"} —{" "}
                                 {request.supplier ?? "—"}
                             </h2>
-                            <span className="text-muted-foreground text-sm">|</span>
+                            <span className="text-muted-foreground text-sm">
+                                |
+                            </span>
                             <span className="text-sm text-muted-foreground">
                                 Requested{" "}
                                 <span className="font-semibold text-foreground">
@@ -243,9 +258,11 @@ function DetailContent({
                                 </span>
                             </span>
                             <span className="text-sm text-muted-foreground">
-                                {request.created_at
-                                    ? new Date(request.created_at).toLocaleDateString()
-                                    : "—"}
+                                {request.created_at ?
+                                    new Date(
+                                        request.created_at,
+                                    ).toLocaleDateString()
+                                :   "—"}
                             </span>
                         </div>
                         <button
@@ -295,21 +312,22 @@ function DetailContent({
                             </span>
                         </div>
                         <div className="flex gap-3 flex-wrap items-center">
-                            {isUploading ? (
+                            {isUploading ?
                                 <div className="flex flex-col items-center justify-center gap-1 border-2 border-dashed rounded-lg w-24 h-24 text-xs text-muted-foreground">
                                     <Loader2 className="w-5 h-5 animate-spin" />
                                     <span>Uploading...</span>
                                 </div>
-                            ) : (
-                                <button
+                            :   <button
                                     type="button"
-                                    onClick={() => fileInputRef.current?.click()}
+                                    onClick={() =>
+                                        fileInputRef.current?.click()
+                                    }
                                     className="flex flex-col items-center justify-center gap-1 border-2 border-dashed rounded-lg w-24 h-24 text-xs text-muted-foreground hover:bg-muted transition-colors"
                                 >
                                     <Upload className="w-5 h-5" />
                                     <span>Upload</span>
                                 </button>
-                            )}
+                            }
                             {filesLoading && (
                                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                             )}
@@ -343,12 +361,11 @@ function DetailContent({
 
                     {/* ── Detail table ── */}
                     <div className="overflow-x-auto rounded-md border">
-                        {itemsLoading ? (
+                        {itemsLoading ?
                             <div className="flex justify-center py-8">
                                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                             </div>
-                        ) : (
-                            <table className="w-full text-sm">
+                        :   <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b bg-muted/50">
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
@@ -371,7 +388,9 @@ function DetailContent({
                                     {items.length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan={2 + TABLE_FIELDS.length}
+                                                colSpan={
+                                                    2 + TABLE_FIELDS.length
+                                                }
                                                 className="text-center py-6 text-muted-foreground text-sm"
                                             >
                                                 No data
@@ -381,50 +400,79 @@ function DetailContent({
                                     {items.map((item) => {
                                         const edit = rowEdits[item.id] ?? {}
                                         return (
-                                            <tr key={item.id} className="border-b last:border-0">
-                                                {/* Clickable: material_name */}
+                                            <tr
+                                                key={item.id}
+                                                className="border-b last:border-0"
+                                            >
                                                 <td className="px-3 py-2 whitespace-nowrap">
                                                     <button
                                                         type="button"
                                                         className="text-sm font-medium text-left hover:text-primary hover:underline transition-colors"
                                                         onClick={() =>
-                                                            setItemDetailTarget({
-                                                                rowItemId: item.id,
-                                                                materialName: item.material_name,
-                                                                contractNumber: item.contract_number,
-                                                            })
+                                                            setItemDetailTarget(
+                                                                {
+                                                                    rowItemId:
+                                                                        item.id,
+                                                                    materialName:
+                                                                        item.material_name,
+                                                                    contractNumber:
+                                                                        item.contract_number,
+                                                                },
+                                                            )
                                                         }
                                                     >
                                                         {item.material_name}
                                                     </button>
                                                 </td>
-                                                {/* Clickable: contract_number */}
                                                 <td className="px-3 py-2 whitespace-nowrap">
                                                     <button
                                                         type="button"
                                                         className="text-sm text-left hover:text-primary hover:underline transition-colors text-muted-foreground"
                                                         onClick={() =>
-                                                            setItemDetailTarget({
-                                                                rowItemId: item.id,
-                                                                materialName: item.material_name,
-                                                                contractNumber: item.contract_number,
-                                                            })
+                                                            setItemDetailTarget(
+                                                                {
+                                                                    rowItemId:
+                                                                        item.id,
+                                                                    materialName:
+                                                                        item.material_name,
+                                                                    contractNumber:
+                                                                        item.contract_number,
+                                                                },
+                                                            )
                                                         }
                                                     >
                                                         {item.contract_number}
                                                     </button>
                                                 </td>
-                                                {/* Editable fields */}
                                                 {TABLE_FIELDS.map((f) => (
-                                                    <td key={f.key} className="px-2 py-1">
+                                                    <td
+                                                        key={f.key}
+                                                        className="px-2 py-1"
+                                                    >
                                                         <input
-                                                            type={f.isNumber ? "number" : "text"}
-                                                            className="w-full min-w-[80px] border-0 border-b border-muted focus:border-primary outline-none bg-transparent text-sm py-1 transition-colors"
-                                                            value={edit[f.key] ?? ""}
-                                                            onChange={(e) =>
-                                                                updateRowEdit(item.id, f.key, e.target.value)
+                                                            type={
+                                                                f.isNumber ?
+                                                                    "number"
+                                                                :   "text"
                                                             }
-                                                            onBlur={() => handleRowBlur(item.id)}
+                                                            className="w-full min-w-[80px] border-0 border-b border-muted focus:border-primary outline-none bg-transparent text-sm py-1 transition-colors"
+                                                            value={
+                                                                edit[f.key] ??
+                                                                ""
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateRowEdit(
+                                                                    item.id,
+                                                                    f.key,
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                            onBlur={() =>
+                                                                handleRowBlur(
+                                                                    item.id,
+                                                                )
+                                                            }
                                                             placeholder="—"
                                                         />
                                                     </td>
@@ -434,12 +482,11 @@ function DetailContent({
                                     })}
                                 </tbody>
                             </table>
-                        )}
+                        }
                     </div>
                 </div>
             </div>
 
-            {/* ── Item detail modal (z-60, above request modal) ── */}
             {itemDetailTarget && (
                 <ItemDetailModal
                     rowItemId={itemDetailTarget.rowItemId}

@@ -111,19 +111,19 @@ const MainExtraProductsCategoryIdSubcategoryIdIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
-  '/login/': typeof AuthLoginIndexRoute
-  '/admins/': typeof MainAdminsIndexRoute
-  '/clients/': typeof MainClientsIndexRoute
-  '/dashboard/': typeof MainDashboardIndexRoute
-  '/extra/': typeof MainExtraIndexRoute
-  '/raw-material-requests/': typeof MainRawMaterialRequestsIndexRoute
-  '/raw-materials/': typeof MainRawMaterialsIndexRoute
-  '/ready-products/': typeof MainReadyProductsIndexRoute
-  '/suppliers/': typeof MainSuppliersIndexRoute
-  '/extra/products/': typeof MainExtraProductsIndexRoute
-  '/extra/raw-materials/': typeof MainExtraRawMaterialsIndexRoute
-  '/extra/products/$categoryId/': typeof MainExtraProductsCategoryIdIndexRoute
-  '/extra/products/$categoryId/$subcategoryId/': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
+  '/login': typeof AuthLoginIndexRoute
+  '/admins': typeof MainAdminsIndexRoute
+  '/clients': typeof MainClientsIndexRoute
+  '/dashboard': typeof MainDashboardIndexRoute
+  '/extra': typeof MainExtraIndexRoute
+  '/raw-material-requests': typeof MainRawMaterialRequestsIndexRoute
+  '/raw-materials': typeof MainRawMaterialsIndexRoute
+  '/ready-products': typeof MainReadyProductsIndexRoute
+  '/suppliers': typeof MainSuppliersIndexRoute
+  '/extra/products': typeof MainExtraProductsIndexRoute
+  '/extra/raw-materials': typeof MainExtraRawMaterialsIndexRoute
+  '/extra/products/$categoryId': typeof MainExtraProductsCategoryIdIndexRoute
+  '/extra/products/$categoryId/$subcategoryId': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
@@ -164,19 +164,19 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/login/'
-    | '/admins/'
-    | '/clients/'
-    | '/dashboard/'
-    | '/extra/'
-    | '/raw-material-requests/'
-    | '/raw-materials/'
-    | '/ready-products/'
-    | '/suppliers/'
-    | '/extra/products/'
-    | '/extra/raw-materials/'
-    | '/extra/products/$categoryId/'
-    | '/extra/products/$categoryId/$subcategoryId/'
+    | '/login'
+    | '/admins'
+    | '/clients'
+    | '/dashboard'
+    | '/extra'
+    | '/raw-material-requests'
+    | '/raw-materials'
+    | '/ready-products'
+    | '/suppliers'
+    | '/extra/products'
+    | '/extra/raw-materials'
+    | '/extra/products/$categoryId'
+    | '/extra/products/$categoryId/$subcategoryId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -223,14 +223,14 @@ declare module '@tanstack/react-router' {
     '/_main': {
       id: '/_main'
       path: ''
-      fullPath: '/'
+      fullPath: ''
       preLoaderRoute: typeof MainRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth': {
       id: '/_auth'
       path: ''
-      fullPath: '/'
+      fullPath: ''
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -244,91 +244,91 @@ declare module '@tanstack/react-router' {
     '/_main/suppliers/': {
       id: '/_main/suppliers/'
       path: '/suppliers'
-      fullPath: '/suppliers/'
+      fullPath: '/suppliers'
       preLoaderRoute: typeof MainSuppliersIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/ready-products/': {
       id: '/_main/ready-products/'
       path: '/ready-products'
-      fullPath: '/ready-products/'
+      fullPath: '/ready-products'
       preLoaderRoute: typeof MainReadyProductsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/raw-materials/': {
       id: '/_main/raw-materials/'
       path: '/raw-materials'
-      fullPath: '/raw-materials/'
+      fullPath: '/raw-materials'
       preLoaderRoute: typeof MainRawMaterialsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/raw-material-requests/': {
       id: '/_main/raw-material-requests/'
       path: '/raw-material-requests'
-      fullPath: '/raw-material-requests/'
+      fullPath: '/raw-material-requests'
       preLoaderRoute: typeof MainRawMaterialRequestsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/extra/': {
       id: '/_main/extra/'
       path: '/extra'
-      fullPath: '/extra/'
+      fullPath: '/extra'
       preLoaderRoute: typeof MainExtraIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/dashboard/': {
       id: '/_main/dashboard/'
       path: '/dashboard'
-      fullPath: '/dashboard/'
+      fullPath: '/dashboard'
       preLoaderRoute: typeof MainDashboardIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/clients/': {
       id: '/_main/clients/'
       path: '/clients'
-      fullPath: '/clients/'
+      fullPath: '/clients'
       preLoaderRoute: typeof MainClientsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/admins/': {
       id: '/_main/admins/'
       path: '/admins'
-      fullPath: '/admins/'
+      fullPath: '/admins'
       preLoaderRoute: typeof MainAdminsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_auth/login/': {
       id: '/_auth/login/'
       path: '/login'
-      fullPath: '/login/'
+      fullPath: '/login'
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_main/extra/raw-materials/': {
       id: '/_main/extra/raw-materials/'
       path: '/extra/raw-materials'
-      fullPath: '/extra/raw-materials/'
+      fullPath: '/extra/raw-materials'
       preLoaderRoute: typeof MainExtraRawMaterialsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/extra/products/': {
       id: '/_main/extra/products/'
       path: '/extra/products'
-      fullPath: '/extra/products/'
+      fullPath: '/extra/products'
       preLoaderRoute: typeof MainExtraProductsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/extra/products/$categoryId/': {
       id: '/_main/extra/products/$categoryId/'
       path: '/extra/products/$categoryId'
-      fullPath: '/extra/products/$categoryId/'
+      fullPath: '/extra/products/$categoryId'
       preLoaderRoute: typeof MainExtraProductsCategoryIdIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/extra/products/$categoryId/$subcategoryId/': {
       id: '/_main/extra/products/$categoryId/$subcategoryId/'
       path: '/extra/products/$categoryId/$subcategoryId'
-      fullPath: '/extra/products/$categoryId/$subcategoryId/'
+      fullPath: '/extra/products/$categoryId/$subcategoryId'
       preLoaderRoute: typeof MainExtraProductsCategoryIdSubcategoryIdIndexRouteImport
       parentRoute: typeof MainRoute
     }

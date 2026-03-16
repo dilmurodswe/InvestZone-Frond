@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
+import { useEffect, useRef } from "react"
 // import { toast } from "sonner"
+import { API } from "@/lib/constants/api-endpoints"
 import type { RawMaterialRequest, RequestStatus } from "../-types"
 import { STATUS_CONFIG } from "./status-config"
-import { API } from "@/lib/constants/api-endpoints"
 
 interface StatusDropdownProps {
     request: RawMaterialRequest
@@ -13,7 +13,7 @@ interface StatusDropdownProps {
     onStatusChanged: (request: RawMaterialRequest) => void
 }
 
-const ALL_STATUSES = (Object.keys(STATUS_CONFIG) as unknown) as RequestStatus[]
+const ALL_STATUSES = Object.keys(STATUS_CONFIG) as unknown as RequestStatus[]
 
 export default function StatusDropdown({
     request,
@@ -38,7 +38,10 @@ export default function StatusDropdown({
 
     const handleSelect = (status: RequestStatus) => {
         patch(
-            API.RAW_MATERIAL_REQUESTS.ID.PATCH.replace("{id}", String(request.id)),
+            API.RAW_MATERIAL_REQUESTS.ID.PATCH.replace(
+                "{id}",
+                String(request.id),
+            ),
             { status },
             {
                 onSuccess: () => {
@@ -61,7 +64,7 @@ export default function StatusDropdown({
                 zIndex: 9999,
                 minWidth: 160,
             }}
-            className="bg-white rounded-xl shadow-lg border flex flex-col overflow-hidden"
+            className="bg-white rounded-xl shadow-lg border flex flex-col overflow-y-auto max-h-[232px]"
         >
             {ALL_STATUSES.map((status) => {
                 const config = STATUS_CONFIG[status]

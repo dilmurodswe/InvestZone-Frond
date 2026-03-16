@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
 import { Plus } from "lucide-react"
 import { useState } from "react"
-import type { RawMaterialRequest } from "../-types"
 import { useRequestsQuery } from "../-hooks/use-requests-query"
+import type { RawMaterialRequest } from "../-types"
 import NewRequestModal from "./new-request-modal"
 import RequestDetailModal from "./request-detail-modal"
 import StatusDropdown from "./status-dropdown"
@@ -24,12 +24,15 @@ export default function Index() {
         anchorEl: HTMLElement
     } | null>(null)
 
-    const handleStatusClick = (request: RawMaterialRequest, el: HTMLElement) => {
+    const handleStatusClick = (
+        request: RawMaterialRequest,
+        el: HTMLElement,
+    ) => {
         setStatusDropdown({ request, anchorEl: el })
     }
 
     const cols = useRequestCols(
-        (request) => setSelectedRequest(request),
+        (request: RawMaterialRequest) => setSelectedRequest(request),
         handleStatusClick,
     )
 

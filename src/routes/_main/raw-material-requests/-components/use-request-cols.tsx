@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import type { RawMaterialRequest } from "../-types"
 import StatusBadge from "./status-badge"
-
+// eslint-disable-next-line react-x/no-unnecessary-use-prefix
 export const useRequestCols = (
     onRowClick: (request: RawMaterialRequest) => void,
     onStatusClick: (request: RawMaterialRequest, el: HTMLElement) => void,
@@ -51,9 +51,9 @@ export const useRequestCols = (
                     className="w-full text-left text-sm"
                     onClick={() => onRowClick(original)}
                 >
-                    {original.created_at
-                        ? new Date(original.created_at).toLocaleDateString()
-                        : "—"}
+                    {original.created_at ?
+                        new Date(original.created_at).toLocaleDateString()
+                    :   "—"}
                 </button>
             ),
         },
@@ -64,8 +64,6 @@ export const useRequestCols = (
                 <StatusBadge
                     status={original.status}
                     onClick={(e) => {
-                        // Faqat dropdown ochiladi, detail OCHILMAYDI
-                        // Detail onStatusChanged callback orqali ochiladi (status o'zgargandan keyin)
                         onStatusClick(original, e.currentTarget)
                     }}
                 />

@@ -1,10 +1,8 @@
-import { useState } from "react"
-import { X, Plus, Trash2 } from "lucide-react"
 import { useRequest } from "@/hooks/react-query/use-request"
-import { toast } from "sonner"
 import { API } from "@/lib/constants/api-endpoints"
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { Plus, Trash2, X } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
 
 interface ItemDetailModalProps {
     rowItemId: number
@@ -14,10 +12,14 @@ interface ItemDetailModalProps {
 }
 
 type ItemRow = {
-    _id: number // local only
+    _id: number
     ton: string
     weight: string
     netto: string
+    inner_size: string
+    outer_size: string
+    standard: string
+    mark: string
     plank: string
     reference_number: string
     price: string
@@ -29,23 +31,33 @@ const EMPTY_ROW = (): ItemRow => ({
     ton: "",
     weight: "",
     netto: "",
+    inner_size: "",
+    outer_size: "",
+    standard: "",
+    mark: "",
     plank: "",
     reference_number: "",
     price: "",
     wagon: "",
 })
 
-const FIELDS: { key: keyof Omit<ItemRow, "_id">; label: string; isNumber?: boolean }[] = [
+const FIELDS: {
+    key: keyof Omit<ItemRow, "_id">
+    label: string
+    isNumber?: boolean
+}[] = [
     { key: "ton", label: "Ton", isNumber: true },
     { key: "weight", label: "Weight", isNumber: true },
     { key: "netto", label: "Netto", isNumber: true },
+    { key: "inner_size", label: "Inner size", isNumber: true },
+    { key: "outer_size", label: "Outer size", isNumber: true },
+    { key: "standard", label: "Standard" },
+    { key: "mark", label: "Mark" },
     { key: "plank", label: "Plank" },
     { key: "reference_number", label: "Reference number" },
     { key: "price", label: "Price", isNumber: true },
     { key: "wagon", label: "Wagon", isNumber: true },
 ]
-
-// ─── Modal ────────────────────────────────────────────────────────────────────
 
 export default function ItemDetailModal({
     rowItemId,
@@ -54,7 +66,8 @@ export default function ItemDetailModal({
     onClose,
 }: ItemDetailModalProps) {
     const { post, isPending } = useRequest()
-    const [rows, setRows] = useState<ItemRow[]>([EMPTY_ROW()])
+
+    const [rows, setRows] = useState<ItemRow[]>(() => [EMPTY_ROW()])
 
     const addRow = () => setRows((prev) => [...prev, EMPTY_ROW()])
 
@@ -63,7 +76,11 @@ export default function ItemDetailModal({
         setRows((prev) => prev.filter((r) => r._id !== id))
     }
 
-    const updateRow = (id: number, field: keyof Omit<ItemRow, "_id">, value: string) => {
+    const updateRow = (
+        id: number,
+        field: keyof Omit<ItemRow, "_id">,
+        value: string,
+    ) => {
         setRows((prev) =>
             prev.map((r) => (r._id === id ? { ...r, [field]: value } : r)),
         )
@@ -76,6 +93,10 @@ export default function ItemDetailModal({
             ton: r.ton ? Number(r.ton) : undefined,
             weight: r.weight ? Number(r.weight) : null,
             netto: r.netto ? Number(r.netto) : null,
+            inner_size: r.inner_size ? Number(r.inner_size) : null,
+            outer_size: r.outer_size ? Number(r.outer_size) : null,
+            standard: r.standard || null,
+            mark: r.mark || null,
             plank: r.plank || null,
             reference_number: r.reference_number || null,
             price: r.price ? Number(r.price) : null,
@@ -96,23 +117,29 @@ export default function ItemDetailModal({
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
-            <div className="bg-background rounded-xl shadow-2xl w-full max-w-5xl mx-4 max-h-[90vh] flex flex-col">
-                {/* Header */}
+            <div className="bg-background rounded-xl shadow-2xl w-full max-w-[80vw] mx-4 max-h-[90vh] flex flex-col">
                 <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
                     <div className="flex items-center gap-3">
-                        <h3 className="text-base font-semibold">{materialName}</h3>
+                        <h3 className="text-base font-semibold">
+                            {materialName}
+                        </h3>
                         <span className="text-muted-foreground text-sm">|</span>
                         <span className="text-sm text-muted-foreground">
                             {contractNumber}
                         </span>
                     </div>
-                    <button onClick={onClose} className="p-1 rounded hover:bg-muted">
+                    <button
+                        onClick={onClose}
+                        className="p-1 rounded hover:bg-muted"
+                    >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4 overflow-hidden flex-1">
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex flex-col gap-4 overflow-hidden flex-1"
+                >
                     <div className="overflow-auto flex-1 px-6 pt-4">
                         <table className="w-full text-sm border-collapse">
                             <thead>
@@ -123,9 +150,6 @@ export default function ItemDetailModal({
                                             className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap"
                                         >
                                             {f.label}
-                                            {f.key === "ton" && (
-                                                <span className="text-red-500 ml-0.5">*</span>
-                                            )}
                                         </th>
                                     ))}
                                     <th className="w-8" />
@@ -133,16 +157,28 @@ export default function ItemDetailModal({
                             </thead>
                             <tbody>
                                 {rows.map((row) => (
-                                    <tr key={row._id} className="border-b last:border-0">
+                                    <tr
+                                        key={row._id}
+                                        className="border-b last:border-0"
+                                    >
                                         {FIELDS.map((f) => (
-                                            <td key={f.key} className="px-2 py-1.5">
+                                            <td
+                                                key={f.key}
+                                                className="px-2 py-1.5"
+                                            >
                                                 <input
-                                                    type={f.isNumber ? "number" : "text"}
+                                                    type={
+                                                        f.isNumber ? "number"
+                                                        :   "text"
+                                                    }
                                                     placeholder="—"
                                                     value={row[f.key]}
-                                                    required={f.key === "ton"}
                                                     onChange={(e) =>
-                                                        updateRow(row._id, f.key, e.target.value)
+                                                        updateRow(
+                                                            row._id,
+                                                            f.key,
+                                                            e.target.value,
+                                                        )
                                                     }
                                                     className="w-full min-w-[80px] border rounded px-2 py-1 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground"
                                                 />
@@ -151,7 +187,9 @@ export default function ItemDetailModal({
                                         <td className="px-2 py-1.5">
                                             <button
                                                 type="button"
-                                                onClick={() => removeRow(row._id)}
+                                                onClick={() =>
+                                                    removeRow(row._id)
+                                                }
                                                 disabled={rows.length === 1}
                                                 className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-30"
                                             >
@@ -163,7 +201,6 @@ export default function ItemDetailModal({
                             </tbody>
                         </table>
 
-                        {/* Add row */}
                         <button
                             type="button"
                             onClick={addRow}
@@ -174,7 +211,6 @@ export default function ItemDetailModal({
                         </button>
                     </div>
 
-                    {/* Footer */}
                     <div className="flex items-center justify-end gap-3 px-6 py-4 border-t flex-shrink-0">
                         <button
                             type="button"
