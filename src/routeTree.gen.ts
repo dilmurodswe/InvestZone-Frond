@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MainRouteImport } from './routes/_main'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
+import { Route as MainTaskManagerIndexRouteImport } from './routes/_main/task-manager/index'
 import { Route as MainSuppliersIndexRouteImport } from './routes/_main/suppliers/index'
 import { Route as MainReadyProductsIndexRouteImport } from './routes/_main/ready-products/index'
 import { Route as MainRawMaterialsIndexRouteImport } from './routes/_main/raw-materials/index'
@@ -37,6 +38,11 @@ const AuthRoute = AuthRouteImport.update({
 const MainIndexRoute = MainIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainTaskManagerIndexRoute = MainTaskManagerIndexRouteImport.update({
+  id: '/task-manager/',
+  path: '/task-manager/',
   getParentRoute: () => MainRoute,
 } as any)
 const MainSuppliersIndexRoute = MainSuppliersIndexRouteImport.update({
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/raw-materials': typeof MainRawMaterialsIndexRoute
   '/ready-products': typeof MainReadyProductsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
+  '/task-manager': typeof MainTaskManagerIndexRoute
   '/extra/products': typeof MainExtraProductsIndexRoute
   '/extra/raw-materials': typeof MainExtraRawMaterialsIndexRoute
   '/extra/products/$categoryId': typeof MainExtraProductsCategoryIdIndexRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/raw-materials': typeof MainRawMaterialsIndexRoute
   '/ready-products': typeof MainReadyProductsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
+  '/task-manager': typeof MainTaskManagerIndexRoute
   '/extra/products': typeof MainExtraProductsIndexRoute
   '/extra/raw-materials': typeof MainExtraRawMaterialsIndexRoute
   '/extra/products/$categoryId': typeof MainExtraProductsCategoryIdIndexRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   '/_main/raw-materials/': typeof MainRawMaterialsIndexRoute
   '/_main/ready-products/': typeof MainReadyProductsIndexRoute
   '/_main/suppliers/': typeof MainSuppliersIndexRoute
+  '/_main/task-manager/': typeof MainTaskManagerIndexRoute
   '/_main/extra/products/': typeof MainExtraProductsIndexRoute
   '/_main/extra/raw-materials/': typeof MainExtraRawMaterialsIndexRoute
   '/_main/extra/products/$categoryId/': typeof MainExtraProductsCategoryIdIndexRoute
@@ -173,6 +182,7 @@ export interface FileRouteTypes {
     | '/raw-materials'
     | '/ready-products'
     | '/suppliers'
+    | '/task-manager'
     | '/extra/products'
     | '/extra/raw-materials'
     | '/extra/products/$categoryId'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/raw-materials'
     | '/ready-products'
     | '/suppliers'
+    | '/task-manager'
     | '/extra/products'
     | '/extra/raw-materials'
     | '/extra/products/$categoryId'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/_main/raw-materials/'
     | '/_main/ready-products/'
     | '/_main/suppliers/'
+    | '/_main/task-manager/'
     | '/_main/extra/products/'
     | '/_main/extra/raw-materials/'
     | '/_main/extra/products/$categoryId/'
@@ -239,6 +251,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof MainIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/task-manager/': {
+      id: '/_main/task-manager/'
+      path: '/task-manager'
+      fullPath: '/task-manager'
+      preLoaderRoute: typeof MainTaskManagerIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/suppliers/': {
@@ -355,6 +374,7 @@ interface MainRouteChildren {
   MainRawMaterialsIndexRoute: typeof MainRawMaterialsIndexRoute
   MainReadyProductsIndexRoute: typeof MainReadyProductsIndexRoute
   MainSuppliersIndexRoute: typeof MainSuppliersIndexRoute
+  MainTaskManagerIndexRoute: typeof MainTaskManagerIndexRoute
   MainExtraProductsIndexRoute: typeof MainExtraProductsIndexRoute
   MainExtraRawMaterialsIndexRoute: typeof MainExtraRawMaterialsIndexRoute
   MainExtraProductsCategoryIdIndexRoute: typeof MainExtraProductsCategoryIdIndexRoute
@@ -371,6 +391,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainRawMaterialsIndexRoute: MainRawMaterialsIndexRoute,
   MainReadyProductsIndexRoute: MainReadyProductsIndexRoute,
   MainSuppliersIndexRoute: MainSuppliersIndexRoute,
+  MainTaskManagerIndexRoute: MainTaskManagerIndexRoute,
   MainExtraProductsIndexRoute: MainExtraProductsIndexRoute,
   MainExtraRawMaterialsIndexRoute: MainExtraRawMaterialsIndexRoute,
   MainExtraProductsCategoryIdIndexRoute: MainExtraProductsCategoryIdIndexRoute,

@@ -1,5 +1,6 @@
 import {
     ChevronRight,
+    ClipboardList,
     GalleryVerticalEnd,
     LayoutDashboardIcon,
     MessageCircle,
@@ -108,6 +109,20 @@ export function NavMain() {
                 }),
             ],
         }),
+        linkOptions({
+            to: "/task-manager",
+            icon: <ClipboardList />,
+            enabled: true,
+            title: "Task manager",
+            childs: [
+                linkOptions({
+                    to: "/task-manager",
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Task manager",
+                }),
+            ],
+        }),
     ]
 
     return (
@@ -128,7 +143,10 @@ export function NavMain() {
                                     setOpenMobile(false)
                                 }}
                             >
-                                <Img src="/images/logo.svg" className="w-[150px]" />
+                                <Img
+                                    src="/images/logo.svg"
+                                    className="w-[150px]"
+                                />
                             </Link>
                             <SidebarTrigger className="size-8" variant="ghost">
                                 <PanelRightOpenIcon size={20} />
@@ -160,7 +178,7 @@ export function NavMain() {
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 </Link>
-                                : <Collapsible
+                            :   <Collapsible
                                     key={title}
                                     asChild
                                     defaultOpen={pathname.startsWith(item.to)}

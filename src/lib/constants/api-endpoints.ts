@@ -66,4 +66,10 @@ export const API = {
     COMMON: {
         UPLOADS: { INDEX: "common/uploads" },
     },
+    TASK_MANAGER: {
+        PROJECTS: {
+            INDEX: "projects",
+            ID: { INDEX: "projects/{id}" },
+        },
+    },
 } as const
