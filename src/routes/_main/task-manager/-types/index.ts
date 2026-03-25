@@ -27,6 +27,9 @@ export interface Project {
     is_author: boolean
     author: ProjectAuthor
     task_counts?: TaskCounts
+    todo: number
+    processing: number
+    finished: number
 }
 
 export interface ProjectForm {

@@ -32,9 +32,6 @@ export default function ProjectCard({ project }: Props) {
     }, [])
     console.log(menuOpen)
 
-    const counts = project.task_counts
-    // const totalTasks = counts ? counts.todo + counts.processing + counts.finished : null
-
     return (
         <>
             <div
@@ -96,20 +93,14 @@ export default function ProjectCard({ project }: Props) {
 
                     {/* Task counts */}
                     <div className="mt-3 flex flex-col gap-1.5">
-                        <TaskCountRow
-                            label="Todo"
-                            value={counts?.todo}
-                            color="text-blue-300"
-                        />
+                        <TaskCountRow label="Todo" value={project?.todo} />
                         <TaskCountRow
                             label="Processing"
-                            value={counts?.processing}
-                            color="text-yellow-300"
+                            value={project?.processing}
                         />
                         <TaskCountRow
                             label="Finished"
-                            value={counts?.finished}
-                            color="text-green-300"
+                            value={project?.finished}
                         />
                     </div>
 
@@ -168,16 +159,16 @@ export default function ProjectCard({ project }: Props) {
 function TaskCountRow({
     label,
     value,
-    color,
 }: {
     label: string
     value: number | undefined
-    color: string
 }) {
     return (
         <div className="flex items-center justify-between">
             <span className="text-white/70 text-sm">{label}:</span>
-            <span className={`text-sm font-semibold ${color}`}>
+            <span
+                className={`text-sm font-semibold text-white ${value === 0 ? "text-white/50" : ""}`}
+            >
                 {value !== undefined ? `${value} vazifalar` : "—"}
             </span>
         </div>
