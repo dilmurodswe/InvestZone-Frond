@@ -71,5 +71,16 @@ export const API = {
             INDEX: "projects",
             ID: { INDEX: "projects/{id}" },
         },
+        PROJECT_TASKS: {
+            INDEX: "projects/project-tasks/{id}",
+        },
+        STATUSES: {
+            INDEX: "statuses",
+            ID: "statuses/{id}",
+        },
+        TASKS: {
+            INDEX: "tasks",
+            ID: "tasks/{id}",
+        },
     },
 } as const

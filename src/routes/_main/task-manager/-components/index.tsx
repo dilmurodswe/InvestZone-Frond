@@ -31,7 +31,7 @@ export default function Index() {
                         }}
                     >
                         <PlusIcon />
-                        Create board
+                        Create Project
                     </Button>
                 </Group>
 
