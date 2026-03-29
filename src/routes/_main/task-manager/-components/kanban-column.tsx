@@ -1,5 +1,5 @@
 import { useRequest } from "@/hooks/react-query/use-request"
-import { useRevalidate } from "@/hooks/react-query/use-revalidate"
+// import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import {
@@ -427,7 +427,7 @@ export default function KanbanBoard({
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
     const [activeTask, setActiveTask] = useState<Task | null>(null)
     const { patch } = useRequest()
-    const { invalidateByExactMatch } = useRevalidate()
+    // const { invalidateByExactMatch } = useRevalidate()
 
     useEffect(() => {
         setStatuses(initialStatuses)
@@ -437,14 +437,14 @@ export default function KanbanBoard({
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     )
 
-    const invalidateBoard = useCallback(() => {
-        invalidateByExactMatch([
-            API.TASK_MANAGER.PROJECT_TASKS.INDEX.replace(
-                "{id}",
-                String(projectId),
-            ),
-        ])
-    }, [invalidateByExactMatch, projectId])
+    // const invalidateBoard = useCallback(() => {
+    //     invalidateByExactMatch([
+    //         API.TASK_MANAGER.PROJECT_TASKS.INDEX.replace(
+    //             "{id}",
+    //             String(projectId),
+    //         ),
+    //     ])
+    // }, [invalidateByExactMatch, projectId])
 
     const findTaskStatus = useCallback(
         (taskId: number) =>
@@ -579,7 +579,6 @@ export default function KanbanBoard({
                             String(activeId),
                         ),
                         { order: newOrder, status: activeStatus.id },
-                        { onSuccess: invalidateBoard },
                     )
 
                     return prev.map((s) =>
@@ -621,14 +620,10 @@ export default function KanbanBoard({
                     1024
                 :   calcSafeOrder(prevOrder, nextOrder)
 
-            patch(
-                API.TASK_MANAGER.TASKS.ID.replace("{id}", String(activeId)),
-                {
-                    order: Math.min(newOrder, MAX_ORDER),
-                    status: movedTask.status_id,
-                },
-                { onSuccess: invalidateBoard },
-            )
+            patch(API.TASK_MANAGER.TASKS.ID.replace("{id}", String(activeId)), {
+                order: Math.min(newOrder, MAX_ORDER),
+                status: movedTask.status_id,
+            })
 
             return prev.map((s) =>
                 s.id === newStatusObj.id ?

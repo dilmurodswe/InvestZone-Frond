@@ -1,12 +1,26 @@
 import FormAction from "@/components/custom/form-action"
 import Modal from "@/components/custom/modal"
+import { Calendar } from "@/components/ui/calendar"
 import { CardTitle } from "@/components/ui/card"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import type { Admin } from "@/routes/_main/admins/-types"
-import { CheckSquare, Plus, Square, Trash2 } from "lucide-react"
+import { format } from "date-fns"
+import {
+    Calendar as CalendarIcon,
+    CheckSquare,
+    Plus,
+    Square,
+    Trash2,
+} from "lucide-react"
+import { useState } from "react"
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { useTaskStore } from "../-hooks/use-task-store"
@@ -76,7 +90,7 @@ function TaskAddEdit({ projectId, statuses, members }: Props) {
                 }
             :   undefined,
     })
-
+    const [deadlineOpen, setDeadlineOpen] = useState(false)
     const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: "subtasks",
@@ -193,10 +207,55 @@ function TaskAddEdit({ projectId, statuses, members }: Props) {
             {/* Deadline */}
             <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Deadline</label>
-                <input
-                    type="datetime-local"
-                    {...form.register("deadline")}
-                    className="border rounded px-3 py-2 text-sm"
+                <Controller
+                    control={form.control}
+                    name="deadline"
+                    render={({ field }) => {
+                        const date =
+                            field.value ? new Date(field.value) : undefined
+                        return (
+                            <Popover
+                                open={deadlineOpen}
+                                onOpenChange={setDeadlineOpen}
+                            >
+                                <PopoverTrigger asChild>
+                                    <button
+                                        type="button"
+                                        className="flex items-center gap-2 border rounded px-3 py-2 text-sm text-left hover:bg-muted transition-colors"
+                                    >
+                                        <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                                        <span
+                                            className={
+                                                date ? "" : (
+                                                    "text-muted-foreground"
+                                                )
+                                            }
+                                        >
+                                            {date ?
+                                                format(date, "dd MMM yyyy")
+                                            :   "Pick a date"}
+                                        </span>
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                    className="w-auto p-0"
+                                    align="start"
+                                >
+                                    <Calendar
+                                        mode="single"
+                                        selected={date}
+                                        onSelect={(d) => {
+                                            field.onChange(
+                                                d ? d.toISOString() : "",
+                                            )
+                                            setDeadlineOpen(false)
+                                        }}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        )
+                    }}
                 />
             </div>
 

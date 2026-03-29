@@ -1,3 +1,9 @@
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
 import { useGet } from "@/hooks/react-query/use-get"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
@@ -10,7 +16,6 @@ import {
     ChevronDown,
     Clock,
     Flag,
-    Image as ImageIcon,
     Pencil,
     Plus,
     Square,
@@ -41,18 +46,6 @@ const PRIORITY_MAP = {
     3: { label: "High", color: "#ef4444" },
 } as const
 
-// Galerya rasmlari — public papkada saqlanadi
-const BG_IMAGES = [
-    "/bg-1.jpg",
-    "/bg-2.jpg",
-    "/bg-3.jpg",
-    "/bg-4.jpg",
-    "/bg-5.jpg",
-    "/bg-6.jpg",
-    "/bg-7.jpg",
-    "/bg-8.jpg",
-]
-
 // ─── Date Picker ──────────────────────────────────────────────────────────────
 function DatePickerButton({
     value,
@@ -61,26 +54,37 @@ function DatePickerButton({
     value: string | undefined
     onChange: (iso: string | undefined) => void
 }) {
-    const inputRef = useRef<HTMLInputElement>(null)
+    const [open, setOpen] = useState(false)
 
     return (
         <div className="flex items-center gap-2">
-            <button
-                type="button"
-                onClick={() =>
-                    inputRef.current?.showPicker?.() ??
-                    inputRef.current?.click()
-                }
-                className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 transition-colors rounded-lg px-3 py-2"
-            >
-                <Calendar className="w-4 h-4 text-slate-500" />
-                <span className="text-sm font-medium text-slate-700">
-                    {value ?
-                        format(new Date(value), "dd MMM yyyy")
-                    :   "Set deadline"}
-                </span>
-                <Pencil className="w-3 h-3 text-slate-400" />
-            </button>
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                    <button
+                        type="button"
+                        className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 transition-colors rounded-lg px-3 py-2"
+                    >
+                        <Calendar className="w-4 h-4 text-slate-500" />
+                        <span className="text-sm font-medium text-slate-700">
+                            {value ?
+                                format(new Date(value), "dd MMM yyyy")
+                            :   "Set deadline"}
+                        </span>
+                        <Pencil className="w-3 h-3 text-slate-400" />
+                    </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                        mode="single"
+                        selected={value ? new Date(value) : undefined}
+                        onSelect={(date) => {
+                            onChange(date ? date.toISOString() : undefined)
+                            setOpen(false)
+                        }}
+                        initialFocus
+                    />
+                </PopoverContent>
+            </Popover>
             {value && (
                 <button
                     type="button"
@@ -90,17 +94,6 @@ function DatePickerButton({
                     <X className="w-3.5 h-3.5" />
                 </button>
             )}
-            <input
-                ref={inputRef}
-                type="date"
-                className="sr-only"
-                value={value ? value.slice(0, 10) : ""}
-                onChange={(e) => {
-                    if (e.target.value) {
-                        onChange(new Date(e.target.value).toISOString())
-                    }
-                }}
-            />
         </div>
     )
 }
@@ -234,58 +227,6 @@ function AssigneeDropdown({
     )
 }
 
-// ─── Background Gallery Modal ─────────────────────────────────────────────────
-function BgGalleryModal({
-    onSelect,
-    onClose,
-}: {
-    onSelect: (url: string) => void
-    onClose: () => void
-}) {
-    return (
-        <div className="absolute inset-0 z-10 flex items-end justify-end pointer-events-none">
-            <div
-                className="pointer-events-auto mb-14 mr-4 bg-white rounded-2xl shadow-2xl border border-slate-100 p-3 w-64"
-                style={{ maxHeight: 320 }}
-            >
-                <div className="flex items-center justify-between mb-2 px-1">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                        Background
-                    </span>
-                    <button
-                        onClick={onClose}
-                        className="w-5 h-5 rounded-full hover:bg-slate-100 flex items-center justify-center"
-                    >
-                        <X className="w-3 h-3 text-slate-400" />
-                    </button>
-                </div>
-                <div
-                    className="grid grid-cols-4 gap-1.5 overflow-y-auto"
-                    style={{ maxHeight: 240 }}
-                >
-                    {BG_IMAGES.map((src) => (
-                        <button
-                            key={src}
-                            type="button"
-                            onClick={() => {
-                                onSelect(src)
-                                onClose()
-                            }}
-                            className="aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all"
-                        >
-                            <img
-                                src={src}
-                                alt=""
-                                className="w-full h-full object-cover"
-                            />
-                        </button>
-                    ))}
-                </div>
-            </div>
-        </div>
-    )
-}
-
 // ─── Delete Confirm ───────────────────────────────────────────────────────────
 function DeleteConfirm({
     onConfirm,
@@ -347,9 +288,7 @@ export default function TaskDetailPage({
     const [editingField, setEditingField] = useState<string | null>(null)
     const [localTitle, setLocalTitle] = useState(task.title)
     const [localDesc, setLocalDesc] = useState(task.desc)
-    const [showGallery, setShowGallery] = useState(false)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-    const [bgImage, setBgImage] = useState<string | null>(null)
 
     useEffect(() => {
         setLocalTitle(task.title)
@@ -442,7 +381,6 @@ export default function TaskDetailPage({
         setEditingField(null)
     }
 
-    const priority = PRIORITY_MAP[task.priority]
     const subtasks = fullTask?.subtasks ?? []
     const finishedCount = subtasks.filter((s) => s.finished).length
 
@@ -465,88 +403,26 @@ export default function TaskDetailPage({
                     />
                 )}
 
-                {/* Gallery panel */}
-                {showGallery && (
-                    <BgGalleryModal
-                        onSelect={(url) => setBgImage(url)}
-                        onClose={() => setShowGallery(false)}
-                    />
-                )}
-
                 {/* Header */}
-                <div
-                    className="flex items-center justify-between px-5 py-4 border-b"
-                    style={
-                        bgImage ?
-                            {
-                                backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.4)), url(${bgImage})`,
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                            }
-                        :   {}
-                    }
-                >
-                    <div className="flex items-center gap-2 flex-wrap">
-                        {/* Priority badge */}
-                        <span
-                            className="text-xs font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1"
-                            style={{
-                                backgroundColor:
-                                    bgImage ?
-                                        "rgba(255,255,255,0.2)"
-                                    :   priority.color + "20",
-                                color: bgImage ? "#fff" : priority.color,
-                            }}
-                        >
-                            <Flag className="w-3 h-3" />
-                            {priority.label}
-                        </span>
-
-                        {/* Status dropdown */}
+                <div className="flex items-center justify-between px-5 py-4 border-b">
+                    <div className="flex items-center gap-1.5">
                         <StatusDropdown
                             statuses={statuses}
                             currentId={task.status_id}
                             onChange={(id) => patchTask({ status: id })}
                         />
                     </div>
-
                     <div className="flex items-center gap-1">
-                        {/* Gallery toggle */}
-                        <button
-                            type="button"
-                            onClick={() => setShowGallery((v) => !v)}
-                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                bgImage ?
-                                    "bg-white/20 hover:bg-white/30 text-white"
-                                :   "hover:bg-slate-100 text-slate-400"
-                            }`}
-                            title="Background gallery"
-                        >
-                            <ImageIcon className="w-4 h-4" />
-                        </button>
-
-                        {/* Delete task */}
                         <button
                             type="button"
                             onClick={() => setShowDeleteConfirm(true)}
-                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                bgImage ?
-                                    "bg-white/20 hover:bg-red-500/60 text-white"
-                                :   "hover:bg-red-50 text-slate-400 hover:text-red-500"
-                            }`}
-                            title="Delete task"
+                            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
-
-                        {/* Close */}
                         <button
                             onClick={onClose}
-                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                bgImage ?
-                                    "bg-white/20 hover:bg-white/30 text-white"
-                                :   "hover:bg-slate-100 text-slate-500"
-                            }`}
+                            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-500 transition-colors"
                         >
                             <X className="w-4 h-4" />
                         </button>

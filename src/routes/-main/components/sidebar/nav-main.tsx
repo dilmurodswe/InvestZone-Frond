@@ -123,6 +123,20 @@ export function NavMain() {
                 }),
             ],
         }),
+        linkOptions({
+            to: "/manufactures",
+            icon: <ClipboardList />,
+            enabled: true,
+            title: "Manufactures",
+            childs: [
+                linkOptions({
+                    to: "/manufactures",
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Manufactures",
+                }),
+            ],
+        }),
     ]
 
     return (

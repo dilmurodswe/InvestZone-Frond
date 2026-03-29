@@ -58,7 +58,11 @@ export const API = {
             POST: "raw-material/request-files",
             DELETE: "raw-material/request-files/delete/{id}",
         },
-        ITEM_DETAIL: { INDEX: "raw-material/item-detail" },
+        ITEM_DETAIL: {
+            INDEX: "raw-material/item-detail",
+            BY_ROW: "raw-material/item-detail/by-row/{id}",
+            ID: "raw-material/item-detail/{id}",
+        },
     },
     RAW_MATERIAL_ITEMS: {
         INDEX: "raw-material/requests/list",
@@ -82,5 +86,13 @@ export const API = {
             INDEX: "tasks",
             ID: "tasks/{id}",
         },
+    },
+    RAW_MATERIALS: {
+        INDEX: "raw-material",
+    },
+    MANUFACTURES: {
+        INDEX: "manufactures",
+        ID: "manufactures/{id}",
+        READY_PRODUCTS: "manufactures/ready-products",
     },
 } as const

@@ -1,1 +1,1 @@
-export const BASE_URL = 'https://investzone.upgrow.uz/api/v1/'
+export const BASE_URL = "https://investzone.dilmurodbek.uz/api/v1/"

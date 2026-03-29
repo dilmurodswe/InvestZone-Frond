@@ -4,7 +4,7 @@ import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { API } from "@/lib/constants/api-endpoints"
 import { getArray } from "@/lib/utils/get-array"
 import { Loader2, Trash2, Upload, X } from "lucide-react"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useFileUpload } from "../-hooks/use-file-upload"
 import type { RawMaterialRequest } from "../-types"
@@ -45,7 +45,6 @@ type RequestFile = {
     file: string
 }
 
-// Removed: standard, mark, party_number, roll
 const TABLE_FIELDS: {
     key: keyof RowEdit
     label: string
@@ -67,7 +66,10 @@ export default function RequestDetailModal({
     onClose,
 }: RequestDetailModalProps) {
     if (!request) return null
-    return <DetailContent request={request} onClose={onClose} />
+    // key={request.id} — har yangi request ochilganda to'liq reset bo'ladi
+    return (
+        <DetailContent key={request.id} request={request} onClose={onClose} />
+    )
 }
 
 // ─── Content ─────────────────────────────────────────────────────────────────
@@ -107,10 +109,15 @@ function DetailContent({
         ),
     )
     const fetchedFiles = getArray<RequestFile>(filesData)
+
+    // fetchedFiles tayyor bo'lganda localFiles ni set qilamiz
     const [localFiles, setLocalFiles] = useState<RequestFile[]>([])
-    if (fetchedFiles.length && localFiles.length === 0) {
-        setLocalFiles(fetchedFiles)
-    }
+    useEffect(() => {
+        if (fetchedFiles.length > 0) {
+            setLocalFiles(fetchedFiles)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filesData])
 
     // ── Detail rows ──
     const { data: itemsData, isLoading: itemsLoading } = useGet<DetailRow[]>(
@@ -122,24 +129,26 @@ function DetailContent({
     const items = getArray<DetailRow>(itemsData)
 
     const [rowEdits, setRowEdits] = useState<Record<number, RowEdit>>({})
-    const [initializedKey, setInitializedKey] = useState<number | null>(null)
 
-    if (items.length && initializedKey !== request.id) {
-        const map: Record<number, RowEdit> = {}
-        items.forEach((item) => {
-            map[item.id] = {
-                ton: item.ton != null ? String(item.ton) : "",
-                weight: item.weight != null ? String(item.weight) : "",
-                netto: item.netto != null ? String(item.netto) : "",
-                plank: item.plank ?? "",
-                reference_number: item.reference_number ?? "",
-                price: item.price != null ? String(item.price) : "",
-                wagon: item.wagon != null ? String(item.wagon) : "",
-            }
-        })
-        setRowEdits(map)
-        setInitializedKey(request.id)
-    }
+    // itemsData yangilanganda rowEdits ni reset qilamiz
+    useEffect(() => {
+        if (items.length > 0) {
+            const map: Record<number, RowEdit> = {}
+            items.forEach((item) => {
+                map[item.id] = {
+                    ton: item.ton != null ? String(item.ton) : "",
+                    weight: item.weight != null ? String(item.weight) : "",
+                    netto: item.netto != null ? String(item.netto) : "",
+                    plank: item.plank ?? "",
+                    reference_number: item.reference_number ?? "",
+                    price: item.price != null ? String(item.price) : "",
+                    wagon: item.wagon != null ? String(item.wagon) : "",
+                }
+            })
+            setRowEdits(map)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [itemsData])
 
     const updateRowEdit = (id: number, field: keyof RowEdit, value: string) => {
         setRowEdits((prev) => ({
