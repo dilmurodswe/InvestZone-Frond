@@ -1,9 +1,27 @@
+export type OrderItem = {
+    id: number
+    product: number
+    price: number
+    count: number
+}
+
+export type OrderCurrency = {
+    id: number
+    currency: string
+    current_rate: number
+}
+
+export type OrderStatus = "new" | "in_processing" | "completed"
+
 export type Order = {
     id: number
-    client: number
-    payment_type: number
-    currency: number
+    client: string
+    payment_type: string
+    currency: OrderCurrency
     client_currency: number | null
+    items: OrderItem[]
+    status: OrderStatus
+    created_at: string
 }
 
 export type OrderItemForm = {
@@ -17,6 +35,7 @@ export type OrderForm = {
     payment_type: number | null
     currency: number | null
     client_currency: number | null
+    status?: "new" | "in_processing" | "completed"
     items: OrderItemForm[]
 }
 

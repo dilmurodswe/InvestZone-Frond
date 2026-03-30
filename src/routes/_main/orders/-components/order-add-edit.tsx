@@ -23,7 +23,7 @@ export default function OrderAddEditModal() {
         <Modal
             modalKey="add-order"
             title={null}
-            wrapperClassname="md:w-[900px]! md:max-w-none "
+            wrapperClassname="md:w-[900px]! md:max-w-none"
             className="min-w-[860px]!"
         >
             <OrderAddEdit />
@@ -41,11 +41,14 @@ function OrderAddEdit() {
     const { paymentTypeList } = usePaymentTypesQuery()
     const { currencyList } = useCurrenciesQuery()
     const { readyProductList } = useReadyProductsQuery()
-
-    // SelectField options
+    const statusOptions = [
+        { id: "new", name: "New" },
+        { id: "in_processing", name: "In Processing" },
+        { id: "completed", name: "Completed" },
+    ]
     const clientOptions = clientList.map((c) => ({
         id: c.id,
-        name: `${c.full_name}`,
+        name: c.full_name,
     }))
 
     const paymentTypeOptions = paymentTypeList.map((p) => ({
@@ -70,15 +73,29 @@ function OrderAddEdit() {
             currency: null,
             client_currency: null,
             items: [{ product: null, price: null, count: null }],
+            status: "new",
         },
         values:
             order ?
                 {
-                    client: order.client,
-                    payment_type: order.payment_type,
-                    currency: order.currency,
+                    client:
+                        clientList.find((c) => c.full_name === order.client)
+                            ?.id ?? null,
+                    payment_type:
+                        paymentTypeList.find(
+                            (p) => p.name === order.payment_type,
+                        )?.id ?? null,
+                    currency: order.currency?.id ?? null,
                     client_currency: order.client_currency,
-                    items: [{ product: null, price: null, count: null }],
+                    status: order.status ?? "new",
+                    items:
+                        order.items?.length ?
+                            order.items.map((item) => ({
+                                product: item.product,
+                                price: item.price,
+                                count: item.count,
+                            }))
+                        :   [{ product: null, price: null, count: null }],
                 }
             :   undefined,
     })
@@ -129,7 +146,10 @@ function OrderAddEdit() {
                     label="Payment Type"
                     placeholder="Select payment type"
                 />
-
+            </div>
+            <div
+                className={`grid gap-4 ${order ? "grid-cols-3" : "grid-cols-2"}`}
+            >
                 <SelectField
                     methods={form}
                     name="currency"
@@ -143,6 +163,15 @@ function OrderAddEdit() {
                     name="client_currency"
                     label="Client Currency Rate"
                 />
+                {order && (
+                    <SelectField
+                        methods={form}
+                        name="status"
+                        options={statusOptions}
+                        label="Status"
+                        placeholder="Select status"
+                    />
+                )}
             </div>
 
             {/* Items */}

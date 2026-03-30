@@ -126,7 +126,7 @@ export function NavMain() {
                     to: "/orders",
                     icon: "",
                     enabled: isAdmin,
-                    title: "Orders",
+                    title: "Sales",
                 }),
             ],
         }),
