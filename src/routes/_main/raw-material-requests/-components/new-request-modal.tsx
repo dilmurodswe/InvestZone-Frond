@@ -1,16 +1,16 @@
-import Modal from "@/components/custom/modal"
 import FormAction from "@/components/custom/form-action"
+import Modal from "@/components/custom/modal"
 import { CardTitle } from "@/components/ui/card"
-import { useModal } from "@/hooks/use-modal"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
-import { useState, useRef } from "react"
-import { Trash2, Plus, Upload, Loader2 } from "lucide-react"
+import { useModal } from "@/hooks/use-modal"
+import { API } from "@/lib/constants/api-endpoints"
+import { Loader2, Plus, Trash2, Upload } from "lucide-react"
+import { useRef, useState } from "react"
 import { toast } from "sonner"
+import { useFileUpload } from "../-hooks/use-file-upload"
 import { useRawMaterialsSelectQuery } from "../-hooks/use-raw-materials-select-query"
 import { useSuppliersSelectQuery } from "../-hooks/use-suppliers-select-query"
-import { useFileUpload } from "../-hooks/use-file-upload"
-import { API } from "@/lib/constants/api-endpoints"
 
 export default function NewRequestModal() {
     return (
@@ -34,7 +34,7 @@ type UploadedFile = {
 
 function NewRequestForm() {
     const { closeModal } = useModal("new-request")
-    const { invalidateByExactMatch } = useRevalidate()
+    const { invalidateByPatternMatch } = useRevalidate()
     const { post, isPending } = useRequest()
     const { rawMaterialOptions } = useRawMaterialsSelectQuery()
     const { supplierOptions } = useSuppliersSelectQuery()
@@ -74,7 +74,11 @@ function NewRequestForm() {
         e.target.value = ""
         try {
             const result = await uploadFile(file)
-            setUploadedFile({ id: result.id, file: result.file, name: file.name })
+            setUploadedFile({
+                id: result.id,
+                file: result.file,
+                name: file.name,
+            })
         } catch {
             toast.error("File upload failed")
         }
@@ -86,14 +90,18 @@ function NewRequestForm() {
         if (!file) return
         try {
             const result = await uploadFile(file)
-            setUploadedFile({ id: result.id, file: result.file, name: file.name })
+            setUploadedFile({
+                id: result.id,
+                file: result.file,
+                name: file.name,
+            })
         } catch {
             toast.error("File upload failed")
         }
     }
 
     const onSuccess = () => {
-        invalidateByExactMatch([API.RAW_MATERIAL_REQUESTS.ITEMS.INDEX])
+        invalidateByPatternMatch([API.RAW_MATERIAL_ITEMS.INDEX])
         closeModal()
         toast.success("Request created successfully")
     }
@@ -106,7 +114,8 @@ function NewRequestForm() {
                 raw_material: Number(r.raw_material),
                 ton: Number(r.ton),
             })),
-            row_request_files: uploadedFile ? { file: uploadedFile.file } : undefined,
+            row_request_files:
+                uploadedFile ? { file: uploadedFile.file } : undefined,
         }
         post(API.RAW_MATERIAL_REQUESTS.INDEX, payload, { onSuccess })
     }
@@ -131,7 +140,11 @@ function NewRequestForm() {
                             className="border rounded px-3 py-2 text-sm bg-background"
                             value={row.raw_material}
                             onChange={(e) =>
-                                updateRow(row.id, "raw_material", e.target.value)
+                                updateRow(
+                                    row.id,
+                                    "raw_material",
+                                    e.target.value,
+                                )
                             }
                         >
                             <option value="">Select</option>
@@ -243,10 +256,7 @@ function NewRequestForm() {
                 />
             </div>
 
-            <FormAction
-                submitName="Send"
-                loading={isPending || isUploading}
-            />
+            <FormAction submitName="Send" loading={isPending || isUploading} />
         </form>
     )
 }
