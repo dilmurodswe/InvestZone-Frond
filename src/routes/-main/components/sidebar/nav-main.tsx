@@ -93,6 +93,13 @@ export function NavMain() {
                     enabled: isAdmin,
                     title: "Raw Materials",
                 }),
+                linkOptions({
+                    to: "/settings",
+                    search: { tab: "currency" },
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Settings",
+                }),
             ],
         }),
         linkOptions({
@@ -106,6 +113,20 @@ export function NavMain() {
                     icon: "",
                     enabled: isAdmin,
                     title: "Raw material requests",
+                }),
+            ],
+        }),
+        linkOptions({
+            to: "/orders",
+            icon: <GalleryVerticalEnd />,
+            enabled: true,
+            title: "Orders",
+            childs: [
+                linkOptions({
+                    to: "/orders",
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Orders",
                 }),
             ],
         }),

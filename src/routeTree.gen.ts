@@ -14,15 +14,18 @@ import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainTaskManagerIndexRouteImport } from './routes/_main/task-manager/index'
 import { Route as MainSuppliersIndexRouteImport } from './routes/_main/suppliers/index'
+import { Route as MainSettingsIndexRouteImport } from './routes/_main/settings/index'
 import { Route as MainReadyProductsIndexRouteImport } from './routes/_main/ready-products/index'
 import { Route as MainRawMaterialsIndexRouteImport } from './routes/_main/raw-materials/index'
 import { Route as MainRawMaterialRequestsIndexRouteImport } from './routes/_main/raw-material-requests/index'
+import { Route as MainOrdersIndexRouteImport } from './routes/_main/orders/index'
 import { Route as MainManufacturesIndexRouteImport } from './routes/_main/manufactures/index'
 import { Route as MainExtraIndexRouteImport } from './routes/_main/extra/index'
 import { Route as MainDashboardIndexRouteImport } from './routes/_main/dashboard/index'
 import { Route as MainClientsIndexRouteImport } from './routes/_main/clients/index'
 import { Route as MainAdminsIndexRouteImport } from './routes/_main/admins/index'
 import { Route as AuthLoginIndexRouteImport } from './routes/_auth/login/index'
+import { Route as MainSettingsPaymentTypeIndexRouteImport } from './routes/_main/settings/payment-type/index'
 import { Route as MainExtraRawMaterialsIndexRouteImport } from './routes/_main/extra/raw-materials/index'
 import { Route as MainExtraProductsIndexRouteImport } from './routes/_main/extra/products/index'
 import { Route as MainExtraProductsCategoryIdIndexRouteImport } from './routes/_main/extra/products/$categoryId/index'
@@ -51,6 +54,11 @@ const MainSuppliersIndexRoute = MainSuppliersIndexRouteImport.update({
   path: '/suppliers/',
   getParentRoute: () => MainRoute,
 } as any)
+const MainSettingsIndexRoute = MainSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainReadyProductsIndexRoute = MainReadyProductsIndexRouteImport.update({
   id: '/ready-products/',
   path: '/ready-products/',
@@ -67,6 +75,11 @@ const MainRawMaterialRequestsIndexRoute =
     path: '/raw-material-requests/',
     getParentRoute: () => MainRoute,
   } as any)
+const MainOrdersIndexRoute = MainOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainManufacturesIndexRoute = MainManufacturesIndexRouteImport.update({
   id: '/manufactures/',
   path: '/manufactures/',
@@ -97,6 +110,12 @@ const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => AuthRoute,
 } as any)
+const MainSettingsPaymentTypeIndexRoute =
+  MainSettingsPaymentTypeIndexRouteImport.update({
+    id: '/settings/payment-type/',
+    path: '/settings/payment-type/',
+    getParentRoute: () => MainRoute,
+  } as any)
 const MainExtraRawMaterialsIndexRoute =
   MainExtraRawMaterialsIndexRouteImport.update({
     id: '/extra/raw-materials/',
@@ -129,13 +148,16 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof MainDashboardIndexRoute
   '/extra': typeof MainExtraIndexRoute
   '/manufactures': typeof MainManufacturesIndexRoute
+  '/orders': typeof MainOrdersIndexRoute
   '/raw-material-requests': typeof MainRawMaterialRequestsIndexRoute
   '/raw-materials': typeof MainRawMaterialsIndexRoute
   '/ready-products': typeof MainReadyProductsIndexRoute
+  '/settings': typeof MainSettingsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
   '/task-manager': typeof MainTaskManagerIndexRoute
   '/extra/products': typeof MainExtraProductsIndexRoute
   '/extra/raw-materials': typeof MainExtraRawMaterialsIndexRoute
+  '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
   '/extra/products/$categoryId': typeof MainExtraProductsCategoryIdIndexRoute
   '/extra/products/$categoryId/$subcategoryId': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
 }
@@ -147,13 +169,16 @@ export interface FileRoutesByTo {
   '/dashboard': typeof MainDashboardIndexRoute
   '/extra': typeof MainExtraIndexRoute
   '/manufactures': typeof MainManufacturesIndexRoute
+  '/orders': typeof MainOrdersIndexRoute
   '/raw-material-requests': typeof MainRawMaterialRequestsIndexRoute
   '/raw-materials': typeof MainRawMaterialsIndexRoute
   '/ready-products': typeof MainReadyProductsIndexRoute
+  '/settings': typeof MainSettingsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
   '/task-manager': typeof MainTaskManagerIndexRoute
   '/extra/products': typeof MainExtraProductsIndexRoute
   '/extra/raw-materials': typeof MainExtraRawMaterialsIndexRoute
+  '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
   '/extra/products/$categoryId': typeof MainExtraProductsCategoryIdIndexRoute
   '/extra/products/$categoryId/$subcategoryId': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
 }
@@ -168,13 +193,16 @@ export interface FileRoutesById {
   '/_main/dashboard/': typeof MainDashboardIndexRoute
   '/_main/extra/': typeof MainExtraIndexRoute
   '/_main/manufactures/': typeof MainManufacturesIndexRoute
+  '/_main/orders/': typeof MainOrdersIndexRoute
   '/_main/raw-material-requests/': typeof MainRawMaterialRequestsIndexRoute
   '/_main/raw-materials/': typeof MainRawMaterialsIndexRoute
   '/_main/ready-products/': typeof MainReadyProductsIndexRoute
+  '/_main/settings/': typeof MainSettingsIndexRoute
   '/_main/suppliers/': typeof MainSuppliersIndexRoute
   '/_main/task-manager/': typeof MainTaskManagerIndexRoute
   '/_main/extra/products/': typeof MainExtraProductsIndexRoute
   '/_main/extra/raw-materials/': typeof MainExtraRawMaterialsIndexRoute
+  '/_main/settings/payment-type/': typeof MainSettingsPaymentTypeIndexRoute
   '/_main/extra/products/$categoryId/': typeof MainExtraProductsCategoryIdIndexRoute
   '/_main/extra/products/$categoryId/$subcategoryId/': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
 }
@@ -188,13 +216,16 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/extra'
     | '/manufactures'
+    | '/orders'
     | '/raw-material-requests'
     | '/raw-materials'
     | '/ready-products'
+    | '/settings'
     | '/suppliers'
     | '/task-manager'
     | '/extra/products'
     | '/extra/raw-materials'
+    | '/settings/payment-type'
     | '/extra/products/$categoryId'
     | '/extra/products/$categoryId/$subcategoryId'
   fileRoutesByTo: FileRoutesByTo
@@ -206,13 +237,16 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/extra'
     | '/manufactures'
+    | '/orders'
     | '/raw-material-requests'
     | '/raw-materials'
     | '/ready-products'
+    | '/settings'
     | '/suppliers'
     | '/task-manager'
     | '/extra/products'
     | '/extra/raw-materials'
+    | '/settings/payment-type'
     | '/extra/products/$categoryId'
     | '/extra/products/$categoryId/$subcategoryId'
   id:
@@ -226,13 +260,16 @@ export interface FileRouteTypes {
     | '/_main/dashboard/'
     | '/_main/extra/'
     | '/_main/manufactures/'
+    | '/_main/orders/'
     | '/_main/raw-material-requests/'
     | '/_main/raw-materials/'
     | '/_main/ready-products/'
+    | '/_main/settings/'
     | '/_main/suppliers/'
     | '/_main/task-manager/'
     | '/_main/extra/products/'
     | '/_main/extra/raw-materials/'
+    | '/_main/settings/payment-type/'
     | '/_main/extra/products/$categoryId/'
     | '/_main/extra/products/$categoryId/$subcategoryId/'
   fileRoutesById: FileRoutesById
@@ -279,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainSuppliersIndexRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/settings/': {
+      id: '/_main/settings/'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof MainSettingsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/ready-products/': {
       id: '/_main/ready-products/'
       path: '/ready-products'
@@ -298,6 +342,13 @@ declare module '@tanstack/react-router' {
       path: '/raw-material-requests'
       fullPath: '/raw-material-requests'
       preLoaderRoute: typeof MainRawMaterialRequestsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/orders/': {
+      id: '/_main/orders/'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof MainOrdersIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/manufactures/': {
@@ -341,6 +392,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/login'
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/_main/settings/payment-type/': {
+      id: '/_main/settings/payment-type/'
+      path: '/settings/payment-type'
+      fullPath: '/settings/payment-type'
+      preLoaderRoute: typeof MainSettingsPaymentTypeIndexRouteImport
+      parentRoute: typeof MainRoute
     }
     '/_main/extra/raw-materials/': {
       id: '/_main/extra/raw-materials/'
@@ -390,13 +448,16 @@ interface MainRouteChildren {
   MainDashboardIndexRoute: typeof MainDashboardIndexRoute
   MainExtraIndexRoute: typeof MainExtraIndexRoute
   MainManufacturesIndexRoute: typeof MainManufacturesIndexRoute
+  MainOrdersIndexRoute: typeof MainOrdersIndexRoute
   MainRawMaterialRequestsIndexRoute: typeof MainRawMaterialRequestsIndexRoute
   MainRawMaterialsIndexRoute: typeof MainRawMaterialsIndexRoute
   MainReadyProductsIndexRoute: typeof MainReadyProductsIndexRoute
+  MainSettingsIndexRoute: typeof MainSettingsIndexRoute
   MainSuppliersIndexRoute: typeof MainSuppliersIndexRoute
   MainTaskManagerIndexRoute: typeof MainTaskManagerIndexRoute
   MainExtraProductsIndexRoute: typeof MainExtraProductsIndexRoute
   MainExtraRawMaterialsIndexRoute: typeof MainExtraRawMaterialsIndexRoute
+  MainSettingsPaymentTypeIndexRoute: typeof MainSettingsPaymentTypeIndexRoute
   MainExtraProductsCategoryIdIndexRoute: typeof MainExtraProductsCategoryIdIndexRoute
   MainExtraProductsCategoryIdSubcategoryIdIndexRoute: typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
 }
@@ -408,13 +469,16 @@ const MainRouteChildren: MainRouteChildren = {
   MainDashboardIndexRoute: MainDashboardIndexRoute,
   MainExtraIndexRoute: MainExtraIndexRoute,
   MainManufacturesIndexRoute: MainManufacturesIndexRoute,
+  MainOrdersIndexRoute: MainOrdersIndexRoute,
   MainRawMaterialRequestsIndexRoute: MainRawMaterialRequestsIndexRoute,
   MainRawMaterialsIndexRoute: MainRawMaterialsIndexRoute,
   MainReadyProductsIndexRoute: MainReadyProductsIndexRoute,
+  MainSettingsIndexRoute: MainSettingsIndexRoute,
   MainSuppliersIndexRoute: MainSuppliersIndexRoute,
   MainTaskManagerIndexRoute: MainTaskManagerIndexRoute,
   MainExtraProductsIndexRoute: MainExtraProductsIndexRoute,
   MainExtraRawMaterialsIndexRoute: MainExtraRawMaterialsIndexRoute,
+  MainSettingsPaymentTypeIndexRoute: MainSettingsPaymentTypeIndexRoute,
   MainExtraProductsCategoryIdIndexRoute: MainExtraProductsCategoryIdIndexRoute,
   MainExtraProductsCategoryIdSubcategoryIdIndexRoute:
     MainExtraProductsCategoryIdSubcategoryIdIndexRoute,

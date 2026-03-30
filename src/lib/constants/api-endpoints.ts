@@ -44,6 +44,20 @@ export const API = {
             ID: { INDEX: "extra/raw-materials/{id}" },
         },
     },
+    SETTINGS: {
+        CURRENCY: {
+            INDEX: "extra/currency",
+            ID: { INDEX: "extra/currency/{id}" },
+        },
+        PAYMENT_TYPE: {
+            INDEX: "extra/payment-type",
+            ID: { INDEX: "extra/payment-type/{id}" },
+        },
+    },
+    ORDERS: {
+        INDEX: "orders",
+        ID: { INDEX: "orders/{id}" },
+    },
     RAW_MATERIAL_REQUESTS: {
         INDEX: "raw-material/requests",
         ID: {
