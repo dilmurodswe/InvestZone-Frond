@@ -15,6 +15,7 @@ interface ItemDetailModalProps {
 
 type ItemRow = {
     _id: number
+    status: string
     serverId?: number // mavjud bo'lsa PATCH, bo'lmasa POST
     ton: string
     weight: string
@@ -31,6 +32,7 @@ type ItemRow = {
 
 type ServerItem = {
     id: number
+    status: string | null
     ton: number | null
     weight: number | null
     netto: number | null
@@ -47,6 +49,7 @@ type ServerItem = {
 const EMPTY_ROW = (): ItemRow => ({
     _id: Date.now() + Math.random(),
     serverId: undefined,
+    status: "",
     ton: "",
     weight: "",
     netto: "",
@@ -63,6 +66,7 @@ const EMPTY_ROW = (): ItemRow => ({
 const serverToRow = (item: ServerItem): ItemRow => ({
     _id: item.id,
     serverId: item.id,
+    status: item.status ?? "",
     ton: item.ton != null ? String(item.ton) : "",
     weight: item.weight != null ? String(item.weight) : "",
     netto: item.netto != null ? String(item.netto) : "",
@@ -241,6 +245,9 @@ export default function ItemDetailModal({
                                 <table className="w-full text-sm border-collapse">
                                     <thead>
                                         <tr className="border-b">
+                                            <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                                Status
+                                            </th>
                                             {FIELDS.map((f) => (
                                                 <th
                                                     key={f.key}
@@ -258,6 +265,69 @@ export default function ItemDetailModal({
                                                 key={row._id}
                                                 className="border-b last:border-0"
                                             >
+                                                <td className="px-2 py-1.5">
+                                                    {row.status ?
+                                                        <span
+                                                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    (
+                                                                        row.status ===
+                                                                        "new"
+                                                                    ) ?
+                                                                        "#e0f2fe"
+                                                                    : (
+                                                                        row.status ===
+                                                                        "in_processing"
+                                                                    ) ?
+                                                                        "#fef9c3"
+                                                                    : (
+                                                                        row.status ===
+                                                                        "completed"
+                                                                    ) ?
+                                                                        "#dcfce7"
+                                                                    :   "#f1f5f9",
+                                                                color:
+                                                                    (
+                                                                        row.status ===
+                                                                        "new"
+                                                                    ) ?
+                                                                        "#0369a1"
+                                                                    : (
+                                                                        row.status ===
+                                                                        "in_processing"
+                                                                    ) ?
+                                                                        "#854d0e"
+                                                                    : (
+                                                                        row.status ===
+                                                                        "completed"
+                                                                    ) ?
+                                                                        "#15803d"
+                                                                    :   "#64748b",
+                                                            }}
+                                                        >
+                                                            {(
+                                                                row.status ===
+                                                                "new"
+                                                            ) ?
+                                                                "New"
+                                                            : (
+                                                                row.status ===
+                                                                "in_processing"
+                                                            ) ?
+                                                                "In Processing"
+                                                            : (
+                                                                row.status ===
+                                                                "completed"
+                                                            ) ?
+                                                                "Completed"
+                                                            :   row.status}
+                                                        </span>
+                                                    :   <span className="text-xs text-muted-foreground">
+                                                            —
+                                                        </span>
+                                                    }
+                                                </td>
                                                 {FIELDS.map((f) => (
                                                     <td
                                                         key={f.key}
