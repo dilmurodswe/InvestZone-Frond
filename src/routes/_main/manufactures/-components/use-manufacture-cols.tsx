@@ -35,13 +35,13 @@ export const getManufactureCols = (
             <span className="text-sm">{fmtStr(original.product)}</span>
         ),
     },
-    {
-        accessorKey: "raw_item_details",
-        header: "Raw item details",
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">{original.raw_item_details ?? "—"}</span>
-        ),
-    },
+    // {
+    //     accessorKey: "raw_item_details",
+    //     header: "Raw item details",
+    //     cell: ({ row: { original } }) => (
+    //         <span className="text-sm">{original.raw_item_details ?? "—"}</span>
+    //     ),
+    // },
     {
         accessorKey: "stock",
         header: "Stock",
