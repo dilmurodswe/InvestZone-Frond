@@ -47,47 +47,11 @@ export const getReadyProductCols = (): ColumnDef<ReadyProduct>[] => [
         ),
     },
     {
-        accessorKey: "raw_item_detail.weight",
-        header: "Weight",
+        accessorKey: "status",
+        header: "Status",
         cell: ({ row: { original } }) => (
-            <span className="text-sm">
-                {fmt(original.raw_item_detail.weight)}
-            </span>
-        ),
-    },
-    {
-        accessorKey: "raw_item_detail.ton",
-        header: "Ton",
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">{fmt(original.raw_item_detail.ton)}</span>
-        ),
-    },
-    {
-        accessorKey: "raw_item_detail.wagon",
-        header: "Wagon",
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">
-                {fmt(original.raw_item_detail.wagon)}
-            </span>
-        ),
-    },
-    {
-        accessorKey: "raw_item_detail.reference_number",
-        header: "Reference",
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">
-                {fmtStr(original.raw_item_detail.reference_number)}
-            </span>
-        ),
-    },
-    {
-        accessorKey: "raw_item_detail.price",
-        header: "Raw price",
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">
-                {original.raw_item_detail.price != null ?
-                    `$${original.raw_item_detail.price.toLocaleString()}`
-                :   "—"}
+            <span className="text-sm capitalize">
+                {original.status.replace(/_/g, " ")}
             </span>
         ),
     },

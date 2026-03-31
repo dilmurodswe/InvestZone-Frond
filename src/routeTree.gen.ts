@@ -26,6 +26,7 @@ import { Route as MainDashboardIndexRouteImport } from './routes/_main/dashboard
 import { Route as MainClientsIndexRouteImport } from './routes/_main/clients/index'
 import { Route as MainAdminsIndexRouteImport } from './routes/_main/admins/index'
 import { Route as AuthLoginIndexRouteImport } from './routes/_auth/login/index'
+import { Route as MainManufacturesIdRouteImport } from './routes/_main/manufactures/$id'
 import { Route as MainSettingsRawMaterialsIndexRouteImport } from './routes/_main/settings/raw-materials/index'
 import { Route as MainSettingsProductsIndexRouteImport } from './routes/_main/settings/products/index'
 import { Route as MainSettingsPaymentTypeIndexRouteImport } from './routes/_main/settings/payment-type/index'
@@ -120,6 +121,11 @@ const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => AuthRoute,
 } as any)
+const MainManufacturesIdRoute = MainManufacturesIdRouteImport.update({
+  id: '/manufactures/$id',
+  path: '/manufactures/$id',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainSettingsRawMaterialsIndexRoute =
   MainSettingsRawMaterialsIndexRouteImport.update({
     id: '/settings/raw-materials/',
@@ -175,6 +181,7 @@ const MainSettingsProductsCategoryIdSubcategoryIdIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
+  '/manufactures/$id': typeof MainManufacturesIdRoute
   '/login': typeof AuthLoginIndexRoute
   '/admins': typeof MainAdminsIndexRoute
   '/clients': typeof MainClientsIndexRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
+  '/manufactures/$id': typeof MainManufacturesIdRoute
   '/login': typeof AuthLoginIndexRoute
   '/admins': typeof MainAdminsIndexRoute
   '/clients': typeof MainClientsIndexRoute
@@ -230,6 +238,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/_main': typeof MainRouteWithChildren
   '/_main/': typeof MainIndexRoute
+  '/_main/manufactures/$id': typeof MainManufacturesIdRoute
   '/_auth/login/': typeof AuthLoginIndexRoute
   '/_main/admins/': typeof MainAdminsIndexRoute
   '/_main/clients/': typeof MainClientsIndexRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/manufactures/$id'
     | '/login'
     | '/admins'
     | '/clients'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/manufactures/$id'
     | '/login'
     | '/admins'
     | '/clients'
@@ -312,6 +323,7 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/_main'
     | '/_main/'
+    | '/_main/manufactures/$id'
     | '/_auth/login/'
     | '/_main/admins/'
     | '/_main/clients/'
@@ -463,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_main/manufactures/$id': {
+      id: '/_main/manufactures/$id'
+      path: '/manufactures/$id'
+      fullPath: '/manufactures/$id'
+      preLoaderRoute: typeof MainManufacturesIdRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/settings/raw-materials/': {
       id: '/_main/settings/raw-materials/'
       path: '/settings/raw-materials'
@@ -541,6 +560,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface MainRouteChildren {
   MainIndexRoute: typeof MainIndexRoute
+  MainManufacturesIdRoute: typeof MainManufacturesIdRoute
   MainAdminsIndexRoute: typeof MainAdminsIndexRoute
   MainClientsIndexRoute: typeof MainClientsIndexRoute
   MainDashboardIndexRoute: typeof MainDashboardIndexRoute
@@ -567,6 +587,7 @@ interface MainRouteChildren {
 
 const MainRouteChildren: MainRouteChildren = {
   MainIndexRoute: MainIndexRoute,
+  MainManufacturesIdRoute: MainManufacturesIdRoute,
   MainAdminsIndexRoute: MainAdminsIndexRoute,
   MainClientsIndexRoute: MainClientsIndexRoute,
   MainDashboardIndexRoute: MainDashboardIndexRoute,

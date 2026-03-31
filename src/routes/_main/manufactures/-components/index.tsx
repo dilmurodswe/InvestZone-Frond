@@ -5,15 +5,16 @@ import NoData from "@/components/no-data/nodata"
 import Group from "@/components/semantic/group"
 import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
+import { useNavigate } from "@tanstack/react-router"
 import { Plus } from "lucide-react"
 import { useState } from "react"
 import { useManufacturesQuery } from "../-hooks/use-manufactures-query"
 import type { Manufacture } from "../-types"
 import ManufactureDeleteModal from "./manufacture-delete-modal"
+import ManufactureFilter from "./manufacture-filter"
 import NewManufactureModal from "./new-manufacture-modal"
 import ManufactureStatusDropdown from "./status-dropdown"
 import { getManufactureCols } from "./use-manufacture-cols"
-
 export default function Index() {
     const newManufactureModal = useModal("new-manufacture")
     const { manufactureList, count, isFetching } = useManufacturesQuery()
@@ -27,7 +28,11 @@ export default function Index() {
         setStatusDropdown({ manufacture, anchorEl: el })
     }
 
-    const cols = getManufactureCols(handleStatusClick)
+    const navigate = useNavigate()
+
+    const cols = getManufactureCols(handleStatusClick, (manufacture) =>
+        navigate({ to: `/manufactures/${manufacture.id}` }),
+    )
 
     return (
         <>
@@ -35,10 +40,13 @@ export default function Index() {
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <h2 className="text-base font-semibold">Manufactures</h2>
-                    <Button onClick={() => newManufactureModal.openModal()}>
-                        <Plus className="w-4 h-4" />
-                        New
-                    </Button>
+                    <div className="flex items-center gap-3">
+                        <ManufactureFilter />
+                        <Button onClick={() => newManufactureModal.openModal()}>
+                            <Plus className="w-4 h-4" />
+                            New
+                        </Button>
+                    </div>
                 </Group>
 
                 {!!manufactureList.length && (

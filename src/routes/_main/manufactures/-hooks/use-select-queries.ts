@@ -2,6 +2,7 @@ import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
 import { getArray } from "@/lib/utils/get-array"
 import type { PaginatedResponse } from "@/types/common"
+import type { RawItemDetail } from "../-types"
 
 // ── Category ──────────────────────────────────────────────────────────────────
 
@@ -45,18 +46,10 @@ export const useProductsSelectQuery = (subCategoryId?: number) => {
 
 // ── Raw Item Detail ───────────────────────────────────────────────────────────
 
-type RawItemDetailOption = {
-    id: number
-    name?: string
-    contract_number?: string
-}
-
 export const useRawItemDetailsSelectQuery = () => {
-    const res = useGet<PaginatedResponse<RawItemDetailOption>>(
+    const res = useGet<{ count: number; results: RawItemDetail[] }>(
         API.RAW_MATERIALS.INDEX,
     )
-    const rawItemDetailOptions = getArray<RawItemDetailOption>(
-        res.data?.results,
-    )
+    const rawItemDetailOptions = getArray<RawItemDetail>(res.data?.results)
     return { ...res, rawItemDetailOptions }
 }

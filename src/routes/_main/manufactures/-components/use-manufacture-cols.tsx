@@ -1,18 +1,24 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Manufacture } from "../-types"
-import { ManufactureActions } from "./manufacture-actions" // ← import
+import { ManufactureActions } from "./manufacture-actions"
 import ManufactureStatusBadge from "./status-badge"
 
 const fmtStr = (val: string | null | undefined) => (val?.trim() ? val : "—")
 
 export const getManufactureCols = (
     onStatusClick: (manufacture: Manufacture, el: HTMLElement) => void,
+    onRowClick: (manufacture: Manufacture) => void,
 ): ColumnDef<Manufacture>[] => [
     {
         accessorKey: "category",
         header: "Category",
         cell: ({ row: { original } }) => (
-            <span className="text-sm">{fmtStr(original.category)}</span>
+            <button
+                className="text-sm text-left hover:underline hover:text-primary"
+                onClick={() => onRowClick(original)}
+            >
+                {fmtStr(original.category)}
+            </button>
         ),
     },
     {
@@ -30,10 +36,10 @@ export const getManufactureCols = (
         ),
     },
     {
-        accessorKey: "raw_item_detail",
-        header: "Raw item detail",
+        accessorKey: "raw_item_details",
+        header: "Raw item details",
         cell: ({ row: { original } }) => (
-            <span className="text-sm">{original.raw_item_detail ?? "—"}</span>
+            <span className="text-sm">{original.raw_item_details ?? "—"}</span>
         ),
     },
     {
