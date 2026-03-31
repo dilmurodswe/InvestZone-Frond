@@ -20,12 +20,16 @@ import { Route as MainRawMaterialsIndexRouteImport } from './routes/_main/raw-ma
 import { Route as MainRawMaterialRequestsIndexRouteImport } from './routes/_main/raw-material-requests/index'
 import { Route as MainOrdersIndexRouteImport } from './routes/_main/orders/index'
 import { Route as MainManufacturesIndexRouteImport } from './routes/_main/manufactures/index'
+import { Route as MainFinanceIndexRouteImport } from './routes/_main/finance/index'
 import { Route as MainExtraIndexRouteImport } from './routes/_main/extra/index'
 import { Route as MainDashboardIndexRouteImport } from './routes/_main/dashboard/index'
 import { Route as MainClientsIndexRouteImport } from './routes/_main/clients/index'
 import { Route as MainAdminsIndexRouteImport } from './routes/_main/admins/index'
 import { Route as AuthLoginIndexRouteImport } from './routes/_auth/login/index'
 import { Route as MainSettingsPaymentTypeIndexRouteImport } from './routes/_main/settings/payment-type/index'
+import { Route as MainFinanceIncomeIndexRouteImport } from './routes/_main/finance/income/index'
+import { Route as MainFinanceExpenceIndexRouteImport } from './routes/_main/finance/expence/index'
+import { Route as MainFinanceDashboardIndexRouteImport } from './routes/_main/finance/dashboard/index'
 import { Route as MainExtraRawMaterialsIndexRouteImport } from './routes/_main/extra/raw-materials/index'
 import { Route as MainExtraProductsIndexRouteImport } from './routes/_main/extra/products/index'
 import { Route as MainExtraProductsCategoryIdIndexRouteImport } from './routes/_main/extra/products/$categoryId/index'
@@ -85,6 +89,11 @@ const MainManufacturesIndexRoute = MainManufacturesIndexRouteImport.update({
   path: '/manufactures/',
   getParentRoute: () => MainRoute,
 } as any)
+const MainFinanceIndexRoute = MainFinanceIndexRouteImport.update({
+  id: '/finance/',
+  path: '/finance/',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainExtraIndexRoute = MainExtraIndexRouteImport.update({
   id: '/extra/',
   path: '/extra/',
@@ -114,6 +123,22 @@ const MainSettingsPaymentTypeIndexRoute =
   MainSettingsPaymentTypeIndexRouteImport.update({
     id: '/settings/payment-type/',
     path: '/settings/payment-type/',
+    getParentRoute: () => MainRoute,
+  } as any)
+const MainFinanceIncomeIndexRoute = MainFinanceIncomeIndexRouteImport.update({
+  id: '/finance/income/',
+  path: '/finance/income/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainFinanceExpenceIndexRoute = MainFinanceExpenceIndexRouteImport.update({
+  id: '/finance/expence/',
+  path: '/finance/expence/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainFinanceDashboardIndexRoute =
+  MainFinanceDashboardIndexRouteImport.update({
+    id: '/finance/dashboard/',
+    path: '/finance/dashboard/',
     getParentRoute: () => MainRoute,
   } as any)
 const MainExtraRawMaterialsIndexRoute =
@@ -147,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/clients': typeof MainClientsIndexRoute
   '/dashboard': typeof MainDashboardIndexRoute
   '/extra': typeof MainExtraIndexRoute
+  '/finance': typeof MainFinanceIndexRoute
   '/manufactures': typeof MainManufacturesIndexRoute
   '/orders': typeof MainOrdersIndexRoute
   '/raw-material-requests': typeof MainRawMaterialRequestsIndexRoute
@@ -157,6 +183,9 @@ export interface FileRoutesByFullPath {
   '/task-manager': typeof MainTaskManagerIndexRoute
   '/extra/products': typeof MainExtraProductsIndexRoute
   '/extra/raw-materials': typeof MainExtraRawMaterialsIndexRoute
+  '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
+  '/finance/expence': typeof MainFinanceExpenceIndexRoute
+  '/finance/income': typeof MainFinanceIncomeIndexRoute
   '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
   '/extra/products/$categoryId': typeof MainExtraProductsCategoryIdIndexRoute
   '/extra/products/$categoryId/$subcategoryId': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
@@ -168,6 +197,7 @@ export interface FileRoutesByTo {
   '/clients': typeof MainClientsIndexRoute
   '/dashboard': typeof MainDashboardIndexRoute
   '/extra': typeof MainExtraIndexRoute
+  '/finance': typeof MainFinanceIndexRoute
   '/manufactures': typeof MainManufacturesIndexRoute
   '/orders': typeof MainOrdersIndexRoute
   '/raw-material-requests': typeof MainRawMaterialRequestsIndexRoute
@@ -178,6 +208,9 @@ export interface FileRoutesByTo {
   '/task-manager': typeof MainTaskManagerIndexRoute
   '/extra/products': typeof MainExtraProductsIndexRoute
   '/extra/raw-materials': typeof MainExtraRawMaterialsIndexRoute
+  '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
+  '/finance/expence': typeof MainFinanceExpenceIndexRoute
+  '/finance/income': typeof MainFinanceIncomeIndexRoute
   '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
   '/extra/products/$categoryId': typeof MainExtraProductsCategoryIdIndexRoute
   '/extra/products/$categoryId/$subcategoryId': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
@@ -192,6 +225,7 @@ export interface FileRoutesById {
   '/_main/clients/': typeof MainClientsIndexRoute
   '/_main/dashboard/': typeof MainDashboardIndexRoute
   '/_main/extra/': typeof MainExtraIndexRoute
+  '/_main/finance/': typeof MainFinanceIndexRoute
   '/_main/manufactures/': typeof MainManufacturesIndexRoute
   '/_main/orders/': typeof MainOrdersIndexRoute
   '/_main/raw-material-requests/': typeof MainRawMaterialRequestsIndexRoute
@@ -202,6 +236,9 @@ export interface FileRoutesById {
   '/_main/task-manager/': typeof MainTaskManagerIndexRoute
   '/_main/extra/products/': typeof MainExtraProductsIndexRoute
   '/_main/extra/raw-materials/': typeof MainExtraRawMaterialsIndexRoute
+  '/_main/finance/dashboard/': typeof MainFinanceDashboardIndexRoute
+  '/_main/finance/expence/': typeof MainFinanceExpenceIndexRoute
+  '/_main/finance/income/': typeof MainFinanceIncomeIndexRoute
   '/_main/settings/payment-type/': typeof MainSettingsPaymentTypeIndexRoute
   '/_main/extra/products/$categoryId/': typeof MainExtraProductsCategoryIdIndexRoute
   '/_main/extra/products/$categoryId/$subcategoryId/': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
@@ -215,6 +252,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/dashboard'
     | '/extra'
+    | '/finance'
     | '/manufactures'
     | '/orders'
     | '/raw-material-requests'
@@ -225,6 +263,9 @@ export interface FileRouteTypes {
     | '/task-manager'
     | '/extra/products'
     | '/extra/raw-materials'
+    | '/finance/dashboard'
+    | '/finance/expence'
+    | '/finance/income'
     | '/settings/payment-type'
     | '/extra/products/$categoryId'
     | '/extra/products/$categoryId/$subcategoryId'
@@ -236,6 +277,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/dashboard'
     | '/extra'
+    | '/finance'
     | '/manufactures'
     | '/orders'
     | '/raw-material-requests'
@@ -246,6 +288,9 @@ export interface FileRouteTypes {
     | '/task-manager'
     | '/extra/products'
     | '/extra/raw-materials'
+    | '/finance/dashboard'
+    | '/finance/expence'
+    | '/finance/income'
     | '/settings/payment-type'
     | '/extra/products/$categoryId'
     | '/extra/products/$categoryId/$subcategoryId'
@@ -259,6 +304,7 @@ export interface FileRouteTypes {
     | '/_main/clients/'
     | '/_main/dashboard/'
     | '/_main/extra/'
+    | '/_main/finance/'
     | '/_main/manufactures/'
     | '/_main/orders/'
     | '/_main/raw-material-requests/'
@@ -269,6 +315,9 @@ export interface FileRouteTypes {
     | '/_main/task-manager/'
     | '/_main/extra/products/'
     | '/_main/extra/raw-materials/'
+    | '/_main/finance/dashboard/'
+    | '/_main/finance/expence/'
+    | '/_main/finance/income/'
     | '/_main/settings/payment-type/'
     | '/_main/extra/products/$categoryId/'
     | '/_main/extra/products/$categoryId/$subcategoryId/'
@@ -358,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainManufacturesIndexRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/finance/': {
+      id: '/_main/finance/'
+      path: '/finance'
+      fullPath: '/finance'
+      preLoaderRoute: typeof MainFinanceIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/extra/': {
       id: '/_main/extra/'
       path: '/extra'
@@ -398,6 +454,27 @@ declare module '@tanstack/react-router' {
       path: '/settings/payment-type'
       fullPath: '/settings/payment-type'
       preLoaderRoute: typeof MainSettingsPaymentTypeIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/finance/income/': {
+      id: '/_main/finance/income/'
+      path: '/finance/income'
+      fullPath: '/finance/income'
+      preLoaderRoute: typeof MainFinanceIncomeIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/finance/expence/': {
+      id: '/_main/finance/expence/'
+      path: '/finance/expence'
+      fullPath: '/finance/expence'
+      preLoaderRoute: typeof MainFinanceExpenceIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/finance/dashboard/': {
+      id: '/_main/finance/dashboard/'
+      path: '/finance/dashboard'
+      fullPath: '/finance/dashboard'
+      preLoaderRoute: typeof MainFinanceDashboardIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/extra/raw-materials/': {
@@ -447,6 +524,7 @@ interface MainRouteChildren {
   MainClientsIndexRoute: typeof MainClientsIndexRoute
   MainDashboardIndexRoute: typeof MainDashboardIndexRoute
   MainExtraIndexRoute: typeof MainExtraIndexRoute
+  MainFinanceIndexRoute: typeof MainFinanceIndexRoute
   MainManufacturesIndexRoute: typeof MainManufacturesIndexRoute
   MainOrdersIndexRoute: typeof MainOrdersIndexRoute
   MainRawMaterialRequestsIndexRoute: typeof MainRawMaterialRequestsIndexRoute
@@ -457,6 +535,9 @@ interface MainRouteChildren {
   MainTaskManagerIndexRoute: typeof MainTaskManagerIndexRoute
   MainExtraProductsIndexRoute: typeof MainExtraProductsIndexRoute
   MainExtraRawMaterialsIndexRoute: typeof MainExtraRawMaterialsIndexRoute
+  MainFinanceDashboardIndexRoute: typeof MainFinanceDashboardIndexRoute
+  MainFinanceExpenceIndexRoute: typeof MainFinanceExpenceIndexRoute
+  MainFinanceIncomeIndexRoute: typeof MainFinanceIncomeIndexRoute
   MainSettingsPaymentTypeIndexRoute: typeof MainSettingsPaymentTypeIndexRoute
   MainExtraProductsCategoryIdIndexRoute: typeof MainExtraProductsCategoryIdIndexRoute
   MainExtraProductsCategoryIdSubcategoryIdIndexRoute: typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
@@ -468,6 +549,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainClientsIndexRoute: MainClientsIndexRoute,
   MainDashboardIndexRoute: MainDashboardIndexRoute,
   MainExtraIndexRoute: MainExtraIndexRoute,
+  MainFinanceIndexRoute: MainFinanceIndexRoute,
   MainManufacturesIndexRoute: MainManufacturesIndexRoute,
   MainOrdersIndexRoute: MainOrdersIndexRoute,
   MainRawMaterialRequestsIndexRoute: MainRawMaterialRequestsIndexRoute,
@@ -478,6 +560,9 @@ const MainRouteChildren: MainRouteChildren = {
   MainTaskManagerIndexRoute: MainTaskManagerIndexRoute,
   MainExtraProductsIndexRoute: MainExtraProductsIndexRoute,
   MainExtraRawMaterialsIndexRoute: MainExtraRawMaterialsIndexRoute,
+  MainFinanceDashboardIndexRoute: MainFinanceDashboardIndexRoute,
+  MainFinanceExpenceIndexRoute: MainFinanceExpenceIndexRoute,
+  MainFinanceIncomeIndexRoute: MainFinanceIncomeIndexRoute,
   MainSettingsPaymentTypeIndexRoute: MainSettingsPaymentTypeIndexRoute,
   MainExtraProductsCategoryIdIndexRoute: MainExtraProductsCategoryIdIndexRoute,
   MainExtraProductsCategoryIdSubcategoryIdIndexRoute:

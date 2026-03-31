@@ -145,6 +145,32 @@ export function NavMain() {
             ],
         }),
         linkOptions({
+            to: "/finance",
+            icon: <ClipboardList />,
+            enabled: true,
+            title: "Finance",
+            childs: [
+                linkOptions({
+                    to: "/finance/dashboard",
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Dashboard",
+                }),
+                linkOptions({
+                    to: "/finance/expence",
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Expence",
+                }),
+                linkOptions({
+                    to: "/finance/income",
+                    icon: "",
+                    enabled: isAdmin,
+                    title: "Income",
+                }),
+            ],
+        }),
+        linkOptions({
             to: "/manufactures",
             icon: <ClipboardList />,
             enabled: true,

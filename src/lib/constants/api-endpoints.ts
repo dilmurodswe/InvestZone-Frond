@@ -109,4 +109,14 @@ export const API = {
         ID: "manufactures/{id}",
         READY_PRODUCTS: "manufactures/ready-products",
     },
+    FINANCE: {
+        EXPENSE: {
+            INDEX: "finance/expence",
+            ID: { INDEX: "finance/expence/{id}" },
+        },
+        INCOME: {
+            INDEX: "finance/income",
+            ID: { INDEX: "finance/income/{id}" },
+        },
+    },
 } as const
