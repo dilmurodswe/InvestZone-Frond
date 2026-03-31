@@ -1,23 +1,33 @@
 import FormAction from "@/components/custom/form-action"
 import Modal from "@/components/custom/modal"
 import UncontrolledInput from "@/components/form/uncontrolled-input"
-import { CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { CardTitle } from "@/components/ui/card"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
-import { useForm, useFieldArray, Controller } from "react-hook-form"
+import { API } from "@/lib/constants/api-endpoints"
+import { cn } from "@/lib/utils/shadcn"
+import TextAlign from "@tiptap/extension-text-align"
+import Underline from "@tiptap/extension-underline"
+import { EditorContent, useEditor } from "@tiptap/react"
+import StarterKit from "@tiptap/starter-kit"
+import {
+    AlignCenter,
+    AlignLeft,
+    AlignRight,
+    Bold,
+    Italic,
+    List,
+    ListOrdered,
+    PlusIcon,
+    Trash2,
+    UnderlineIcon,
+} from "lucide-react"
+import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { useRawMaterialStore } from "../-hooks/use-raw-material-store"
 import type { RawMaterial } from "../-types"
-import { API } from "@/lib/constants/api-endpoints"
-import { PlusIcon, Trash2 } from "lucide-react"
-import { useEditor, EditorContent } from "@tiptap/react"
-import StarterKit from "@tiptap/starter-kit"
-import Underline from "@tiptap/extension-underline"
-import TextAlign from "@tiptap/extension-text-align"
-import { Bold, Italic, UnderlineIcon, AlignLeft, AlignCenter, AlignRight, List, ListOrdered } from "lucide-react"
-import { cn } from "@/lib/utils/shadcn"
 
 export default function RawMaterialAddEditModal() {
     return (
@@ -53,9 +63,9 @@ function ToolbarButton({
             }}
             className={cn(
                 "p-1.5 rounded text-sm transition-colors",
-                active
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                active ?
+                    "bg-primary text-primary-foreground"
+                :   "hover:bg-muted text-muted-foreground hover:text-foreground",
             )}
         >
             {children}
@@ -102,39 +112,51 @@ function RichTextEditor({
                 </ToolbarButton>
                 <ToolbarButton
                     active={editor.isActive("underline")}
-                    onClick={() => editor.chain().focus().toggleUnderline().run()}
+                    onClick={() =>
+                        editor.chain().focus().toggleUnderline().run()
+                    }
                 >
                     <UnderlineIcon className="w-4 h-4" />
                 </ToolbarButton>
                 <div className="w-px h-5 bg-border mx-1" />
                 <ToolbarButton
                     active={editor.isActive({ textAlign: "left" })}
-                    onClick={() => editor.chain().focus().setTextAlign("left").run()}
+                    onClick={() =>
+                        editor.chain().focus().setTextAlign("left").run()
+                    }
                 >
                     <AlignLeft className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     active={editor.isActive({ textAlign: "center" })}
-                    onClick={() => editor.chain().focus().setTextAlign("center").run()}
+                    onClick={() =>
+                        editor.chain().focus().setTextAlign("center").run()
+                    }
                 >
                     <AlignCenter className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     active={editor.isActive({ textAlign: "right" })}
-                    onClick={() => editor.chain().focus().setTextAlign("right").run()}
+                    onClick={() =>
+                        editor.chain().focus().setTextAlign("right").run()
+                    }
                 >
                     <AlignRight className="w-4 h-4" />
                 </ToolbarButton>
                 <div className="w-px h-5 bg-border mx-1" />
                 <ToolbarButton
                     active={editor.isActive("bulletList")}
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
+                    onClick={() =>
+                        editor.chain().focus().toggleBulletList().run()
+                    }
                 >
                     <List className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     active={editor.isActive("orderedList")}
-                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                    onClick={() =>
+                        editor.chain().focus().toggleOrderedList().run()
+                    }
                 >
                     <ListOrdered className="w-4 h-4" />
                 </ToolbarButton>
@@ -154,12 +176,13 @@ function RawMaterialAddEdit() {
     const { rawMaterial } = useRawMaterialStore()
     const { post, patch, isPending } = useRequest()
 
-    const extraFieldsDefault: ExtraField[] = rawMaterial?.extra_fields
-        ? Object.entries(rawMaterial.extra_fields).map(([key, value]) => ({
-            key,
-            value: String(value),
-        }))
-        : []
+    const extraFieldsDefault: ExtraField[] =
+        rawMaterial?.extra_fields ?
+            Object.entries(rawMaterial.extra_fields).map(([key, value]) => ({
+                key,
+                value: String(value),
+            }))
+        :   []
 
     const form = useForm<Form>({
         defaultValues: {
@@ -169,15 +192,16 @@ function RawMaterialAddEdit() {
             description: "",
             extra_fields: [],
         },
-        values: rawMaterial
-            ? {
-                name: rawMaterial.name,
-                standard: rawMaterial.standard,
-                mark: rawMaterial.mark,
-                description: rawMaterial.description ?? "",
-                extra_fields: extraFieldsDefault,
-            }
-            : undefined,
+        values:
+            rawMaterial ?
+                {
+                    name: rawMaterial.name,
+                    standard: rawMaterial.standard,
+                    mark: rawMaterial.mark,
+                    description: rawMaterial.description ?? "",
+                    extra_fields: extraFieldsDefault,
+                }
+            :   undefined,
     })
 
     const { fields, append, remove } = useFieldArray({
@@ -189,7 +213,9 @@ function RawMaterialAddEdit() {
         invalidateByExactMatch([API.EXTRA.RAW_MATERIALS.INDEX])
         closeModal()
         toast.success(
-            rawMaterial ? "Updated successfully" : "Raw material added successfully",
+            rawMaterial ?
+                "Updated successfully"
+            :   "Raw material added successfully",
         )
     }
 
@@ -209,7 +235,10 @@ function RawMaterialAddEdit() {
 
         if (rawMaterial) {
             patch(
-                API.EXTRA.RAW_MATERIALS.ID.INDEX.replace("{id}", String(rawMaterial.id)),
+                API.EXTRA.RAW_MATERIALS.ID.INDEX.replace(
+                    "{id}",
+                    String(rawMaterial.id),
+                ),
                 payload,
                 { onSuccess },
             )
@@ -225,20 +254,29 @@ function RawMaterialAddEdit() {
             </CardTitle>
 
             <UncontrolledInput methods={form} name="name" label="Name" />
-            <UncontrolledInput methods={form} name="standard" label="Standard" />
+            <UncontrolledInput
+                methods={form}
+                name="standard"
+                label="Standard"
+            />
             <UncontrolledInput methods={form} name="mark" label="Mark" />
 
             {/* Description – rich text */}
             <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-foreground">
                     Description{" "}
-                    <span className="text-muted-foreground font-normal">(optional)</span>
+                    <span className="text-muted-foreground font-normal">
+                        (optional)
+                    </span>
                 </label>
                 <Controller
                     control={form.control}
                     name="description"
                     render={({ field }) => (
-                        <RichTextEditor value={field.value} onChange={field.onChange} />
+                        <RichTextEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                        />
                     )}
                 />
             </div>
@@ -263,7 +301,8 @@ function RawMaterialAddEdit() {
 
                 {fields.length === 0 && (
                     <p className="text-xs text-muted-foreground">
-                        No extra fields. Click "Add Field" to add custom key-value pairs.
+                        No extra fields. Click "Add Field" to add custom
+                        key-value pairs.
                     </p>
                 )}
 
@@ -276,7 +315,9 @@ function RawMaterialAddEdit() {
                                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             />
                             <input
-                                {...form.register(`extra_fields.${index}.value`)}
+                                {...form.register(
+                                    `extra_fields.${index}.value`,
+                                )}
                                 placeholder="Value"
                                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             />

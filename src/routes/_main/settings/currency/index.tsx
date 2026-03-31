@@ -3,7 +3,7 @@ import Navbar from "@/components/navbar"
 import { createFileRoute } from "@tanstack/react-router"
 import Index from "./-components"
 
-export const Route = createFileRoute("/_main/settings/payment-type/")({
+export const Route = createFileRoute("/_main/settings/currency/")({
     component: RouteComponent,
 })
 

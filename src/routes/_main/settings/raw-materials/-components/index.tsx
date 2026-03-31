@@ -12,28 +12,19 @@ import RawMaterialAddEditModal from "./raw-material-add-edit"
 import RawMaterialDeleteModal from "./raw-material-delete-modal"
 import RawMaterialDetailModal from "./raw-material-detail-modal"
 import { useRawMaterialCols } from "./use-raw-material-cols"
-import { useNavigate } from "@tanstack/react-router"
 
 export default function Index() {
     const { rawMaterialList, data, isFetching } = useRawMaterialsQuery()
     const { setRawMaterial } = useRawMaterialStore()
     const addModal = useModal("add-raw-material")
     const cols = useRawMaterialCols()
-    const navigate = useNavigate()
 
     return (
         <>
-            <Navbar links={[{ label: "Warehouse" }]} />
+            <Navbar links={[{ label: "Settings" }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
-                    <div className="flex flex-wrap gap-x-2 gap-y-4">
-                        <Button variant="outline" onClick={() => navigate({ to: "/extra/products" })}>
-                            Product List
-                        </Button>
-                        <Button className="bg-[#131314] hover:bg-[#131314]" onClick={() => navigate({ to: "/extra/raw-materials" })}>
-                            Raw Material List
-                        </Button>
-                    </div>
+                    <h2 className="text-2xl font-bold">Raw Material List</h2>
 
                     <Button
                         onClick={() => {

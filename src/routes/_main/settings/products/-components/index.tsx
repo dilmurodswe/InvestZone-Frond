@@ -6,33 +6,24 @@ import Group from "@/components/semantic/group"
 import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
 import { PlusIcon } from "lucide-react"
-import { useCategoryStore } from "../-hooks/use-category-store"
 import { useCategoriesQuery } from "../-hooks/use-categories-query"
+import { useCategoryStore } from "../-hooks/use-category-store"
 import CategoryAddEditModal from "./category-add-edit"
 import CategoryDeleteModal from "./category-delete-modal"
 import { useCategoryCols } from "./use-category-cols"
-import { useNavigate } from "@tanstack/react-router"
 
 export default function Index() {
     const { categoryList, isFetching } = useCategoriesQuery()
     const { setCategory } = useCategoryStore()
     const addModal = useModal("add-category")
     const cols = useCategoryCols()
-    const navigate = useNavigate()
 
     return (
         <>
-            <Navbar links={[{ label: "Warehouse" }]} />
+            <Navbar links={[{ label: "Settings" }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
-                    <div className="flex flex-wrap gap-x-2 gap-y-4 ">
-                        <Button className="bg-[#131314] hover:bg-[#131314]" onClick={() => navigate({ to: "/extra/products" })}>
-                            Product List
-                        </Button>
-                        <Button variant="outline" onClick={() => navigate({ to: "/extra/raw-materials" })}>
-                            Raw Material List
-                        </Button>
-                    </div>
+                    <h2 className="text-2xl font-bold">Product List</h2>
 
                     <Button
                         onClick={() => {

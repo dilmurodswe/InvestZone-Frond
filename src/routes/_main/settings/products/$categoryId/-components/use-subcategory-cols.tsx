@@ -1,11 +1,11 @@
-import type { ColumnDef } from "@tanstack/react-table"
-import type { SubCategory } from "../../-types"
-import { useState, useRef, useEffect } from "react"
-import { useSubCategoryStore } from "../-hooks/use-subcategory-store"
 import { useModal } from "@/hooks/use-modal"
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useNavigate, useParams } from "@tanstack/react-router"
-
+import type { ColumnDef } from "@tanstack/react-table"
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { useSubCategoryStore } from "../-hooks/use-subcategory-store"
+import type { SubCategory } from "../../-types"
+// eslint-disable-next-line react-refresh/only-export-components
 function SubCategoryActions({ subCategory }: { subCategory: SubCategory }) {
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -50,7 +50,12 @@ function SubCategoryActions({ subCategory }: { subCategory: SubCategory }) {
             </button>
             {open && (
                 <div
-                    style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
+                    style={{
+                        position: "fixed",
+                        top: pos.top,
+                        left: pos.left,
+                        zIndex: 9999,
+                    }}
                     className="bg-white rounded-xl shadow-lg border flex flex-col overflow-hidden"
                 >
                     <button
@@ -96,7 +101,7 @@ export const useSubCategoryCols = (): ColumnDef<SubCategory>[] => {
                     className="w-full text-left text-sm font-medium hover:cursor-pointer hoverbg-primary"
                     onClick={() =>
                         navigate({
-                            to: "/extra/products/$categoryId/$subcategoryId",
+                            to: "/settings/products/$categoryId/$subcategoryId",
                             params: {
                                 categoryId: String(categoryId),
                                 subcategoryId: String(original.id),

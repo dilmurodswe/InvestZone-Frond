@@ -8,9 +8,9 @@ import { useGet } from "@/hooks/react-query/use-get"
 import { useModal } from "@/hooks/use-modal"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { PlusIcon } from "lucide-react"
-import type { Category } from "../../-types"
-import { useSubCategoryStore } from "../-hooks/use-subcategory-store"
 import { useSubCategoriesQuery } from "../-hooks/use-subcategories-query"
+import { useSubCategoryStore } from "../-hooks/use-subcategory-store"
+import type { Category } from "../../-types"
 import SubCategoryAddEditModal from "./subcategory-add-edit"
 import SubCategoryDeleteModal from "./subcategory-delete-modal"
 import { useSubCategoryCols } from "./use-subcategory-cols"
@@ -29,17 +29,10 @@ export default function Index() {
 
     return (
         <>
-            <Navbar links={[{ label: "Warehouse" }]} />
+            <Navbar links={[{ label: "Settings" }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between ">
-                    <div className="flex flex-wrap gap-x-2 gap-y-0">
-                        <Button className="bg-[#131314] hover:bg-[#131314]" onClick={() => navigate({ to: "/extra/products" })}>
-                            Product List
-                        </Button>
-                        <Button variant="outline" onClick={() => navigate({ to: "/extra/raw-materials" })}>
-                            Raw Material List
-                        </Button>
-                    </div>
+                    <h2 className="text-2xl font-bold">Product List</h2>
 
                     <Button
                         onClick={() => {
@@ -52,7 +45,7 @@ export default function Index() {
                     </Button>
                     <h2
                         className="text-base font-semibold cursor-pointer hover:cursor-pointer w-full"
-                        onClick={() => navigate({ to: "/extra/products" })}
+                        onClick={() => navigate({ to: "/settings/products" })}
                     >
                         {categoryData?.name}
                     </h2>

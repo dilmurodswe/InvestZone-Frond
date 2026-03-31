@@ -153,9 +153,9 @@ function NewManufactureForm() {
                 </select>
             </div>
 
-            {/* Stock */}
+            {/* quantity */}
             <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Stock</label>
+                <label className="text-sm font-medium">Quantity</label>
                 <input
                     type="number"
                     placeholder="0"

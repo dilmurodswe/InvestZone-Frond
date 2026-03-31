@@ -4,44 +4,51 @@ import { CardDescription, CardTitle } from "@/components/ui/card"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
-import { toast } from "sonner"
-import { useProductStore } from "../-hooks/use-product-store"
 import { API } from "@/lib/constants/api-endpoints"
+import { toast } from "sonner"
+import { useRawMaterialStore } from "../-hooks/use-raw-material-store"
 
-export default function ProductDeleteModal() {
+export default function RawMaterialDeleteModal() {
     return (
-        <Modal modalKey="delete-product">
-            <ProductDelete />
+        <Modal modalKey="delete-raw-material">
+            <RawMaterialDelete />
         </Modal>
     )
 }
 
-function ProductDelete() {
-    const { closeModal } = useModal("delete-product")
+function RawMaterialDelete() {
+    const { closeModal } = useModal("delete-raw-material")
     const { invalidateByExactMatch } = useRevalidate()
-    const { product } = useProductStore()
+    const { rawMaterial } = useRawMaterialStore()
     const { remove, isPending } = useRequest()
 
     const onSuccess = () => {
-        invalidateByExactMatch([API.EXTRA.PRODUCTS.INDEX])
+        invalidateByExactMatch([API.EXTRA.RAW_MATERIALS.INDEX])
         closeModal()
-        toast.success("Product deleted successfully")
+        toast.success("Raw material deleted successfully")
     }
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        if (product) {
-            remove(API.EXTRA.PRODUCTS.ID.INDEX.replace("{id}", String(product.id)), undefined, { onSuccess })
+        if (rawMaterial) {
+            remove(
+                API.EXTRA.RAW_MATERIALS.ID.INDEX.replace(
+                    "{id}",
+                    String(rawMaterial.id),
+                ),
+                undefined,
+                { onSuccess },
+            )
         }
     }
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <CardTitle>Delete Product</CardTitle>
+            <CardTitle>Delete Raw Material</CardTitle>
             <CardDescription>
                 Are you sure you want to delete{" "}
-                <span className="font-semibold">{product?.name}</span>? This action
-                cannot be undone.
+                <span className="font-semibold">{rawMaterial?.name}</span>? This
+                action cannot be undone.
             </CardDescription>
             <FormAction submitName="Delete" loading={isPending} />
         </form>

@@ -1,24 +1,34 @@
 import FormAction from "@/components/custom/form-action"
 import Modal from "@/components/custom/modal"
 import UncontrolledInput from "@/components/form/uncontrolled-input"
-import { CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { CardTitle } from "@/components/ui/card"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
+import { API } from "@/lib/constants/api-endpoints"
+import { cn } from "@/lib/utils/shadcn"
 import { useParams } from "@tanstack/react-router"
-import { useForm, useFieldArray, Controller } from "react-hook-form"
+import TextAlign from "@tiptap/extension-text-align"
+import Underline from "@tiptap/extension-underline"
+import { EditorContent, useEditor } from "@tiptap/react"
+import StarterKit from "@tiptap/starter-kit"
+import {
+    AlignCenter,
+    AlignLeft,
+    AlignRight,
+    Bold,
+    Italic,
+    List,
+    ListOrdered,
+    PlusIcon,
+    Trash2,
+    UnderlineIcon,
+} from "lucide-react"
+import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { useProductStore } from "../-hooks/use-product-store"
 import type { Product } from "../../../-types"
-import { API } from "@/lib/constants/api-endpoints"
-import { PlusIcon, Trash2 } from "lucide-react"
-import { useEditor, EditorContent } from "@tiptap/react"
-import StarterKit from "@tiptap/starter-kit"
-import Underline from "@tiptap/extension-underline"
-import TextAlign from "@tiptap/extension-text-align"
-import { Bold, Italic, UnderlineIcon, AlignLeft, AlignCenter, AlignRight, List, ListOrdered } from "lucide-react"
-import { cn } from "@/lib/utils/shadcn"
 
 export default function ProductAddEditModal() {
     return (
@@ -54,9 +64,9 @@ function ToolbarButton({
             }}
             className={cn(
                 "p-1.5 rounded text-sm transition-colors",
-                active
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                active ?
+                    "bg-primary text-primary-foreground"
+                :   "hover:bg-muted text-muted-foreground hover:text-foreground",
             )}
         >
             {children}
@@ -103,39 +113,51 @@ function RichTextEditor({
                 </ToolbarButton>
                 <ToolbarButton
                     active={editor.isActive("underline")}
-                    onClick={() => editor.chain().focus().toggleUnderline().run()}
+                    onClick={() =>
+                        editor.chain().focus().toggleUnderline().run()
+                    }
                 >
                     <UnderlineIcon className="w-4 h-4" />
                 </ToolbarButton>
                 <div className="w-px h-5 bg-border mx-1" />
                 <ToolbarButton
                     active={editor.isActive({ textAlign: "left" })}
-                    onClick={() => editor.chain().focus().setTextAlign("left").run()}
+                    onClick={() =>
+                        editor.chain().focus().setTextAlign("left").run()
+                    }
                 >
                     <AlignLeft className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     active={editor.isActive({ textAlign: "center" })}
-                    onClick={() => editor.chain().focus().setTextAlign("center").run()}
+                    onClick={() =>
+                        editor.chain().focus().setTextAlign("center").run()
+                    }
                 >
                     <AlignCenter className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     active={editor.isActive({ textAlign: "right" })}
-                    onClick={() => editor.chain().focus().setTextAlign("right").run()}
+                    onClick={() =>
+                        editor.chain().focus().setTextAlign("right").run()
+                    }
                 >
                     <AlignRight className="w-4 h-4" />
                 </ToolbarButton>
                 <div className="w-px h-5 bg-border mx-1" />
                 <ToolbarButton
                     active={editor.isActive("bulletList")}
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
+                    onClick={() =>
+                        editor.chain().focus().toggleBulletList().run()
+                    }
                 >
                     <List className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     active={editor.isActive("orderedList")}
-                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                    onClick={() =>
+                        editor.chain().focus().toggleOrderedList().run()
+                    }
                 >
                     <ListOrdered className="w-4 h-4" />
                 </ToolbarButton>
@@ -159,12 +181,13 @@ function ProductAddEdit() {
     const { post, patch, isPending } = useRequest()
 
     // Convert extra_fields object → array for the form
-    const extraFieldsDefault: ExtraField[] = product?.extra_fields
-        ? Object.entries(product.extra_fields).map(([key, value]) => ({
-            key,
-            value: String(value),
-        }))
-        : []
+    const extraFieldsDefault: ExtraField[] =
+        product?.extra_fields ?
+            Object.entries(product.extra_fields).map(([key, value]) => ({
+                key,
+                value: String(value),
+            }))
+        :   []
 
     const form = useForm<Form>({
         defaultValues: {
@@ -177,18 +200,19 @@ function ProductAddEdit() {
             description: "",
             extra_fields: [],
         },
-        values: product
-            ? {
-                name: product.name,
-                category: product.category,
-                sub_category: product.sub_category,
-                code: product.code,
-                articul: product.articul,
-                price: product.price,
-                description: product.description ?? "",
-                extra_fields: extraFieldsDefault,
-            }
-            : undefined,
+        values:
+            product ?
+                {
+                    name: product.name,
+                    category: product.category,
+                    sub_category: product.sub_category,
+                    code: product.code,
+                    articul: product.articul,
+                    price: product.price,
+                    description: product.description ?? "",
+                    extra_fields: extraFieldsDefault,
+                }
+            :   undefined,
     })
 
     const { fields, append, remove } = useFieldArray({
@@ -199,7 +223,9 @@ function ProductAddEdit() {
     const onSuccess = () => {
         invalidateByExactMatch([API.EXTRA.PRODUCTS.INDEX])
         closeModal()
-        toast.success(product ? "Updated successfully" : "Product added successfully")
+        toast.success(
+            product ? "Updated successfully" : "Product added successfully",
+        )
     }
 
     const onSubmit = form.handleSubmit((vals) => {
@@ -236,7 +262,11 @@ function ProductAddEdit() {
             <CardTitle>{product ? "Edit Product" : "Add Product"}</CardTitle>
 
             {/* Base fields */}
-            <UncontrolledInput methods={form} name="name" label="Product name" />
+            <UncontrolledInput
+                methods={form}
+                name="name"
+                label="Product name"
+            />
             <UncontrolledInput methods={form} name="articul" label="Articul" />
             <UncontrolledInput
                 methods={form}
@@ -255,7 +285,9 @@ function ProductAddEdit() {
             <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-foreground">
                     Description{" "}
-                    <span className="text-muted-foreground font-normal">(optional)</span>
+                    <span className="text-muted-foreground font-normal">
+                        (optional)
+                    </span>
                 </label>
                 <Controller
                     control={form.control}
@@ -289,7 +321,8 @@ function ProductAddEdit() {
 
                 {fields.length === 0 && (
                     <p className="text-xs text-muted-foreground">
-                        No extra fields. Click "Add Field" to add custom key-value pairs.
+                        No extra fields. Click "Add Field" to add custom
+                        key-value pairs.
                     </p>
                 )}
 
@@ -302,7 +335,9 @@ function ProductAddEdit() {
                                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             />
                             <input
-                                {...form.register(`extra_fields.${index}.value`)}
+                                {...form.register(
+                                    `extra_fields.${index}.value`,
+                                )}
                                 placeholder="Value"
                                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             />
@@ -318,7 +353,10 @@ function ProductAddEdit() {
                 </div>
             </div>
 
-            <FormAction submitName={product ? "Save" : "Add"} loading={isPending} />
+            <FormAction
+                submitName={product ? "Save" : "Add"}
+                loading={isPending}
+            />
         </form>
     )
 }

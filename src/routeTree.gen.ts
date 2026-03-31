@@ -26,14 +26,15 @@ import { Route as MainDashboardIndexRouteImport } from './routes/_main/dashboard
 import { Route as MainClientsIndexRouteImport } from './routes/_main/clients/index'
 import { Route as MainAdminsIndexRouteImport } from './routes/_main/admins/index'
 import { Route as AuthLoginIndexRouteImport } from './routes/_auth/login/index'
+import { Route as MainSettingsRawMaterialsIndexRouteImport } from './routes/_main/settings/raw-materials/index'
+import { Route as MainSettingsProductsIndexRouteImport } from './routes/_main/settings/products/index'
 import { Route as MainSettingsPaymentTypeIndexRouteImport } from './routes/_main/settings/payment-type/index'
+import { Route as MainSettingsCurrencyIndexRouteImport } from './routes/_main/settings/currency/index'
 import { Route as MainFinanceIncomeIndexRouteImport } from './routes/_main/finance/income/index'
 import { Route as MainFinanceExpenceIndexRouteImport } from './routes/_main/finance/expence/index'
 import { Route as MainFinanceDashboardIndexRouteImport } from './routes/_main/finance/dashboard/index'
-import { Route as MainExtraRawMaterialsIndexRouteImport } from './routes/_main/extra/raw-materials/index'
-import { Route as MainExtraProductsIndexRouteImport } from './routes/_main/extra/products/index'
-import { Route as MainExtraProductsCategoryIdIndexRouteImport } from './routes/_main/extra/products/$categoryId/index'
-import { Route as MainExtraProductsCategoryIdSubcategoryIdIndexRouteImport } from './routes/_main/extra/products/$categoryId/$subcategoryId/index'
+import { Route as MainSettingsProductsCategoryIdIndexRouteImport } from './routes/_main/settings/products/$categoryId/index'
+import { Route as MainSettingsProductsCategoryIdSubcategoryIdIndexRouteImport } from './routes/_main/settings/products/$categoryId/$subcategoryId/index'
 
 const MainRoute = MainRouteImport.update({
   id: '/_main',
@@ -119,10 +120,28 @@ const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => AuthRoute,
 } as any)
+const MainSettingsRawMaterialsIndexRoute =
+  MainSettingsRawMaterialsIndexRouteImport.update({
+    id: '/settings/raw-materials/',
+    path: '/settings/raw-materials/',
+    getParentRoute: () => MainRoute,
+  } as any)
+const MainSettingsProductsIndexRoute =
+  MainSettingsProductsIndexRouteImport.update({
+    id: '/settings/products/',
+    path: '/settings/products/',
+    getParentRoute: () => MainRoute,
+  } as any)
 const MainSettingsPaymentTypeIndexRoute =
   MainSettingsPaymentTypeIndexRouteImport.update({
     id: '/settings/payment-type/',
     path: '/settings/payment-type/',
+    getParentRoute: () => MainRoute,
+  } as any)
+const MainSettingsCurrencyIndexRoute =
+  MainSettingsCurrencyIndexRouteImport.update({
+    id: '/settings/currency/',
+    path: '/settings/currency/',
     getParentRoute: () => MainRoute,
   } as any)
 const MainFinanceIncomeIndexRoute = MainFinanceIncomeIndexRouteImport.update({
@@ -141,27 +160,16 @@ const MainFinanceDashboardIndexRoute =
     path: '/finance/dashboard/',
     getParentRoute: () => MainRoute,
   } as any)
-const MainExtraRawMaterialsIndexRoute =
-  MainExtraRawMaterialsIndexRouteImport.update({
-    id: '/extra/raw-materials/',
-    path: '/extra/raw-materials/',
+const MainSettingsProductsCategoryIdIndexRoute =
+  MainSettingsProductsCategoryIdIndexRouteImport.update({
+    id: '/settings/products/$categoryId/',
+    path: '/settings/products/$categoryId/',
     getParentRoute: () => MainRoute,
   } as any)
-const MainExtraProductsIndexRoute = MainExtraProductsIndexRouteImport.update({
-  id: '/extra/products/',
-  path: '/extra/products/',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainExtraProductsCategoryIdIndexRoute =
-  MainExtraProductsCategoryIdIndexRouteImport.update({
-    id: '/extra/products/$categoryId/',
-    path: '/extra/products/$categoryId/',
-    getParentRoute: () => MainRoute,
-  } as any)
-const MainExtraProductsCategoryIdSubcategoryIdIndexRoute =
-  MainExtraProductsCategoryIdSubcategoryIdIndexRouteImport.update({
-    id: '/extra/products/$categoryId/$subcategoryId/',
-    path: '/extra/products/$categoryId/$subcategoryId/',
+const MainSettingsProductsCategoryIdSubcategoryIdIndexRoute =
+  MainSettingsProductsCategoryIdSubcategoryIdIndexRouteImport.update({
+    id: '/settings/products/$categoryId/$subcategoryId/',
+    path: '/settings/products/$categoryId/$subcategoryId/',
     getParentRoute: () => MainRoute,
   } as any)
 
@@ -181,14 +189,15 @@ export interface FileRoutesByFullPath {
   '/settings': typeof MainSettingsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
   '/task-manager': typeof MainTaskManagerIndexRoute
-  '/extra/products': typeof MainExtraProductsIndexRoute
-  '/extra/raw-materials': typeof MainExtraRawMaterialsIndexRoute
   '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
   '/finance/expence': typeof MainFinanceExpenceIndexRoute
   '/finance/income': typeof MainFinanceIncomeIndexRoute
+  '/settings/currency': typeof MainSettingsCurrencyIndexRoute
   '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
-  '/extra/products/$categoryId': typeof MainExtraProductsCategoryIdIndexRoute
-  '/extra/products/$categoryId/$subcategoryId': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
+  '/settings/products': typeof MainSettingsProductsIndexRoute
+  '/settings/raw-materials': typeof MainSettingsRawMaterialsIndexRoute
+  '/settings/products/$categoryId': typeof MainSettingsProductsCategoryIdIndexRoute
+  '/settings/products/$categoryId/$subcategoryId': typeof MainSettingsProductsCategoryIdSubcategoryIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
@@ -206,14 +215,15 @@ export interface FileRoutesByTo {
   '/settings': typeof MainSettingsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
   '/task-manager': typeof MainTaskManagerIndexRoute
-  '/extra/products': typeof MainExtraProductsIndexRoute
-  '/extra/raw-materials': typeof MainExtraRawMaterialsIndexRoute
   '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
   '/finance/expence': typeof MainFinanceExpenceIndexRoute
   '/finance/income': typeof MainFinanceIncomeIndexRoute
+  '/settings/currency': typeof MainSettingsCurrencyIndexRoute
   '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
-  '/extra/products/$categoryId': typeof MainExtraProductsCategoryIdIndexRoute
-  '/extra/products/$categoryId/$subcategoryId': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
+  '/settings/products': typeof MainSettingsProductsIndexRoute
+  '/settings/raw-materials': typeof MainSettingsRawMaterialsIndexRoute
+  '/settings/products/$categoryId': typeof MainSettingsProductsCategoryIdIndexRoute
+  '/settings/products/$categoryId/$subcategoryId': typeof MainSettingsProductsCategoryIdSubcategoryIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -234,14 +244,15 @@ export interface FileRoutesById {
   '/_main/settings/': typeof MainSettingsIndexRoute
   '/_main/suppliers/': typeof MainSuppliersIndexRoute
   '/_main/task-manager/': typeof MainTaskManagerIndexRoute
-  '/_main/extra/products/': typeof MainExtraProductsIndexRoute
-  '/_main/extra/raw-materials/': typeof MainExtraRawMaterialsIndexRoute
   '/_main/finance/dashboard/': typeof MainFinanceDashboardIndexRoute
   '/_main/finance/expence/': typeof MainFinanceExpenceIndexRoute
   '/_main/finance/income/': typeof MainFinanceIncomeIndexRoute
+  '/_main/settings/currency/': typeof MainSettingsCurrencyIndexRoute
   '/_main/settings/payment-type/': typeof MainSettingsPaymentTypeIndexRoute
-  '/_main/extra/products/$categoryId/': typeof MainExtraProductsCategoryIdIndexRoute
-  '/_main/extra/products/$categoryId/$subcategoryId/': typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
+  '/_main/settings/products/': typeof MainSettingsProductsIndexRoute
+  '/_main/settings/raw-materials/': typeof MainSettingsRawMaterialsIndexRoute
+  '/_main/settings/products/$categoryId/': typeof MainSettingsProductsCategoryIdIndexRoute
+  '/_main/settings/products/$categoryId/$subcategoryId/': typeof MainSettingsProductsCategoryIdSubcategoryIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -261,14 +272,15 @@ export interface FileRouteTypes {
     | '/settings'
     | '/suppliers'
     | '/task-manager'
-    | '/extra/products'
-    | '/extra/raw-materials'
     | '/finance/dashboard'
     | '/finance/expence'
     | '/finance/income'
+    | '/settings/currency'
     | '/settings/payment-type'
-    | '/extra/products/$categoryId'
-    | '/extra/products/$categoryId/$subcategoryId'
+    | '/settings/products'
+    | '/settings/raw-materials'
+    | '/settings/products/$categoryId'
+    | '/settings/products/$categoryId/$subcategoryId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -286,14 +298,15 @@ export interface FileRouteTypes {
     | '/settings'
     | '/suppliers'
     | '/task-manager'
-    | '/extra/products'
-    | '/extra/raw-materials'
     | '/finance/dashboard'
     | '/finance/expence'
     | '/finance/income'
+    | '/settings/currency'
     | '/settings/payment-type'
-    | '/extra/products/$categoryId'
-    | '/extra/products/$categoryId/$subcategoryId'
+    | '/settings/products'
+    | '/settings/raw-materials'
+    | '/settings/products/$categoryId'
+    | '/settings/products/$categoryId/$subcategoryId'
   id:
     | '__root__'
     | '/_auth'
@@ -313,14 +326,15 @@ export interface FileRouteTypes {
     | '/_main/settings/'
     | '/_main/suppliers/'
     | '/_main/task-manager/'
-    | '/_main/extra/products/'
-    | '/_main/extra/raw-materials/'
     | '/_main/finance/dashboard/'
     | '/_main/finance/expence/'
     | '/_main/finance/income/'
+    | '/_main/settings/currency/'
     | '/_main/settings/payment-type/'
-    | '/_main/extra/products/$categoryId/'
-    | '/_main/extra/products/$categoryId/$subcategoryId/'
+    | '/_main/settings/products/'
+    | '/_main/settings/raw-materials/'
+    | '/_main/settings/products/$categoryId/'
+    | '/_main/settings/products/$categoryId/$subcategoryId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -449,11 +463,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_main/settings/raw-materials/': {
+      id: '/_main/settings/raw-materials/'
+      path: '/settings/raw-materials'
+      fullPath: '/settings/raw-materials'
+      preLoaderRoute: typeof MainSettingsRawMaterialsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/settings/products/': {
+      id: '/_main/settings/products/'
+      path: '/settings/products'
+      fullPath: '/settings/products'
+      preLoaderRoute: typeof MainSettingsProductsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/settings/payment-type/': {
       id: '/_main/settings/payment-type/'
       path: '/settings/payment-type'
       fullPath: '/settings/payment-type'
       preLoaderRoute: typeof MainSettingsPaymentTypeIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/settings/currency/': {
+      id: '/_main/settings/currency/'
+      path: '/settings/currency'
+      fullPath: '/settings/currency'
+      preLoaderRoute: typeof MainSettingsCurrencyIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/finance/income/': {
@@ -477,32 +512,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainFinanceDashboardIndexRouteImport
       parentRoute: typeof MainRoute
     }
-    '/_main/extra/raw-materials/': {
-      id: '/_main/extra/raw-materials/'
-      path: '/extra/raw-materials'
-      fullPath: '/extra/raw-materials'
-      preLoaderRoute: typeof MainExtraRawMaterialsIndexRouteImport
+    '/_main/settings/products/$categoryId/': {
+      id: '/_main/settings/products/$categoryId/'
+      path: '/settings/products/$categoryId'
+      fullPath: '/settings/products/$categoryId'
+      preLoaderRoute: typeof MainSettingsProductsCategoryIdIndexRouteImport
       parentRoute: typeof MainRoute
     }
-    '/_main/extra/products/': {
-      id: '/_main/extra/products/'
-      path: '/extra/products'
-      fullPath: '/extra/products'
-      preLoaderRoute: typeof MainExtraProductsIndexRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/extra/products/$categoryId/': {
-      id: '/_main/extra/products/$categoryId/'
-      path: '/extra/products/$categoryId'
-      fullPath: '/extra/products/$categoryId'
-      preLoaderRoute: typeof MainExtraProductsCategoryIdIndexRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/extra/products/$categoryId/$subcategoryId/': {
-      id: '/_main/extra/products/$categoryId/$subcategoryId/'
-      path: '/extra/products/$categoryId/$subcategoryId'
-      fullPath: '/extra/products/$categoryId/$subcategoryId'
-      preLoaderRoute: typeof MainExtraProductsCategoryIdSubcategoryIdIndexRouteImport
+    '/_main/settings/products/$categoryId/$subcategoryId/': {
+      id: '/_main/settings/products/$categoryId/$subcategoryId/'
+      path: '/settings/products/$categoryId/$subcategoryId'
+      fullPath: '/settings/products/$categoryId/$subcategoryId'
+      preLoaderRoute: typeof MainSettingsProductsCategoryIdSubcategoryIdIndexRouteImport
       parentRoute: typeof MainRoute
     }
   }
@@ -533,14 +554,15 @@ interface MainRouteChildren {
   MainSettingsIndexRoute: typeof MainSettingsIndexRoute
   MainSuppliersIndexRoute: typeof MainSuppliersIndexRoute
   MainTaskManagerIndexRoute: typeof MainTaskManagerIndexRoute
-  MainExtraProductsIndexRoute: typeof MainExtraProductsIndexRoute
-  MainExtraRawMaterialsIndexRoute: typeof MainExtraRawMaterialsIndexRoute
   MainFinanceDashboardIndexRoute: typeof MainFinanceDashboardIndexRoute
   MainFinanceExpenceIndexRoute: typeof MainFinanceExpenceIndexRoute
   MainFinanceIncomeIndexRoute: typeof MainFinanceIncomeIndexRoute
+  MainSettingsCurrencyIndexRoute: typeof MainSettingsCurrencyIndexRoute
   MainSettingsPaymentTypeIndexRoute: typeof MainSettingsPaymentTypeIndexRoute
-  MainExtraProductsCategoryIdIndexRoute: typeof MainExtraProductsCategoryIdIndexRoute
-  MainExtraProductsCategoryIdSubcategoryIdIndexRoute: typeof MainExtraProductsCategoryIdSubcategoryIdIndexRoute
+  MainSettingsProductsIndexRoute: typeof MainSettingsProductsIndexRoute
+  MainSettingsRawMaterialsIndexRoute: typeof MainSettingsRawMaterialsIndexRoute
+  MainSettingsProductsCategoryIdIndexRoute: typeof MainSettingsProductsCategoryIdIndexRoute
+  MainSettingsProductsCategoryIdSubcategoryIdIndexRoute: typeof MainSettingsProductsCategoryIdSubcategoryIdIndexRoute
 }
 
 const MainRouteChildren: MainRouteChildren = {
@@ -558,15 +580,17 @@ const MainRouteChildren: MainRouteChildren = {
   MainSettingsIndexRoute: MainSettingsIndexRoute,
   MainSuppliersIndexRoute: MainSuppliersIndexRoute,
   MainTaskManagerIndexRoute: MainTaskManagerIndexRoute,
-  MainExtraProductsIndexRoute: MainExtraProductsIndexRoute,
-  MainExtraRawMaterialsIndexRoute: MainExtraRawMaterialsIndexRoute,
   MainFinanceDashboardIndexRoute: MainFinanceDashboardIndexRoute,
   MainFinanceExpenceIndexRoute: MainFinanceExpenceIndexRoute,
   MainFinanceIncomeIndexRoute: MainFinanceIncomeIndexRoute,
+  MainSettingsCurrencyIndexRoute: MainSettingsCurrencyIndexRoute,
   MainSettingsPaymentTypeIndexRoute: MainSettingsPaymentTypeIndexRoute,
-  MainExtraProductsCategoryIdIndexRoute: MainExtraProductsCategoryIdIndexRoute,
-  MainExtraProductsCategoryIdSubcategoryIdIndexRoute:
-    MainExtraProductsCategoryIdSubcategoryIdIndexRoute,
+  MainSettingsProductsIndexRoute: MainSettingsProductsIndexRoute,
+  MainSettingsRawMaterialsIndexRoute: MainSettingsRawMaterialsIndexRoute,
+  MainSettingsProductsCategoryIdIndexRoute:
+    MainSettingsProductsCategoryIdIndexRoute,
+  MainSettingsProductsCategoryIdSubcategoryIdIndexRoute:
+    MainSettingsProductsCategoryIdSubcategoryIdIndexRoute,
 }
 
 const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)

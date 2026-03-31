@@ -5,12 +5,12 @@ import { CardTitle } from "@/components/ui/card"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
+import { API } from "@/lib/constants/api-endpoints"
 import { useParams } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { useSubCategoryStore } from "../-hooks/use-subcategory-store"
 import type { SubCategory } from "../../-types"
-import { API } from "@/lib/constants/api-endpoints"
 
 export default function SubCategoryAddEditModal() {
     return (
@@ -34,22 +34,32 @@ function SubCategoryAddEdit() {
             name: "",
             parent: Number(categoryId),
         },
-        values: subCategory
-            ? { name: subCategory.name, parent: subCategory.parent }
-            : { name: "", parent: Number(categoryId) },
+        values:
+            subCategory ?
+                { name: subCategory.name, parent: subCategory.parent }
+            :   { name: "", parent: Number(categoryId) },
     })
 
     const onSuccess = () => {
         invalidateByExactMatch([API.EXTRA.SUBCATEGORIES.INDEX])
         closeModal()
         toast.success(
-            subCategory ? "Updated successfully" : "Subcategory added successfully",
+            subCategory ?
+                "Updated successfully"
+            :   "Subcategory added successfully",
         )
     }
 
     const onSubmit = form.handleSubmit((vals) => {
         if (subCategory) {
-            patch(API.EXTRA.SUBCATEGORIES.ID.INDEX.replace("{id}", String(subCategory.id)), vals, { onSuccess })
+            patch(
+                API.EXTRA.SUBCATEGORIES.ID.INDEX.replace(
+                    "{id}",
+                    String(subCategory.id),
+                ),
+                vals,
+                { onSuccess },
+            )
         } else {
             post(API.EXTRA.SUBCATEGORIES.INDEX, vals, { onSuccess })
         }
@@ -60,7 +70,11 @@ function SubCategoryAddEdit() {
             <CardTitle>
                 {subCategory ? "Edit Subcategory" : "Add Subcategory"}
             </CardTitle>
-            <UncontrolledInput methods={form} name="name" label="Subcategory name" />
+            <UncontrolledInput
+                methods={form}
+                name="name"
+                label="Subcategory name"
+            />
             <FormAction
                 submitName={subCategory ? "Save" : "Add"}
                 loading={isPending}

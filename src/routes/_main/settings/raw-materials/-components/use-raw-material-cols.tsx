@@ -1,20 +1,21 @@
-import type { ColumnDef, CellContext } from "@tanstack/react-table"
-import type { Product } from "../../../-types"
-import { useState, useRef, useEffect, useMemo } from "react"
-import { useProductStore } from "../-hooks/use-product-store"
 import { useModal } from "@/hooks/use-modal"
+import type { CellContext, ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
-import { useProductsQuery } from "../-hooks/use-products-query"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useRawMaterialStore } from "../-hooks/use-raw-material-store"
+import { useRawMaterialsQuery } from "../-hooks/use-raw-materials-query"
+import type { RawMaterial } from "../-types"
 
 // ─── Actions dropdown ─────────────────────────────────────────────────────────
-function ProductActions({ product }: { product: Product }) {
+// eslint-disable-next-line react-refresh/only-export-components
+function RawMaterialActions({ rawMaterial }: { rawMaterial: RawMaterial }) {
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
     const btnRef = useRef<HTMLButtonElement>(null)
     const ref = useRef<HTMLDivElement>(null)
-    const { setProduct } = useProductStore()
-    const addModal = useModal("add-product")
-    const deleteModal = useModal("delete-product")
+    const { setRawMaterial } = useRawMaterialStore()
+    const addModal = useModal("add-raw-material")
+    const deleteModal = useModal("delete-raw-material")
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -51,7 +52,12 @@ function ProductActions({ product }: { product: Product }) {
             </button>
             {open && (
                 <div
-                    style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
+                    style={{
+                        position: "fixed",
+                        top: pos.top,
+                        left: pos.left,
+                        zIndex: 9999,
+                    }}
                     className="bg-white rounded-xl shadow-lg border flex flex-col overflow-hidden"
                 >
                     <button
@@ -59,7 +65,7 @@ function ProductActions({ product }: { product: Product }) {
                         className="flex items-center gap-2 text-sm hover:bg-muted"
                         onClick={(e) => {
                             e.stopPropagation()
-                            setProduct(product)
+                            setRawMaterial(rawMaterial)
                             addModal.openModal()
                             setOpen(false)
                         }}
@@ -71,7 +77,7 @@ function ProductActions({ product }: { product: Product }) {
                         className="flex items-center gap-2 text-sm text-red-500 hover:bg-muted"
                         onClick={(e) => {
                             e.stopPropagation()
-                            setProduct(product)
+                            setRawMaterial(rawMaterial)
                             deleteModal.openModal()
                             setOpen(false)
                         }}
@@ -85,6 +91,7 @@ function ProductActions({ product }: { product: Product }) {
 }
 
 // ─── Truncated cell with — fallback ───────────────────────────────────────────
+// eslint-disable-next-line react-refresh/only-export-components
 function TruncatedCell({
     value,
     onClick,
@@ -102,42 +109,40 @@ function TruncatedCell({
             className="text-sm cursor-pointer block truncate"
             style={{ maxWidth }}
         >
-            {isEmpty ? (
+            {isEmpty ?
                 <span className="text-muted-foreground">—</span>
-            ) : (
-                String(value)
-            )}
+            :   String(value)}
         </span>
     )
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
-export const useProductCols = (): ColumnDef<Product>[] => {
-    const { productList } = useProductsQuery()
-    const { setProduct } = useProductStore()
-    const detailModal = useModal("product-detail")
+export const useRawMaterialCols = (): ColumnDef<RawMaterial>[] => {
+    const { rawMaterialList } = useRawMaterialsQuery()
+    const { setRawMaterial } = useRawMaterialStore()
+    const detailModal = useModal("raw-material-detail")
 
     const extraKeys = useMemo(() => {
         const keys = new Set<string>()
-        for (const p of productList) {
-            if (p.extra_fields) {
-                for (const k of Object.keys(p.extra_fields)) {
+        for (const r of rawMaterialList) {
+            if (r.extra_fields) {
+                for (const k of Object.keys(r.extra_fields)) {
                     keys.add(k)
                 }
             }
         }
         return Array.from(keys)
-    }, [productList])
+    }, [rawMaterialList])
 
-    const handleRowClick = (product: Product) => {
-        setProduct(product)
+    const handleRowClick = (rawMaterial: RawMaterial) => {
+        setRawMaterial(rawMaterial)
         detailModal.openModal()
     }
 
-    const extraCols: ColumnDef<Product>[] = extraKeys.map((key) => ({
+    const extraCols: ColumnDef<RawMaterial>[] = extraKeys.map((key) => ({
         id: `extra_${key}`,
         header: key,
-        cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+        cell: ({ row: { original } }: CellContext<RawMaterial, unknown>) => (
             <TruncatedCell
                 value={original.extra_fields?.[key] ?? null}
                 onClick={() => handleRowClick(original)}
@@ -148,8 +153,10 @@ export const useProductCols = (): ColumnDef<Product>[] => {
     return [
         {
             accessorKey: "name",
-            header: "Product Name",
-            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+            header: "Name",
+            cell: ({
+                row: { original },
+            }: CellContext<RawMaterial, unknown>) => (
                 <TruncatedCell
                     value={original.name}
                     onClick={() => handleRowClick(original)}
@@ -158,35 +165,28 @@ export const useProductCols = (): ColumnDef<Product>[] => {
             ),
         },
         {
-            accessorKey: "code",
-            header: "Code",
-            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+            accessorKey: "standard",
+            header: "Standard",
+            cell: ({
+                row: { original },
+            }: CellContext<RawMaterial, unknown>) => (
                 <TruncatedCell
-                    value={original.code}
+                    value={original.standard}
                     onClick={() => handleRowClick(original)}
-                    maxWidth={100}
+                    maxWidth={160}
                 />
             ),
         },
         {
-            accessorKey: "articul",
-            header: "Articul",
-            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+            accessorKey: "mark",
+            header: "Mark",
+            cell: ({
+                row: { original },
+            }: CellContext<RawMaterial, unknown>) => (
                 <TruncatedCell
-                    value={original.articul}
+                    value={original.mark}
                     onClick={() => handleRowClick(original)}
-                    maxWidth={120}
-                />
-            ),
-        },
-        {
-            accessorKey: "price",
-            header: "Price",
-            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
-                <TruncatedCell
-                    value={original.price}
-                    onClick={() => handleRowClick(original)}
-                    maxWidth={100}
+                    maxWidth={160}
                 />
             ),
         },
@@ -194,13 +194,16 @@ export const useProductCols = (): ColumnDef<Product>[] => {
         {
             id: "description",
             header: "Description",
-            cell: ({ row: { original } }: CellContext<Product, unknown>) => {
-                const plain = original.description
-                    ? original.description
-                        .replace(/<[^>]*>/g, " ")
-                        .replace(/\s+/g, " ")
-                        .trim()
-                    : null
+            cell: ({
+                row: { original },
+            }: CellContext<RawMaterial, unknown>) => {
+                const plain =
+                    original.description ?
+                        original.description
+                            .replace(/<[^>]*>/g, " ")
+                            .replace(/\s+/g, " ")
+                            .trim()
+                    :   null
                 return (
                     <TruncatedCell
                         value={plain}
@@ -213,8 +216,10 @@ export const useProductCols = (): ColumnDef<Product>[] => {
         {
             id: "actions",
             header: "",
-            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
-                <ProductActions product={original} />
+            cell: ({
+                row: { original },
+            }: CellContext<RawMaterial, unknown>) => (
+                <RawMaterialActions rawMaterial={original} />
             ),
         },
     ]

@@ -1,11 +1,11 @@
-import type { ColumnDef } from "@tanstack/react-table"
-import type { Category } from "../-types"
-import { useState, useRef, useEffect } from "react"
-import { useCategoryStore } from "../-hooks/use-category-store"
 import { useModal } from "@/hooks/use-modal"
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useNavigate } from "@tanstack/react-router"
-
+import type { ColumnDef } from "@tanstack/react-table"
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { useCategoryStore } from "../-hooks/use-category-store"
+import type { Category } from "../-types"
+// eslint-disable-next-line react-refresh/only-export-components
 function CategoryActions({ category }: { category: Category }) {
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -50,7 +50,12 @@ function CategoryActions({ category }: { category: Category }) {
             </button>
             {open && (
                 <div
-                    style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
+                    style={{
+                        position: "fixed",
+                        top: pos.top,
+                        left: pos.left,
+                        zIndex: 9999,
+                    }}
                     className="bg-white rounded-xl shadow-lg border flex flex-col overflow-hidden"
                 >
                     <button
@@ -95,7 +100,7 @@ export const useCategoryCols = (): ColumnDef<Category>[] => {
                     className="w-full text-left text-sm font-medium hover:cursor-pointer hoverbg-primary"
                     onClick={() =>
                         navigate({
-                            to: "/extra/products/$categoryId",
+                            to: "/settings/products/$categoryId",
                             params: { categoryId: String(original.id) },
                         })
                     }

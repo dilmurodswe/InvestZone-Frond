@@ -4,43 +4,50 @@ import { CardDescription, CardTitle } from "@/components/ui/card"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
-import { toast } from "sonner"
-import { useSubCategoryStore } from "../-hooks/use-subcategory-store"
 import { API } from "@/lib/constants/api-endpoints"
+import { toast } from "sonner"
+import { useCategoryStore } from "../-hooks/use-category-store"
 
-export default function SubCategoryDeleteModal() {
+export default function CategoryDeleteModal() {
     return (
-        <Modal modalKey="delete-subcategory">
-            <SubCategoryDelete />
+        <Modal modalKey="delete-category">
+            <CategoryDelete />
         </Modal>
     )
 }
 
-function SubCategoryDelete() {
-    const { closeModal } = useModal("delete-subcategory")
+function CategoryDelete() {
+    const { closeModal } = useModal("delete-category")
     const { invalidateByExactMatch } = useRevalidate()
-    const { subCategory } = useSubCategoryStore()
+    const { category } = useCategoryStore()
     const { remove, isPending } = useRequest()
 
     const onSuccess = () => {
-        invalidateByExactMatch([API.EXTRA.SUBCATEGORIES.INDEX])
+        invalidateByExactMatch([API.EXTRA.CATEGORIES.INDEX])
         closeModal()
-        toast.success("Subcategory deleted successfully")
+        toast.success("Category deleted successfully")
     }
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        if (subCategory) {
-            remove(API.EXTRA.SUBCATEGORIES.ID.INDEX.replace("{id}", String(subCategory.id)), undefined, { onSuccess })
+        if (category) {
+            remove(
+                API.EXTRA.CATEGORIES.ID.INDEX.replace(
+                    "{id}",
+                    String(category.id),
+                ),
+                undefined,
+                { onSuccess },
+            )
         }
     }
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <CardTitle>Delete Subcategory</CardTitle>
+            <CardTitle>Delete Category</CardTitle>
             <CardDescription>
                 Are you sure you want to delete{" "}
-                <span className="font-semibold">{subCategory?.name}</span>? This
+                <span className="font-semibold">{category?.name}</span>? This
                 action cannot be undone.
             </CardDescription>
             <FormAction submitName="Delete" loading={isPending} />

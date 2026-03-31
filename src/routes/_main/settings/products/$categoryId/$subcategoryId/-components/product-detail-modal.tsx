@@ -1,32 +1,34 @@
 import Modal from "@/components/custom/modal"
 import { CardTitle } from "@/components/ui/card"
-import { useRawMaterialStore } from "../-hooks/use-raw-material-store"
+// import { useModal } from "@/hooks/use-modal"
+import { useProductStore } from "../-hooks/use-product-store"
 
-export default function RawMaterialDetailModal() {
+export default function ProductDetailModal() {
     return (
-        <Modal modalKey="raw-material-detail" title={null}>
-            <RawMaterialDetail />
+        <Modal modalKey="product-detail" title={null}>
+            <ProductDetail />
         </Modal>
     )
 }
 
-function RawMaterialDetail() {
-    const { rawMaterial } = useRawMaterialStore()
+function ProductDetail() {
+    const { product } = useProductStore()
+    // const { closeModal } = useModal("product-detail")
 
-    if (!rawMaterial) return null
+    if (!product) return null
 
-    const extraEntries = rawMaterial.extra_fields
-        ? Object.entries(rawMaterial.extra_fields)
-        : []
+    const extraEntries =
+        product.extra_fields ? Object.entries(product.extra_fields) : []
 
     return (
         <div className="flex flex-col gap-5">
-            <CardTitle>{rawMaterial.name}</CardTitle>
+            <CardTitle>{product.name}</CardTitle>
 
             {/* Base info */}
             <div className="grid grid-cols-2 gap-3">
-                <DetailRow label="Standard" value={rawMaterial.standard} />
-                <DetailRow label="Mark" value={rawMaterial.mark} />
+                <DetailRow label="Code" value={product.code} />
+                <DetailRow label="Articul" value={product.articul} />
+                <DetailRow label="Price" value={product.price} />
             </div>
 
             {/* Extra fields */}
@@ -37,21 +39,28 @@ function RawMaterialDetail() {
                     </p>
                     <div className="grid grid-cols-2 gap-3">
                         {extraEntries.map(([key, val]) => (
-                            <DetailRow key={key} label={key} value={String(val)} />
+                            <DetailRow
+                                key={key}
+                                label={key}
+                                value={String(val)}
+                            />
                         ))}
                     </div>
                 </div>
             )}
 
             {/* Description */}
-            {rawMaterial.description && (
+            {product.description && (
                 <div className="flex flex-col gap-2">
                     <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                         Description
                     </p>
                     <div
                         className="prose prose-sm max-w-none border rounded-lg p-3 bg-muted/20"
-                        dangerouslySetInnerHTML={{ __html: rawMaterial.description }}
+                        // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml
+                        dangerouslySetInnerHTML={{
+                            __html: product.description,
+                        }}
                     />
                 </div>
             )}
@@ -68,7 +77,9 @@ function DetailRow({
 }) {
     return (
         <div className="flex flex-col gap-0.5 bg-muted/30 rounded-lg px-3 py-2">
-            <span className="text-xs text-muted-foreground capitalize">{label}</span>
+            <span className="text-xs text-muted-foreground capitalize">
+                {label}
+            </span>
             <span className="text-sm font-medium">{value ?? "—"}</span>
         </div>
     )

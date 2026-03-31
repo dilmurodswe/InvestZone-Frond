@@ -1,13 +1,16 @@
 import {
+    BoxIcon,
+    CheckSquareIcon,
     ChevronRight,
-    ClipboardList,
-    GalleryVerticalEnd,
+    ClipboardListIcon,
+    FactoryIcon,
     LayoutDashboardIcon,
-    MessageCircle,
     PanelLeftOpenIcon,
     PanelRightOpenIcon,
+    SettingsIcon,
+    ShoppingCartIcon,
     UserIcon,
-    UserStarIcon,
+    WalletIcon,
 } from "lucide-react"
 
 import Img from "@/components/custom/img"
@@ -51,19 +54,16 @@ export function NavMain() {
             childs: [
                 linkOptions({
                     to: "/admins",
-                    icon: <UserStarIcon />,
                     enabled: isAdmin,
                     title: "Admins",
                 }),
                 linkOptions({
                     to: "/clients",
-                    icon: <UserIcon />,
                     enabled: isAdmin,
                     title: "Clients",
                 }),
                 linkOptions({
                     to: "/suppliers",
-                    icon: <UserIcon />,
                     enabled: isAdmin,
                     title: "Suppliers",
                 }),
@@ -71,60 +71,43 @@ export function NavMain() {
         }),
         linkOptions({
             to: "/extra",
-            icon: <MessageCircle />,
+            icon: <BoxIcon />,
             enabled: true,
             title: "Warehouse",
             childs: [
                 linkOptions({
-                    to: "/extra",
-                    icon: "",
-                    enabled: isAdmin,
-                    title: "Extra",
-                }),
-                linkOptions({
                     to: "/ready-products",
-                    icon: "",
                     enabled: isAdmin,
                     title: "Ready Product",
                 }),
                 linkOptions({
                     to: "/raw-materials",
-                    icon: "",
                     enabled: isAdmin,
                     title: "Raw Materials",
-                }),
-                linkOptions({
-                    to: "/settings",
-                    search: { tab: "currency" },
-                    icon: "",
-                    enabled: isAdmin,
-                    title: "Settings",
                 }),
             ],
         }),
         linkOptions({
             to: "/raw-material-requests",
-            icon: <GalleryVerticalEnd />,
+            icon: <ClipboardListIcon />,
             enabled: true,
-            title: "Office manager",
+            title: "Office Manager",
             childs: [
                 linkOptions({
                     to: "/raw-material-requests",
-                    icon: "",
                     enabled: isAdmin,
-                    title: "Raw material requests",
+                    title: "Raw Material Requests",
                 }),
             ],
         }),
         linkOptions({
             to: "/orders",
-            icon: <GalleryVerticalEnd />,
+            icon: <ShoppingCartIcon />,
             enabled: true,
             title: "Orders",
             childs: [
                 linkOptions({
                     to: "/orders",
-                    icon: "",
                     enabled: isAdmin,
                     title: "Sales",
                 }),
@@ -132,39 +115,35 @@ export function NavMain() {
         }),
         linkOptions({
             to: "/task-manager",
-            icon: <ClipboardList />,
+            icon: <CheckSquareIcon />,
             enabled: true,
-            title: "Task manager",
+            title: "Task Manager",
             childs: [
                 linkOptions({
                     to: "/task-manager",
-                    icon: "",
                     enabled: isAdmin,
-                    title: "Task manager",
+                    title: "Task Manager",
                 }),
             ],
         }),
         linkOptions({
             to: "/finance",
-            icon: <ClipboardList />,
+            icon: <WalletIcon />,
             enabled: true,
             title: "Finance",
             childs: [
                 linkOptions({
                     to: "/finance/dashboard",
-                    icon: "",
                     enabled: isAdmin,
                     title: "Dashboard",
                 }),
                 linkOptions({
                     to: "/finance/expence",
-                    icon: "",
                     enabled: isAdmin,
-                    title: "Expence",
+                    title: "Expense",
                 }),
                 linkOptions({
                     to: "/finance/income",
-                    icon: "",
                     enabled: isAdmin,
                     title: "Income",
                 }),
@@ -172,15 +151,42 @@ export function NavMain() {
         }),
         linkOptions({
             to: "/manufactures",
-            icon: <ClipboardList />,
+            icon: <FactoryIcon />,
             enabled: true,
             title: "Manufactures",
             childs: [
                 linkOptions({
                     to: "/manufactures",
-                    icon: "",
                     enabled: isAdmin,
                     title: "Manufactures",
+                }),
+            ],
+        }),
+        linkOptions({
+            to: "/settings",
+            icon: <SettingsIcon />,
+            enabled: true,
+            title: "Settings",
+            childs: [
+                linkOptions({
+                    to: "/settings/products",
+                    enabled: isAdmin,
+                    title: "Products",
+                }),
+                linkOptions({
+                    to: "/settings/raw-materials",
+                    enabled: isAdmin,
+                    title: "Raw Materials",
+                }),
+                linkOptions({
+                    to: "/settings/currency",
+                    enabled: isAdmin,
+                    title: "Currency",
+                }),
+                linkOptions({
+                    to: "/settings/payment-type",
+                    enabled: isAdmin,
+                    title: "Payment Types",
                 }),
             ],
         }),
@@ -286,9 +292,6 @@ export function NavMain() {
                                                                         asChild
                                                                     >
                                                                         <span className="flex items-center gap-1">
-                                                                            {
-                                                                                subItem.icon
-                                                                            }
                                                                             {
                                                                                 subItem.title
                                                                             }
