@@ -62,7 +62,7 @@ function OrderAddEdit() {
     }))
 
     const productOptions = readyProductList.map((rp) => ({
-        id: rp.product.id,
+        id: rp.id,
         name: `${rp.product.name} — ${rp.product.price.toLocaleString()}`,
     }))
 
