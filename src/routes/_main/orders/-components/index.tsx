@@ -22,7 +22,7 @@ export default function OrdersPage() {
         <>
             <Navbar links={[{ label: "Orders" }]} />
             <Layout>
-                <Group className="flex justify-end mb-4">
+                <Group className="flex justify-end mb-0">
                     <Button
                         onClick={() => {
                             setOrder(null)

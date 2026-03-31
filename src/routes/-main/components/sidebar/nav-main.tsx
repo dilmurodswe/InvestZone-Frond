@@ -4,7 +4,7 @@ import {
     ChevronRight,
     ClipboardListIcon,
     FactoryIcon,
-    LayoutDashboardIcon,
+    // LayoutDashboardIcon,
     PanelLeftOpenIcon,
     PanelRightOpenIcon,
     SettingsIcon,
@@ -39,12 +39,35 @@ export function NavMain() {
     const pathname = useLocation({ select: (l) => l.pathname })
 
     const navigationLinks = [
+        // linkOptions({
+        //     to: "/dashboard",
+        //     icon: <LayoutDashboardIcon />,
+        //     enabled: isAdmin,
+        //     title: "Dashboard",
+        //     childs: [],
+        // }),
         linkOptions({
-            to: "/dashboard",
-            icon: <LayoutDashboardIcon />,
-            enabled: isAdmin,
-            title: "Dashboard",
-            childs: [],
+            to: "/finance",
+            icon: <WalletIcon />,
+            enabled: true,
+            title: "Finance",
+            childs: [
+                linkOptions({
+                    to: "/finance/dashboard",
+                    enabled: isAdmin,
+                    title: "Dashboard",
+                }),
+                linkOptions({
+                    to: "/finance/expence",
+                    enabled: isAdmin,
+                    title: "Expense",
+                }),
+                linkOptions({
+                    to: "/finance/income",
+                    enabled: isAdmin,
+                    title: "Income",
+                }),
+            ],
         }),
         linkOptions({
             to: "/admins",
@@ -126,29 +149,7 @@ export function NavMain() {
                 }),
             ],
         }),
-        linkOptions({
-            to: "/finance",
-            icon: <WalletIcon />,
-            enabled: true,
-            title: "Finance",
-            childs: [
-                linkOptions({
-                    to: "/finance/dashboard",
-                    enabled: isAdmin,
-                    title: "Dashboard",
-                }),
-                linkOptions({
-                    to: "/finance/expence",
-                    enabled: isAdmin,
-                    title: "Expense",
-                }),
-                linkOptions({
-                    to: "/finance/income",
-                    enabled: isAdmin,
-                    title: "Income",
-                }),
-            ],
-        }),
+
         linkOptions({
             to: "/manufactures",
             icon: <FactoryIcon />,

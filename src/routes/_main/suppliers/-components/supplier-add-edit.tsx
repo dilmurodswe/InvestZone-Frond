@@ -12,13 +12,13 @@ import { API } from "@/lib/constants/api-endpoints"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { useSupplierStore } from "../-hooks/use-supplier-store"
-import type { Supplier, CustomerType } from "../-types"
+import type { CustomerType, Supplier } from "../-types"
 
 export default function SupplierAddEditModal() {
     return (
         <Modal
-            wrapperClassname="md:w-[min(95vw,860px)]! md:max-w-none max-h-[calc(100vh-16px)] rounded-2xl"
-            className="max-h-[calc(100vh-80px)]"
+            wrapperClassname="md:w-[900px]! md:max-w-none"
+            className="min-w-[860px]!"
         >
             <Content />
         </Modal>
@@ -27,7 +27,7 @@ export default function SupplierAddEditModal() {
 const customerTypeOptions: { id: CustomerType; name: string }[] = [
     { id: "LLC", name: "LLC" },
     { id: "INDIV", name: "INDIV" },
-    { id: "TD", name: "TD" }
+    { id: "TD", name: "TD" },
 ]
 
 function Content() {
@@ -66,13 +66,22 @@ function Content() {
     const onSuccess = () => {
         invalidateByExactMatch([API.SUPPLIER.USERS.INDEX])
         closeModal()
-        toast.success(supplier ? "Updated successfully" : "Supplier added successfully")
+        toast.success(
+            supplier ? "Updated successfully" : "Supplier added successfully",
+        )
     }
 
     const onSubmit = form.handleSubmit((vals) => {
         const payload = { ...vals }
         if (supplier) {
-            patch(API.SUPPLIER.USERS.ID.INDEX.replace("{id}", String(supplier.id)), payload, { onSuccess })
+            patch(
+                API.SUPPLIER.USERS.ID.INDEX.replace(
+                    "{id}",
+                    String(supplier.id),
+                ),
+                payload,
+                { onSuccess },
+            )
         } else {
             post(API.SUPPLIER.USERS.INDEX, payload, { onSuccess })
         }
@@ -80,10 +89,16 @@ function Content() {
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-6 p-6">
-            <CardTitle>{supplier ? `Edit / ${supplier.company_name}` : "Add Supplier"}</CardTitle>
+            <CardTitle>
+                {supplier ? `Edit / ${supplier.company_name}` : "Add Supplier"}
+            </CardTitle>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <UncontrolledInput methods={form} name="company_name" label="Company name" />
+                <UncontrolledInput
+                    methods={form}
+                    name="company_name"
+                    label="Company name"
+                />
                 <SelectField
                     methods={form}
                     name="customer_type"
@@ -91,23 +106,107 @@ function Content() {
                     label="Supplier type"
                     placeholder="Select type"
                 />
-                <PhoneField methods={form} name="company_phone" label="Phone number" />
-                <UncontrolledInput methods={form} name="company_email" label="Email" optional />
-                <UncontrolledInput methods={form} name="region_address" label="Address" optional />
-                <UncontrolledInput methods={form} name="exact_address" label="Address" optional />
-                <UncontrolledInput methods={form} name="legal_address" label="Legal address" optional />
-                <UncontrolledInput methods={form} name="official_name" label="Full address" optional />
-                <UncontrolledInput methods={form} name="bank_name" label="Bank (AKB)" optional />
-                <UncontrolledInput methods={form} name="bank_address" label="Address (AKB)" optional />
-                <UncontrolledInput methods={form} name="mfo_code" label="MFO (AKB)" optional />
-                <UncontrolledInput methods={form} name="account_number" label="... Number (xisobraqam)" optional />
-                <UncontrolledInput methods={form} name="okpo_code" label="OKPO" optional />
-                <UncontrolledInput methods={form} name="activity_field" label="... (faoliyat sohasi)" optional />
-                <UncontrolledInput methods={form} name="inn" label="INN" optional />
-                <UncontrolledInput methods={form} name="full_name" label="CEO/staff full name" />
-                <PhoneField methods={form} name="phone" label="Phone number" optional />
-                <UncontrolledInput methods={form} name="email" label="Email" optional />
-                <NumberField methods={form} name="balance" label="Balance" optional allowNegative />
+                <PhoneField
+                    methods={form}
+                    name="company_phone"
+                    label="Phone number"
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="company_email"
+                    label="Email"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="region_address"
+                    label="Address"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="exact_address"
+                    label="Address"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="legal_address"
+                    label="Legal address"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="official_name"
+                    label="Full address"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="bank_name"
+                    label="Bank (AKB)"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="bank_address"
+                    label="Address (AKB)"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="mfo_code"
+                    label="MFO (AKB)"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="account_number"
+                    label="... Number (xisobraqam)"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="okpo_code"
+                    label="OKPO"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="activity_field"
+                    label="... (faoliyat sohasi)"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="inn"
+                    label="INN"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="full_name"
+                    label="CEO/staff full name"
+                />
+                <PhoneField
+                    methods={form}
+                    name="phone"
+                    label="Phone number"
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="email"
+                    label="Email"
+                    optional
+                />
+                <NumberField
+                    methods={form}
+                    name="balance"
+                    label="Balance"
+                    optional
+                    allowNegative
+                />
             </div>
 
             <textarea
@@ -117,7 +216,10 @@ function Content() {
                 className="w-full border rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
             />
 
-            <FormAction submitName={supplier ? "Save" : "Add"} loading={isPending} />
+            <FormAction
+                submitName={supplier ? "Save" : "Add"}
+                loading={isPending}
+            />
         </form>
     )
 }
