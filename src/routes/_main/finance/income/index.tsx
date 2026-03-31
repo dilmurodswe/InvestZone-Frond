@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
+import IncomePage from "./-components"
 
 export const Route = createFileRoute("/_main/finance/income/")({
-    component: RouteComponent,
+    component: IncomePage,
 })
-
-function RouteComponent() {
-    return <div>Hello "/_main/finance/income/"!</div>
-}
