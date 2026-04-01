@@ -1,4 +1,5 @@
 import { CustomTable } from "@/components/custom/custom-table"
+import FilterSelect from "@/components/filter/filter-select"
 import Layout from "@/components/layouts/layout"
 import Navbar from "@/components/navbar"
 import NoData from "@/components/no-data/nodata"
@@ -35,15 +36,31 @@ export default function Index() {
         (request: RawMaterialRequest) => setSelectedRequest(request),
         handleStatusClick,
     )
+    const roleOptions = [
+        { id: "1", name: "New request" },
+        { id: "2", name: "Factory" },
+        { id: "3", name: "On road" },
+        { id: "4", name: "Accepted" },
+        { id: "5", name: "Station" },
+        { id: "6", name: "In UZB" },
+        { id: "7", name: "Paid" },
+        { id: "8", name: "Customs Clearance" },
+        { id: "9", name: "Arrived Warehouse" },
+        { id: "10", name: "Production Again" },
+        { id: "11", name: "Partially Shipped" },
+        { id: "12", name: "Cancelled" },
+    ]
 
     return (
         <>
             <Navbar links={[{ label: "Raw materials requests" }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
-                    <h2 className="text-base font-semibold">
-                        Raw materials requests
-                    </h2>
+                    <FilterSelect
+                        filterKey="status"
+                        placeholder="Status"
+                        options={roleOptions}
+                    />
                     <Button onClick={() => newRequestModal.openModal()}>
                         <Plus className="w-4 h-4" />
                         Request

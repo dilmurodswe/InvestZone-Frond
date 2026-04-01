@@ -1,4 +1,6 @@
 import { CustomTable } from "@/components/custom/custom-table"
+import FilterInput from "@/components/filter/filter-input"
+import FilterSelect from "@/components/filter/filter-select"
 import Layout from "@/components/layouts/layout"
 import Navbar from "@/components/navbar"
 import NoData from "@/components/no-data/nodata"
@@ -33,13 +35,26 @@ export default function Index() {
     const cols = getManufactureCols(handleStatusClick, (manufacture) =>
         navigate({ to: `/manufactures/${manufacture.id}` }),
     )
-
+    const roleOptions = [
+        { id: "ready", name: "Ready" },
+        { id: "request_sent", name: "Request Sent" },
+        { id: "waiting_cert", name: "Waiting for Certificate" },
+        { id: "in_progress", name: "In Progress" },
+        { id: "completed", name: "Completed" },
+    ]
     return (
         <>
             <Navbar links={[{ label: "Manufactures" }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
-                    <h2 className="text-base font-semibold">Manufactures</h2>
+                    <div className="flex flex-wrap gap-x-2 gap-y-4">
+                        <FilterInput />
+                        <FilterSelect
+                            filterKey="status"
+                            placeholder="Status"
+                            options={roleOptions}
+                        />
+                    </div>
                     <div className="flex items-center gap-3">
                         <ManufactureFilter />
                         <Button onClick={() => newManufactureModal.openModal()}>

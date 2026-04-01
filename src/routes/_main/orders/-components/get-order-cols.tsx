@@ -1,8 +1,10 @@
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
+import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useEffect, useRef, useState } from "react"
+import { useOrderStore } from "../-hooks/use-order-store"
 import type { Order, OrderStatus } from "../-types"
 import OrderStatusBadge from "./order-status-badge"
 import { ORDER_STATUS_CONFIG } from "./status-config"
@@ -84,12 +86,38 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
             </div>
         )
     }
+
+    function ClickableCell({
+        order,
+        children,
+    }: {
+        order: Order
+        children: React.ReactNode
+    }) {
+        const { setOrder } = useOrderStore()
+        const detailModal = useModal("order-detail")
+
+        return (
+            <span
+                className="cursor-pointer"
+                onClick={() => {
+                    setOrder(order)
+                    detailModal.openModal()
+                }}
+            >
+                {children}
+            </span>
+        )
+    }
+
     return [
         {
             accessorKey: "client",
             header: "Client",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.client}</span>
+                <ClickableCell order={original}>
+                    <span className="text-sm">{original.client}</span>
+                </ClickableCell>
             ),
         },
         {
@@ -101,46 +129,54 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
             accessorKey: "payment_type",
             header: "Payment Type",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">{original.payment_type}</span>
+                <ClickableCell order={original}>
+                    <span className="text-sm">{original.payment_type}</span>
+                </ClickableCell>
             ),
         },
         {
             accessorKey: "currency",
             header: "Currency",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">
-                    {original.currency?.currency} (
-                    {original.currency?.current_rate})
-                </span>
+                <ClickableCell order={original}>
+                    <span className="text-sm">
+                        {original.currency?.currency} (
+                        {original.currency?.current_rate})
+                    </span>
+                </ClickableCell>
             ),
         },
         {
             accessorKey: "client_currency",
             header: "Client Rate",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">
-                    {original.client_currency != null ?
-                        original.client_currency
-                    :   "—"}
-                </span>
+                <ClickableCell order={original}>
+                    <span className="text-sm">
+                        {original.client_currency ?? "—"}
+                    </span>
+                </ClickableCell>
             ),
         },
         {
             accessorKey: "items",
             header: "Products",
             cell: ({ row: { original } }) => (
-                <span className="text-sm">
-                    {original.items?.length ?? 0} item
-                </span>
+                <ClickableCell order={original}>
+                    <span className="text-sm">
+                        {original.items?.length ?? 0} item
+                    </span>
+                </ClickableCell>
             ),
         },
         {
             accessorKey: "created_at",
             header: "Date",
             cell: ({ row: { original } }) => (
-                <span className="text-sm text-muted-foreground">
-                    {original.created_at}
-                </span>
+                <ClickableCell order={original}>
+                    <span className="text-sm text-muted-foreground">
+                        {original.created_at}
+                    </span>
+                </ClickableCell>
             ),
         },
         {
