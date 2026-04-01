@@ -7,16 +7,16 @@ import NoData from "@/components/no-data/nodata"
 import Group from "@/components/semantic/group"
 import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
-import { useNavigate } from "@tanstack/react-router"
 import { Plus } from "lucide-react"
 import { useState } from "react"
 import { useManufacturesQuery } from "../-hooks/use-manufactures-query"
 import type { Manufacture } from "../-types"
 import ManufactureDeleteModal from "./manufacture-delete-modal"
-import ManufactureFilter from "./manufacture-filter"
+import ManufactureDetailModal from "./manufacture-detail-modal"
 import NewManufactureModal from "./new-manufacture-modal"
 import ManufactureStatusDropdown from "./status-dropdown"
 import { getManufactureCols } from "./use-manufacture-cols"
+
 export default function Index() {
     const newManufactureModal = useModal("new-manufacture")
     const { manufactureList, count, isFetching } = useManufacturesQuery()
@@ -30,11 +30,9 @@ export default function Index() {
         setStatusDropdown({ manufacture, anchorEl: el })
     }
 
-    const navigate = useNavigate()
+    // navigate va onRowClick o'chirildi
+    const cols = getManufactureCols(handleStatusClick)
 
-    const cols = getManufactureCols(handleStatusClick, (manufacture) =>
-        navigate({ to: `/manufactures/${manufacture.id}` }),
-    )
     const roleOptions = [
         { id: "ready", name: "Ready" },
         { id: "request_sent", name: "Request Sent" },
@@ -42,6 +40,7 @@ export default function Index() {
         { id: "in_progress", name: "In Progress" },
         { id: "completed", name: "Completed" },
     ]
+
     return (
         <>
             <Navbar links={[{ label: "Manufactures" }]} />
@@ -54,14 +53,12 @@ export default function Index() {
                             placeholder="Status"
                             options={roleOptions}
                         />
+                        {/* ManufactureFilter o'chirildi */}
                     </div>
-                    <div className="flex items-center gap-3">
-                        <ManufactureFilter />
-                        <Button onClick={() => newManufactureModal.openModal()}>
-                            <Plus className="w-4 h-4" />
-                            New
-                        </Button>
-                    </div>
+                    <Button onClick={() => newManufactureModal.openModal()}>
+                        <Plus className="w-4 h-4" />
+                        New
+                    </Button>
                 </Group>
 
                 {!!manufactureList.length && (
@@ -86,6 +83,7 @@ export default function Index() {
                     </NoData>
                 )}
 
+                <ManufactureDetailModal />
                 <NewManufactureModal />
                 <ManufactureDeleteModal />
 

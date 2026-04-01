@@ -1,4 +1,5 @@
 import { CustomTable } from "@/components/custom/custom-table"
+import FilterInput from "@/components/filter/filter-input"
 import Layout from "@/components/layouts/layout"
 import Navbar from "@/components/navbar"
 import NoData from "@/components/no-data/nodata"
@@ -15,7 +16,7 @@ export default function Index() {
             <Navbar links={[{ label: "Ready products" }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
-                    <h2 className="text-base font-semibold">Ready products</h2>
+                    <FilterInput />
                 </Group>
 
                 {!!readyProductList.length && (
