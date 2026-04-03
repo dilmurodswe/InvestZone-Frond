@@ -3,7 +3,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { API } from "@/lib/constants/api-endpoints"
 import { getArray } from "@/lib/utils/get-array"
-import { Loader2, Trash2, Upload, X } from "lucide-react"
+import { File, FileText, Loader2, Sheet, Trash2, Upload, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useFileUpload } from "../-hooks/use-file-upload"
@@ -56,8 +56,77 @@ const TABLE_FIELDS: {
     { key: "plank", label: "Plank" },
     { key: "reference_number", label: "Reference number" },
     { key: "price", label: "Price", isNumber: true },
-    { key: "wagon", label: "Wagon", isNumber: true },
+    // { key: "wagon", label: "Wagon", isNumber: true },
 ]
+
+// ─── File helpers ─────────────────────────────────────────────────────────────
+
+function getFileExt(url: string) {
+    return url.split(".").pop()?.toLowerCase() ?? ""
+}
+
+function isImage(url: string) {
+    return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(
+        getFileExt(url),
+    )
+}
+
+function FileIcon({ url }: { url: string }) {
+    const ext = getFileExt(url)
+    const icons: Record<
+        string,
+        { icon: React.ReactNode; color: string; label: string }
+    > = {
+        pdf: {
+            icon: <FileText className="w-6 h-6" />,
+            color: "text-red-500",
+            label: "PDF",
+        },
+        doc: {
+            icon: <FileText className="w-6 h-6" />,
+            color: "text-blue-500",
+            label: "DOC",
+        },
+        docx: {
+            icon: <FileText className="w-6 h-6" />,
+            color: "text-blue-500",
+            label: "DOCX",
+        },
+        xls: {
+            icon: <Sheet className="w-6 h-6" />,
+            color: "text-green-500",
+            label: "XLS",
+        },
+        xlsx: {
+            icon: <Sheet className="w-6 h-6" />,
+            color: "text-green-500",
+            label: "XLSX",
+        },
+    }
+    const cfg = icons[ext] ?? {
+        icon: <File className="w-6 h-6" />,
+        color: "text-muted-foreground",
+        label: ext.toUpperCase(),
+    }
+
+    return (
+        <div>
+            <a
+                href={url}
+                download
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-1 w-36 h-16 rounded-lg border bg-muted/30 hover:bg-muted transition-colors"
+            >
+                <span className={cfg.color}>{cfg.icon}</span>
+                <span className="text-[10px] font-semibold text-muted-foreground">
+                    {cfg.label}
+                </span>
+            </a>
+            <p className="text-[10px] mt-0.5">{url.split("/").pop()}</p>
+        </div>
+    )
+}
 
 // ─── Entry ────────────────────────────────────────────────────────────────────
 
@@ -66,7 +135,6 @@ export default function RequestDetailModal({
     onClose,
 }: RequestDetailModalProps) {
     if (!request) return null
-    // key={request.id} — har yangi request ochilganda to'liq reset bo'ladi
     return (
         <DetailContent key={request.id} request={request} onClose={onClose} />
     )
@@ -86,14 +154,12 @@ function DetailContent({
     const { uploadFile, isUploading } = useFileUpload()
     const fileInputRef = useRef<HTMLInputElement>(null)
 
-    // ── Item detail modal state ──
     const [itemDetailTarget, setItemDetailTarget] = useState<{
         rowItemId: number
         materialName: string
         contractNumber: string
     } | null>(null)
 
-    // ── Header fields ──
     const [tolerant, setTolerant] = useState(
         request.tolerant ? String(request.tolerant) : "",
     )
@@ -110,7 +176,6 @@ function DetailContent({
     )
     const fetchedFiles = getArray<RequestFile>(filesData)
 
-    // fetchedFiles tayyor bo'lganda localFiles ni set qilamiz
     const [localFiles, setLocalFiles] = useState<RequestFile[]>([])
     useEffect(() => {
         if (fetchedFiles.length > 0) {
@@ -130,7 +195,6 @@ function DetailContent({
 
     const [rowEdits, setRowEdits] = useState<Record<number, RowEdit>>({})
 
-    // itemsData yangilanganda rowEdits ni reset qilamiz
     useEffect(() => {
         if (items.length > 0) {
             const map: Record<number, RowEdit> = {}
@@ -157,7 +221,6 @@ function DetailContent({
         }))
     }
 
-    // ── Row auto-save onBlur ──
     const handleRowBlur = useCallback(
         (id: number) => {
             const edit = rowEdits[id]
@@ -182,7 +245,6 @@ function DetailContent({
         [rowEdits, patch],
     )
 
-    // ── File upload ──
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
@@ -219,7 +281,6 @@ function DetailContent({
         )
     }
 
-    // ── Header auto-save onBlur ──
     const handleHeaderBlur = useCallback(() => {
         patch(
             API.RAW_MATERIAL_REQUESTS.ID.PATCH.replace(
@@ -343,13 +404,20 @@ function DetailContent({
                             {localFiles.map((rf) => (
                                 <div
                                     key={rf.id}
-                                    className="relative w-24 h-24 rounded-lg overflow-hidden border group flex-shrink-0"
+                                    className="relative w-36 h-24 rounded-lg overflow-hidden group flex-shrink-0"
                                 >
-                                    <img
-                                        src={rf.file}
-                                        alt="file"
-                                        className="w-full h-full object-cover"
-                                    />
+                                    {isImage(rf.file) ?
+                                        <div>
+                                            <img
+                                                src={rf.file}
+                                                alt="file"
+                                                className="w-36 h-16 object-cover"
+                                            />
+                                            <p className="text-[10px] mt-0.5">
+                                                {rf.file.split("/").pop()}
+                                            </p>
+                                        </div>
+                                    :   <FileIcon url={rf.file} />}
                                     <button
                                         type="button"
                                         onClick={() => handleDeleteFile(rf.id)}

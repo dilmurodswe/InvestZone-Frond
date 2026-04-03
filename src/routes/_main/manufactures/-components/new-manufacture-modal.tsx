@@ -1,5 +1,6 @@
 import FormAction from "@/components/custom/form-action"
 import Modal from "@/components/custom/modal"
+import FilterInput from "@/components/filter/filter-input"
 import { CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -180,12 +181,17 @@ function NewManufactureForm() {
             {/* Raw Material table */}
             <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium">Raw Material</label>
-                    {selectedRawIds.length > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                            {selectedRawIds.length} selected
-                        </span>
-                    )}
+                    <div className="gap-x-4 flex items-end">
+                        <label className="text-sm font-medium">
+                            Raw Material
+                        </label>
+                        {selectedRawIds.length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                                {selectedRawIds.length} selected
+                            </span>
+                        )}
+                    </div>
+                    <FilterInput />
                 </div>
 
                 <div className="border rounded-lg overflow-hidden">

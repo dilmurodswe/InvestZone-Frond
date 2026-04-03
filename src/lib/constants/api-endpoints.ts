@@ -119,4 +119,9 @@ export const API = {
             ID: { INDEX: "finance/income/{id}" },
         },
     },
+    DASHBOARD: {
+        EXPENSE_STATS: "dashboard/expense-stats",
+        INCOME_STATS: "dashboard/income-stats",
+        PAYMENT_TYPE_STATS: "dashboard/payment-type-stats",
+    },
 } as const
