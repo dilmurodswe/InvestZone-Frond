@@ -55,6 +55,7 @@ type RequestFileResponse = {
 // UI uchun ishlatiladigan file type
 type RequestFile = {
     id: number
+    request_file_id: number
     file: string
     name: string
 }
@@ -209,6 +210,7 @@ function DetailContent({
         if (fetchedFiles.length > 0) {
             const formattedFiles: RequestFile[] = fetchedFiles.map((file) => ({
                 id: file.request_file.id,
+                request_file_id: file.id, // ← 23 — delete uchun
                 file: file.request_file.url,
                 name: file.request_file.name || `File ${file.request_file.id}`,
             }))
@@ -311,29 +313,27 @@ function DetailContent({
         }
     }
 
-    const handleDeleteFile = (fileId: number) => {
-        // O‘chirishdan oldin faylni topamiz
-        const fileToDelete = localFiles.find((f) => f.id === fileId)
+    // handleDeleteFile — request_file_id ishlatish:
+    const handleDeleteFile = (requestFileId: number) => {
+        const fileToDelete = localFiles.find(
+            (f) => f.request_file_id === requestFileId,
+        )
         if (!fileToDelete) return
 
-        // Optimistic update: localdan o‘chiramiz
-        setLocalFiles((prev) => prev.filter((f) => f.id !== fileId))
+        // Optimistic — darhol o'chirish
+        setLocalFiles((prev) =>
+            prev.filter((f) => f.request_file_id !== requestFileId),
+        )
 
         remove(
             API.RAW_MATERIAL_REQUESTS.REQUEST_FILES.DELETE.replace(
                 "{id}",
-                String(fileId),
+                String(requestFileId), // ← 23 ketadi
             ),
             {
-                onSuccess: () => {
-                    toast.success("File deleted successfully")
-                    // O‘chirish muvaffaqiyatli bo‘lsa, ro‘yxatni yana bir bor yangilaymiz (zaxira)
-                },
+                onSuccess: () => toast.success("File deleted successfully"),
                 onError: () => {
-                    // Xatolik bo‘lsa, faylni qayta qo‘shamiz
-                    if (fileToDelete) {
-                        setLocalFiles((prev) => [...prev, fileToDelete])
-                    }
+                    setLocalFiles((prev) => [...prev, fileToDelete])
                     toast.error("Failed to remove file")
                 },
             },
@@ -483,7 +483,9 @@ function DetailContent({
                                     }
                                     <button
                                         type="button"
-                                        onClick={() => handleDeleteFile(rf.id)}
+                                        onClick={() =>
+                                            handleDeleteFile(rf.request_file_id)
+                                        }
                                         className="absolute top-1 right-1 bg-white/80 rounded-full p-1 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
                                         <Trash2 className="w-3 h-3" />
