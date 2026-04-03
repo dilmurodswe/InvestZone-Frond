@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge"
-import type { ColumnDef } from "@tanstack/react-table"
-import type { Supplier } from "../-types"
-import { useState, useRef, useEffect } from "react"
-import { useSupplierStore } from "../-hooks/use-supplier-store"
 import { useModal } from "@/hooks/use-modal"
+import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
-
+import { useEffect, useRef, useState } from "react"
+import { useSupplierStore } from "../-hooks/use-supplier-store"
+import type { Supplier } from "../-types"
+// eslint-disable-next-line react-refresh/only-export-components
 function SupplierActions({ supplier }: { supplier: Supplier }) {
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -50,7 +50,12 @@ function SupplierActions({ supplier }: { supplier: Supplier }) {
             </button>
             {open && (
                 <div
-                    style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
+                    style={{
+                        position: "fixed",
+                        top: pos.top,
+                        left: pos.left,
+                        zIndex: 9999,
+                    }}
                     className="bg-white rounded-xl shadow-lg border flex flex-col overflow-hidden"
                 >
                     <button
@@ -121,14 +126,19 @@ export const useSupplierCols = (): ColumnDef<Supplier>[] => {
             accessorKey: "customer_type",
             header: "Supplier type",
             cell: ({ row: { original } }) => (
-                <span className="cursor-pointer" onClick={() => handleRowClick(original)}>
-                    {original.customer_type ? (
-                        <Badge variant="secondary" className="capitalize font-semibold text-xs">
+                <span
+                    className="cursor-pointer"
+                    onClick={() => handleRowClick(original)}
+                >
+                    {original.customer_type ?
+                        <Badge
+                            variant="secondary"
+                            className="capitalize font-semibold text-xs"
+                        >
                             {original.customer_type}
                         </Badge>
-                    ) : (
-                        <span className="text-sm text-muted-foreground">—</span>
-                    )}
+                    :   <span className="text-sm text-muted-foreground">—</span>
+                    }
                 </span>
             ),
         },
@@ -140,7 +150,7 @@ export const useSupplierCols = (): ColumnDef<Supplier>[] => {
                     className="text-sm cursor-pointer"
                     onClick={() => handleRowClick(original)}
                 >
-                    {original.region_address || "—"}
+                    {original.legal_address || "—"}
                 </span>
             ),
         },
@@ -171,7 +181,9 @@ export const useSupplierCols = (): ColumnDef<Supplier>[] => {
         {
             id: "actions",
             header: "",
-            cell: ({ row: { original } }) => <SupplierActions supplier={original} />,
+            cell: ({ row: { original } }) => (
+                <SupplierActions supplier={original} />
+            ),
         },
     ]
 }

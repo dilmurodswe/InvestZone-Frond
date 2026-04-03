@@ -189,6 +189,7 @@ function RawMaterialAddEdit() {
             name: "",
             standard: "",
             mark: "",
+            sku: "",
             description: "",
             extra_fields: [],
         },
@@ -198,6 +199,7 @@ function RawMaterialAddEdit() {
                     name: rawMaterial.name,
                     standard: rawMaterial.standard,
                     mark: rawMaterial.mark,
+                    sku: rawMaterial.sku,
                     description: rawMaterial.description ?? "",
                     extra_fields: extraFieldsDefault,
                 }
@@ -229,6 +231,7 @@ function RawMaterialAddEdit() {
             name: vals.name,
             standard: vals.standard,
             mark: vals.mark,
+            sku: vals.sku,
             description: vals.description,
             extra_fields,
         }
@@ -260,6 +263,7 @@ function RawMaterialAddEdit() {
                 label="Standard"
             />
             <UncontrolledInput methods={form} name="mark" label="Mark" />
+            <UncontrolledInput methods={form} name="sku" label="SKU" />
 
             {/* Description – rich text */}
             <div className="flex flex-col gap-1.5">

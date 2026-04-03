@@ -27,7 +27,7 @@ function ProductDetail() {
             {/* Base info */}
             <div className="grid grid-cols-2 gap-3">
                 <DetailRow label="Code" value={product.code} />
-                <DetailRow label="Articul" value={product.articul} />
+                <DetailRow label="SKU" value={product.articul} />
                 <DetailRow label="Price" value={product.price} />
             </div>
 

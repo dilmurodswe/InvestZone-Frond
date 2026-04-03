@@ -1,11 +1,12 @@
 import { Badge } from "@/components/ui/badge"
-import type { ColumnDef } from "@tanstack/react-table"
-import type { Client } from "../-types"
-import { useState, useRef, useEffect } from "react"
-import { useClientStore } from "../-hooks/use-client-store"
 import { useModal } from "@/hooks/use-modal"
+import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { useClientStore } from "../-hooks/use-client-store"
+import type { Client } from "../-types"
 
+// eslint-disable-next-line react-refresh/only-export-components
 function ClientActions({ client }: { client: Client }) {
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -50,7 +51,12 @@ function ClientActions({ client }: { client: Client }) {
             </button>
             {open && (
                 <div
-                    style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
+                    style={{
+                        position: "fixed",
+                        top: pos.top,
+                        left: pos.left,
+                        zIndex: 9999,
+                    }}
                     className="bg-white rounded-xl shadow-lg border flex flex-col overflow-hidden"
                 >
                     <button
@@ -121,14 +127,19 @@ export const useClientCols = (): ColumnDef<Client>[] => {
             accessorKey: "customer_type",
             header: "Client type",
             cell: ({ row: { original } }) => (
-                <span className="cursor-pointer" onClick={() => handleRowClick(original)}>
-                    {original.customer_type ? (
-                        <Badge variant="secondary" className="capitalize font-semibold text-xs">
+                <span
+                    className="cursor-pointer"
+                    onClick={() => handleRowClick(original)}
+                >
+                    {original.customer_type ?
+                        <Badge
+                            variant="secondary"
+                            className="capitalize font-semibold text-xs"
+                        >
                             {original.customer_type}
                         </Badge>
-                    ) : (
-                        <span className="text-sm text-muted-foreground">—</span>
-                    )}
+                    :   <span className="text-sm text-muted-foreground">—</span>
+                    }
                 </span>
             ),
         },
@@ -169,9 +180,25 @@ export const useClientCols = (): ColumnDef<Client>[] => {
             ),
         },
         {
+            accessorKey: "balance",
+            header: "Balance",
+            cell: ({ row: { original } }) => (
+                <span
+                    className={`text-sm cursor-pointer font-semibold ${original.balance != null && original.balance < 0 ? "text-red-500" : "text-green-500"}`}
+                    onClick={() => handleRowClick(original)}
+                >
+                    {original.balance != null ?
+                        `${original.balance.toFixed(2)}`
+                    :   "—"}
+                </span>
+            ),
+        },
+        {
             id: "actions",
             header: "",
-            cell: ({ row: { original } }) => <ClientActions client={original} />,
+            cell: ({ row: { original } }) => (
+                <ClientActions client={original} />
+            ),
         },
     ]
 }

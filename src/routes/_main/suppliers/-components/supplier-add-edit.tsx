@@ -117,18 +117,7 @@ function Content() {
                     label="Email"
                     optional
                 />
-                <UncontrolledInput
-                    methods={form}
-                    name="region_address"
-                    label="Address"
-                    optional
-                />
-                <UncontrolledInput
-                    methods={form}
-                    name="exact_address"
-                    label="Address"
-                    optional
-                />
+
                 <UncontrolledInput
                     methods={form}
                     name="legal_address"
@@ -162,7 +151,7 @@ function Content() {
                 <UncontrolledInput
                     methods={form}
                     name="account_number"
-                    label="... Number (xisobraqam)"
+                    label="Bank account number"
                     optional
                 />
                 <UncontrolledInput
@@ -174,15 +163,10 @@ function Content() {
                 <UncontrolledInput
                     methods={form}
                     name="activity_field"
-                    label="... (faoliyat sohasi)"
+                    label="Activity field"
                     optional
                 />
-                <UncontrolledInput
-                    methods={form}
-                    name="inn"
-                    label="INN"
-                    optional
-                />
+                <UncontrolledInput methods={form} name="inn" label="INN" />
                 <UncontrolledInput
                     methods={form}
                     name="full_name"

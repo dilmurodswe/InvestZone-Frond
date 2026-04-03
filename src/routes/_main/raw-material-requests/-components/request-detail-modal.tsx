@@ -40,9 +40,23 @@ type RowEdit = {
     wagon: string
 }
 
+// Backenddan keladigan file ma'lumotlari uchun type
+type RequestFileResponse = {
+    id: number
+    request_id: number
+    request_file: {
+        id: number
+        name: string | null
+        url: string
+        created_at: string
+    }
+}
+
+// UI uchun ishlatiladigan file type
 type RequestFile = {
     id: number
     file: string
+    name: string
 }
 
 const TABLE_FIELDS: {
@@ -62,16 +76,18 @@ const TABLE_FIELDS: {
 // ─── File helpers ─────────────────────────────────────────────────────────────
 
 function getFileExt(url: string) {
+    if (!url) return ""
     return url.split(".").pop()?.toLowerCase() ?? ""
 }
 
 function isImage(url: string) {
+    if (!url) return false
     return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(
         getFileExt(url),
     )
 }
 
-function FileIcon({ url }: { url: string }) {
+function FileIcon({ url, name }: { url: string; name: string }) {
     const ext = getFileExt(url)
     const icons: Record<
         string,
@@ -123,7 +139,9 @@ function FileIcon({ url }: { url: string }) {
                     {cfg.label}
                 </span>
             </a>
-            <p className="text-[10px] mt-0.5">{url.split("/").pop()}</p>
+            <p className="text-[10px] mt-0.5 text-center truncate w-36">
+                {name || "Unnamed file"}
+            </p>
         </div>
     )
 }
@@ -168,18 +186,36 @@ function DetailContent({
     )
 
     // ── Files ──
-    const { data: filesData, isLoading: filesLoading } = useGet<RequestFile[]>(
+    // GET so‘rovini qayta yuklash uchun ishlatiladigan `key`
+    const [filesFetchKey] = useState(0)
+    const {
+        data: filesData,
+        isLoading: filesLoading,
+        refetch: refetchFiles,
+    } = useGet<RequestFileResponse[]>(
         API.RAW_MATERIAL_REQUESTS.REQUEST_FILES.INDEX.replace(
             "{id}",
             String(request.id),
         ),
+        // @ts-expect-error - Agar hookingiz `key` ni qabul qilmasa, bu qatorni o‘chiring
+        { key: filesFetchKey },
     )
-    const fetchedFiles = getArray<RequestFile>(filesData)
 
+    // Backenddan kelgan ma'lumotlarni UI formatiga o'tkazish
+    const fetchedFiles = getArray<RequestFileResponse>(filesData)
     const [localFiles, setLocalFiles] = useState<RequestFile[]>([])
+
     useEffect(() => {
         if (fetchedFiles.length > 0) {
-            setLocalFiles(fetchedFiles)
+            const formattedFiles: RequestFile[] = fetchedFiles.map((file) => ({
+                id: file.request_file.id,
+                file: file.request_file.url,
+                name: file.request_file.name || `File ${file.request_file.id}`,
+            }))
+            setLocalFiles(formattedFiles)
+        } else if (fetchedFiles.length === 0 && !filesLoading) {
+            // Agar ro‘yxat bo‘sh bo‘lsa, localFiles ni tozalaymiz
+            setLocalFiles([])
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filesData])
@@ -251,30 +287,53 @@ function DetailContent({
         e.target.value = ""
         try {
             const uploaded = await uploadFile(file)
+            // POST so‘rov yuborish
             post(
                 API.RAW_MATERIAL_REQUESTS.REQUEST_FILES.POST,
-                { request_id: request.id, file: uploaded.file },
+                { request_id: request.id, file_id: uploaded.id },
                 {
-                    onSuccess: (data: RequestFile) => {
-                        setLocalFiles((prev) => [...prev, data])
+                    onSuccess: () => {
+                        // Muvaffaqiyatli POST dan so‘ng, fayllar ro‘yxatini qayta yuklaymiz
+                        refetchFiles().catch(() => {
+                            toast.error("Failed to refresh file list")
+                        })
+                        toast.success("File uploaded successfully")
+                    },
+                    onError: (error) => {
+                        console.error("File POST error:", error)
+                        toast.error("Failed to upload file")
                     },
                 },
             )
-        } catch {
+        } catch (error) {
+            console.error("File upload error:", error)
             toast.error("File upload failed")
         }
     }
 
     const handleDeleteFile = (fileId: number) => {
+        // O‘chirishdan oldin faylni topamiz
+        const fileToDelete = localFiles.find((f) => f.id === fileId)
+        if (!fileToDelete) return
+
+        // Optimistic update: localdan o‘chiramiz
         setLocalFiles((prev) => prev.filter((f) => f.id !== fileId))
+
         remove(
             API.RAW_MATERIAL_REQUESTS.REQUEST_FILES.DELETE.replace(
                 "{id}",
                 String(fileId),
             ),
             {
+                onSuccess: () => {
+                    toast.success("File deleted successfully")
+                    // O‘chirish muvaffaqiyatli bo‘lsa, ro‘yxatni yana bir bor yangilaymiz (zaxira)
+                },
                 onError: () => {
-                    setLocalFiles((prev) => [...prev, { id: fileId, file: "" }])
+                    // Xatolik bo‘lsa, faylni qayta qo‘shamiz
+                    if (fileToDelete) {
+                        setLocalFiles((prev) => [...prev, fileToDelete])
+                    }
                     toast.error("Failed to remove file")
                 },
             },
@@ -413,11 +472,15 @@ function DetailContent({
                                                 alt="file"
                                                 className="w-36 h-16 object-cover"
                                             />
-                                            <p className="text-[10px] mt-0.5">
-                                                {rf.file.split("/").pop()}
+                                            <p className="text-[10px] mt-0.5 text-center truncate w-36">
+                                                {rf.name}
                                             </p>
                                         </div>
-                                    :   <FileIcon url={rf.file} />}
+                                    :   <FileIcon
+                                            url={rf.file}
+                                            name={rf.name}
+                                        />
+                                    }
                                     <button
                                         type="button"
                                         onClick={() => handleDeleteFile(rf.id)}

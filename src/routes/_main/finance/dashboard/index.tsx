@@ -24,8 +24,11 @@ import {
 import { useState } from "react"
 import {
     CartesianGrid,
+    Cell,
     Line,
     LineChart,
+    Pie,
+    PieChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -288,6 +291,7 @@ function RouteComponent() {
                     </Card>
 
                     {/* Payment type stats */}
+                    {/* Payment type stats - Using recharts PieChart */}
                     <Card>
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base flex items-center gap-2">
@@ -307,16 +311,51 @@ function RouteComponent() {
                                 <div className="h-32 flex items-center justify-center text-sm text-muted-foreground">
                                     No data
                                 </div>
-                            :   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            :   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                                     {Object.entries(paymentData).map(
                                         ([currency, val]) => {
                                             const color =
                                                 CURRENCY_COLORS[currency] ??
                                                 DEFAULT_COLOR
+
+                                            if (
+                                                val.items.length === 0 &&
+                                                val.total === 0
+                                            )
+                                                return null
+
+                                            // Prepare data for pie chart
+                                            const pieData = val.items.map(
+                                                (item, index) => ({
+                                                    name: item.name,
+                                                    value: item.value,
+                                                    percentage:
+                                                        val.total > 0 ?
+                                                            Math.round(
+                                                                (item.value /
+                                                                    val.total) *
+                                                                    100,
+                                                            )
+                                                        :   0,
+                                                    icon: PAYMENT_ICONS[
+                                                        index %
+                                                            PAYMENT_ICONS.length
+                                                    ],
+                                                    color: [
+                                                        "#ef4444",
+                                                        "#3b82f6",
+                                                        "#22c55e",
+                                                        "#f59e0b",
+                                                        "#8b5cf6",
+                                                        "#ec4899",
+                                                    ][index % 6],
+                                                }),
+                                            )
+
                                             return (
                                                 <div
                                                     key={currency}
-                                                    className="border rounded-xl p-4 flex flex-col gap-3"
+                                                    className="border rounded-xl p-4 flex flex-col gap-4"
                                                 >
                                                     {/* Currency header */}
                                                     <div className="flex items-center justify-between">
@@ -336,77 +375,110 @@ function RouteComponent() {
                                                             className="text-sm font-bold"
                                                             style={{ color }}
                                                         >
+                                                            Total:{" "}
                                                             {val.total.toLocaleString()}
                                                         </span>
                                                     </div>
 
-                                                    {/* Items */}
+                                                    {/* Pie Chart using recharts */}
                                                     {val.items.length === 0 ?
-                                                        <p className="text-xs text-muted-foreground">
+                                                        <p className="text-xs text-muted-foreground text-center py-4">
                                                             No transactions
                                                         </p>
-                                                    :   <div className="flex flex-col gap-2">
-                                                            {val.items.map(
-                                                                (item, i) => {
-                                                                    const Icon =
-                                                                        PAYMENT_ICONS[
-                                                                            i %
-                                                                                PAYMENT_ICONS.length
-                                                                        ]
-                                                                    const pct =
-                                                                        (
-                                                                            val.total >
-                                                                            0
-                                                                        ) ?
-                                                                            Math.round(
-                                                                                (item.value /
-                                                                                    val.total) *
-                                                                                    100,
-                                                                            )
-                                                                        :   0
-                                                                    return (
+                                                    :   <div className="flex flex-col items-center gap-4">
+                                                            <ResponsiveContainer
+                                                                width="100%"
+                                                                height={200}
+                                                            >
+                                                                <PieChart>
+                                                                    <Pie
+                                                                        data={
+                                                                            pieData
+                                                                        }
+                                                                        dataKey="value"
+                                                                        nameKey="name"
+                                                                        cx="50%"
+                                                                        cy="50%"
+                                                                        innerRadius={
+                                                                            40
+                                                                        }
+                                                                        outerRadius={
+                                                                            70
+                                                                        }
+                                                                        paddingAngle={
+                                                                            2
+                                                                        }
+                                                                        label={({
+                                                                            name,
+                                                                            percent,
+                                                                        }) =>
+                                                                            `${name} ${(percent * 100).toFixed(0)}%`
+                                                                        }
+                                                                        labelLine={
+                                                                            false
+                                                                        }
+                                                                    >
+                                                                        {pieData.map(
+                                                                            (
+                                                                                entry,
+                                                                            ) => (
+                                                                                <Cell
+                                                                                    key={`cell-${entry.name}`}
+                                                                                    fill={
+                                                                                        entry.color
+                                                                                    }
+                                                                                />
+                                                                            ),
+                                                                        )}
+                                                                    </Pie>
+                                                                    <Tooltip
+                                                                        formatter={(
+                                                                            value: number,
+                                                                        ) =>
+                                                                            value.toLocaleString()
+                                                                        }
+                                                                    />
+                                                                </PieChart>
+                                                            </ResponsiveContainer>
+
+                                                            {/* Legend */}
+                                                            <div className="flex flex-wrap justify-center gap-3 w-full">
+                                                                {pieData.map(
+                                                                    (item) => (
                                                                         <div
                                                                             key={
                                                                                 item.name
                                                                             }
-                                                                            className="flex flex-col gap-1"
+                                                                            className="flex items-center gap-2"
                                                                         >
-                                                                            <div className="flex items-center justify-between text-sm">
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                                                                                    <span>
-                                                                                        {
-                                                                                            item.name
-                                                                                        }
-                                                                                    </span>
-                                                                                </div>
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <span className="text-xs text-muted-foreground">
-                                                                                        {
-                                                                                            pct
-                                                                                        }
-                                                                                        %
-                                                                                    </span>
-                                                                                    <span className="font-semibold">
-                                                                                        {item.value.toLocaleString()}
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-                                                                            {/* Progress bar */}
-                                                                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                                                                                <div
-                                                                                    className="h-full rounded-full transition-all"
-                                                                                    style={{
-                                                                                        width: `${pct}%`,
-                                                                                        background:
-                                                                                            color,
-                                                                                    }}
-                                                                                />
-                                                                            </div>
+                                                                            <div
+                                                                                className="w-3 h-3 rounded-full"
+                                                                                style={{
+                                                                                    backgroundColor:
+                                                                                        item.color,
+                                                                                }}
+                                                                            />
+                                                                            <item.icon className="w-3 h-3 text-muted-foreground" />
+                                                                            <span className="text-xs">
+                                                                                {
+                                                                                    item.name
+                                                                                }
+                                                                            </span>
+                                                                            <span className="text-xs font-semibold">
+                                                                                {
+                                                                                    item.percentage
+                                                                                }
+                                                                                %
+                                                                            </span>
+                                                                            <span className="text-xs text-muted-foreground">
+                                                                                (
+                                                                                {item.value.toLocaleString()}
+                                                                                )
+                                                                            </span>
                                                                         </div>
-                                                                    )
-                                                                },
-                                                            )}
+                                                                    ),
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     }
                                                 </div>

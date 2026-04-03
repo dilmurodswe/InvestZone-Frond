@@ -44,6 +44,7 @@ function NewRequestForm() {
         { id: 1, raw_material: "", ton: "" },
     ])
     const [supplier, setSupplier] = useState("")
+    const [contractNumber, setContractNumber] = useState("") // Added contract number state
     const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -109,6 +110,7 @@ function NewRequestForm() {
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         const payload = {
+            contract_number: contractNumber, // Added contract number to payload
             supplier: Number(supplier),
             row_items: rows.map((r) => ({
                 raw_material: Number(r.raw_material),
@@ -123,6 +125,18 @@ function NewRequestForm() {
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-4 min-w-[420px]">
             <CardTitle>New request</CardTitle>
+
+            {/* Contract Number - Added at the beginning */}
+            <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Contract number</label>
+                <input
+                    type="text"
+                    placeholder="Enter contract number"
+                    className="border rounded px-3 py-2 text-sm"
+                    value={contractNumber}
+                    onChange={(e) => setContractNumber(e.target.value)}
+                />
+            </div>
 
             {/* Row items */}
             <div className="flex flex-col gap-2">

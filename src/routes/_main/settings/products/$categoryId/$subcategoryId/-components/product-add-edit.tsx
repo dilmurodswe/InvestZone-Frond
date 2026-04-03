@@ -25,6 +25,7 @@ import {
     Trash2,
     UnderlineIcon,
 } from "lucide-react"
+import { useEffect } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { useProductStore } from "../-hooks/use-product-store"
@@ -92,6 +93,11 @@ function RichTextEditor({
             onChange(editor.getHTML())
         },
     })
+    useEffect(() => {
+        if (editor && value && editor.getHTML() !== value) {
+            editor.commands.setContent(value)
+        }
+    }, [editor, value])
 
     if (!editor) return null
 
@@ -197,6 +203,8 @@ function ProductAddEdit() {
             code: 0,
             articul: "",
             price: 0,
+            theoretically_price: 0,
+            factually_price: 0,
             description: "",
             extra_fields: [],
         },
@@ -209,6 +217,8 @@ function ProductAddEdit() {
                     code: product.code,
                     articul: product.articul,
                     price: product.price,
+                    theoretically_price: product.theoretically_price,
+                    factually_price: product.factually_price,
                     description: product.description ?? "",
                     extra_fields: extraFieldsDefault,
                 }
@@ -242,6 +252,8 @@ function ProductAddEdit() {
             code: vals.code,
             articul: vals.articul,
             price: vals.price,
+            theoretically_price: vals.theoretically_price,
+            factually_price: vals.factually_price,
             description: vals.description,
             extra_fields,
         }
@@ -267,17 +279,29 @@ function ProductAddEdit() {
                 name="name"
                 label="Product name"
             />
-            <UncontrolledInput methods={form} name="articul" label="Articul" />
-            <UncontrolledInput
+            <UncontrolledInput methods={form} name="articul" label="SKU" />
+            {/* <UncontrolledInput
                 methods={form}
                 name="code"
                 label="Product code"
                 type="number"
-            />
+            /> */}
             <UncontrolledInput
                 methods={form}
                 name="price"
                 label="Price"
+                type="number"
+            />
+            <UncontrolledInput
+                methods={form}
+                name="factually_price"
+                label="Factually Price"
+                type="number"
+            />
+            <UncontrolledInput
+                methods={form}
+                name="theoretically_price"
+                label="Theoretically Price"
                 type="number"
             />
 

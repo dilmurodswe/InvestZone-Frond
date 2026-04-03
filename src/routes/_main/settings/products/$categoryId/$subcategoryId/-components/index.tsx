@@ -1,4 +1,5 @@
 import { CustomTable } from "@/components/custom/custom-table"
+import FilterInput from "@/components/filter/filter-input"
 import Layout from "@/components/layouts/layout"
 import Navbar from "@/components/navbar"
 import NoData from "@/components/no-data/nodata"
@@ -38,15 +39,18 @@ export default function Index() {
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <h2 className="text-2xl font-bold">Product List</h2>
 
-                    <Button
-                        onClick={() => {
-                            setProduct(null)
-                            addModal.openModal()
-                        }}
-                    >
-                        <PlusIcon />
-                        Add Product
-                    </Button>
+                    <div className="flex gap-x-2">
+                        <FilterInput />
+                        <Button
+                            onClick={() => {
+                                setProduct(null)
+                                addModal.openModal()
+                            }}
+                        >
+                            <PlusIcon />
+                            Add Product
+                        </Button>
+                    </div>
                     <h2 className="text-base font-semibold flex items-center gap-x-2 w-full">
                         <span
                             className="cursor-pointer hover:cursor-pointer"

@@ -190,6 +190,19 @@ export const useRawMaterialCols = (): ColumnDef<RawMaterial>[] => {
                 />
             ),
         },
+        {
+            accessorKey: "sku",
+            header: "SKU",
+            cell: ({
+                row: { original },
+            }: CellContext<RawMaterial, unknown>) => (
+                <TruncatedCell
+                    value={original.sku}
+                    onClick={() => handleRowClick(original)}
+                    maxWidth={160}
+                />
+            ),
+        },
         ...extraCols,
         {
             id: "description",

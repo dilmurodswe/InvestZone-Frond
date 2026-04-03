@@ -174,7 +174,7 @@ export const useProductCols = (): ColumnDef<Product>[] => {
         },
         {
             accessorKey: "articul",
-            header: "Articul",
+            header: "SKU",
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
                     value={original.articul}
@@ -189,6 +189,28 @@ export const useProductCols = (): ColumnDef<Product>[] => {
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
                     value={original.price}
+                    onClick={() => handleRowClick(original)}
+                    maxWidth={100}
+                />
+            ),
+        },
+        {
+            accessorKey: "theoretically_price",
+            header: "Theoretically Price",
+            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+                <TruncatedCell
+                    value={original.theoretically_price}
+                    onClick={() => handleRowClick(original)}
+                    maxWidth={100}
+                />
+            ),
+        },
+        {
+            accessorKey: "factually_price",
+            header: "Factually Price",
+            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+                <TruncatedCell
+                    value={original.factually_price}
                     onClick={() => handleRowClick(original)}
                     maxWidth={100}
                 />

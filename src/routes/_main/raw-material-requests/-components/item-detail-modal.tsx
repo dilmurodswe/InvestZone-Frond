@@ -85,16 +85,13 @@ const FIELDS: {
     label: string
     isNumber?: boolean
 }[] = [
-    { key: "ton", label: "Ton", isNumber: true },
-    { key: "weight", label: "Weight", isNumber: true },
+    { key: "ton", label: "Brutto", isNumber: true },
+
     { key: "netto", label: "Netto", isNumber: true },
     { key: "inner_size", label: "Inner size", isNumber: true },
     { key: "outer_size", label: "Outer size", isNumber: true },
-    { key: "standard", label: "Standard" },
-    { key: "mark", label: "Mark" },
     { key: "plank", label: "Plank" },
     { key: "reference_number", label: "Reference number" },
-    { key: "price", label: "Price", isNumber: true },
     { key: "wagon", label: "Wagon", isNumber: true },
 ]
 

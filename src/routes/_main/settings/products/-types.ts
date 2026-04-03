@@ -17,6 +17,8 @@ export type Product = {
     code: number
     articul: string
     price: number
+    theoretically_price: number
+    factually_price: number
     description?: string
     extra_fields?: Record<string, string>
 }

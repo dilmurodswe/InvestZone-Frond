@@ -159,7 +159,7 @@ function Content() {
                 <UncontrolledInput
                     methods={form}
                     name="account_number"
-                    label="... Number (xisobraqam)"
+                    label="Bank account number"
                     optional
                 />
                 <UncontrolledInput
@@ -171,7 +171,7 @@ function Content() {
                 <UncontrolledInput
                     methods={form}
                     name="activity_field"
-                    label="... (faoliyat sohasi)"
+                    label="Activity field"
                     optional
                 />
                 <UncontrolledInput

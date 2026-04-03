@@ -94,15 +94,16 @@ function SupplierDetail() {
             {/* Address */}
             <Section title="Address">
                 <div className="grid grid-cols-3 divide-x divide-y">
-                    <Cell label="Region" value={supplier.region_address} />
+                    {/* <Cell label="Region" value={supplier.region_address} />
                     <Cell
                         label="Exact address"
                         value={supplier.exact_address}
-                    />
+                    /> */}
                     <Cell
                         label="Legal address"
                         value={supplier.legal_address}
                     />
+                    <Cell label="Full address" value={supplier.official_name} />
                 </div>
             </Section>
 
