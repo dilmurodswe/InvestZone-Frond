@@ -123,6 +123,12 @@ export default function ItemDetailModal({
             "{id}",
             String(rowItemId),
         ),
+        {
+            options: {
+                staleTime: 0,
+                refetchOnMount: "always",
+            },
+        },
     )
     const serverItems = getArray<ServerItem>(serverData)
 

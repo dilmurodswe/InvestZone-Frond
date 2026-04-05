@@ -3,6 +3,7 @@ import Modal from "@/components/custom/modal"
 import UncontrolledInput from "@/components/form/uncontrolled-input"
 import { Button } from "@/components/ui/button"
 import { CardTitle } from "@/components/ui/card"
+import { useGet } from "@/hooks/react-query/use-get"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
@@ -24,7 +25,13 @@ import {
     Trash2,
     UnderlineIcon,
 } from "lucide-react"
-import { Controller, useFieldArray, useForm } from "react-hook-form"
+import { useEffect, useState } from "react"
+import {
+    Controller,
+    useFieldArray,
+    useForm,
+    type UseFormReturn,
+} from "react-hook-form"
 import { toast } from "sonner"
 import { useRawMaterialStore } from "../-hooks/use-raw-material-store"
 import type { RawMaterial } from "../-types"
@@ -92,6 +99,12 @@ function RichTextEditor({
             onChange(editor.getHTML())
         },
     })
+
+    useEffect(() => {
+        if (editor && value && editor.getHTML() !== value) {
+            editor.commands.setContent(value)
+        }
+    }, [editor, value])
 
     if (!editor) return null
 
@@ -169,12 +182,105 @@ function RichTextEditor({
     )
 }
 
+function ComboboxExtraField({
+    index,
+    form,
+    suggestions,
+    onRemove,
+}: {
+    index: number
+    form: UseFormReturn<Form>
+    suggestions: string[]
+    onRemove: () => void
+}) {
+    const [open, setOpen] = useState(false)
+    const [inputValue, setInputValue] = useState(
+        form.getValues(`extra_fields.${index}.key`) ?? "",
+    )
+
+    const filtered = suggestions.filter((s) =>
+        s.toLowerCase().includes(inputValue.toLowerCase()),
+    )
+
+    return (
+        <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+                <input
+                    {...form.register(`extra_fields.${index}.key`)}
+                    placeholder="Key"
+                    autoComplete="off"
+                    value={inputValue}
+                    onChange={(e) => {
+                        setInputValue(e.target.value)
+                        form.setValue(
+                            `extra_fields.${index}.key`,
+                            e.target.value,
+                        )
+                        setOpen(true)
+                    }}
+                    onFocus={() => setOpen(true)}
+                    onBlur={() => setTimeout(() => setOpen(false), 150)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
+                {open && (
+                    <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md overflow-hidden">
+                        {filtered.length > 0 ?
+                            filtered.map((s) => (
+                                <button
+                                    key={s}
+                                    type="button"
+                                    onMouseDown={() => {
+                                        form.setValue(
+                                            `extra_fields.${index}.key`,
+                                            s,
+                                        )
+                                        setInputValue(s)
+                                        setOpen(false)
+                                    }}
+                                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted text-left"
+                                >
+                                    {s === inputValue && (
+                                        <span className="text-primary">✓</span>
+                                    )}
+                                    {s}
+                                </button>
+                            ))
+                        :   <p className="px-3 py-2 text-sm text-muted-foreground italic">
+                                Yangi kalit qo'shiladi
+                            </p>
+                        }
+                    </div>
+                )}
+            </div>
+
+            <input
+                {...form.register(`extra_fields.${index}.value`)}
+                placeholder="Value"
+                className="flex h-9 flex-1 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+
+            <button
+                type="button"
+                onClick={onRemove}
+                className="p-2 rounded hover:bg-muted text-muted-foreground hover:text-red-500 transition-colors flex-shrink-0"
+            >
+                <Trash2 className="w-4 h-4" />
+            </button>
+        </div>
+    )
+}
+
 // ─── Main form ────────────────────────────────────────────────────────────────
 function RawMaterialAddEdit() {
     const { closeModal } = useModal("add-raw-material")
     const { invalidateByExactMatch } = useRevalidate()
     const { rawMaterial } = useRawMaterialStore()
     const { post, patch, isPending } = useRequest()
+
+    const { data: extraFieldSuggestions } = useGet<
+        { key: string; value: string }[]
+    >(API.EXTRA.RAW_EXTRA_FIELDS.INDEX)
+    const suggestions = extraFieldSuggestions?.map((f) => f.key) ?? []
 
     const extraFieldsDefault: ExtraField[] =
         rawMaterial?.extra_fields ?
@@ -312,27 +418,13 @@ function RawMaterialAddEdit() {
 
                 <div className="flex flex-col gap-2">
                     {fields.map((field, index) => (
-                        <div key={field.id} className="flex items-center gap-2">
-                            <input
-                                {...form.register(`extra_fields.${index}.key`)}
-                                placeholder="Key"
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            />
-                            <input
-                                {...form.register(
-                                    `extra_fields.${index}.value`,
-                                )}
-                                placeholder="Value"
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => remove(index)}
-                                className="p-2 rounded hover:bg-muted text-muted-foreground hover:text-red-500 transition-colors flex-shrink-0"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        </div>
+                        <ComboboxExtraField
+                            key={field.id}
+                            index={index}
+                            form={form}
+                            suggestions={suggestions}
+                            onRemove={() => remove(index)}
+                        />
                     ))}
                 </div>
             </div>

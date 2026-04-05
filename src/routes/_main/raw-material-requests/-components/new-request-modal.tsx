@@ -28,7 +28,7 @@ type RowItem = {
 
 type UploadedFile = {
     id: number
-    file: string
+    url: string
     name: string
 }
 
@@ -77,7 +77,7 @@ function NewRequestForm() {
             const result = await uploadFile(file)
             setUploadedFile({
                 id: result.id,
-                file: result.file,
+                url: result.url, // file → url
                 name: file.name,
             })
         } catch {
@@ -93,7 +93,7 @@ function NewRequestForm() {
             const result = await uploadFile(file)
             setUploadedFile({
                 id: result.id,
-                file: result.file,
+                url: result.url, // file → url
                 name: file.name,
             })
         } catch {
@@ -110,14 +110,13 @@ function NewRequestForm() {
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         const payload = {
-            contract_number: contractNumber, // Added contract number to payload
+            contract_number: contractNumber,
             supplier: Number(supplier),
             row_items: rows.map((r) => ({
                 raw_material: Number(r.raw_material),
                 ton: Number(r.ton),
             })),
-            row_request_files:
-                uploadedFile ? { file: uploadedFile.file } : undefined,
+            row_request_files: uploadedFile ? [uploadedFile.id] : [], // ← ID massivi
         }
         post(API.RAW_MATERIAL_REQUESTS.INDEX, payload, { onSuccess })
     }
@@ -248,7 +247,7 @@ function NewRequestForm() {
                 {uploadedFile && !isUploading && (
                     <div className="relative w-32 h-32 rounded-lg overflow-hidden border bg-muted/30 group mx-auto">
                         <img
-                            src={uploadedFile.file}
+                            src={uploadedFile.url} // file → url
                             alt={uploadedFile.name}
                             className="w-full h-full object-cover"
                         />

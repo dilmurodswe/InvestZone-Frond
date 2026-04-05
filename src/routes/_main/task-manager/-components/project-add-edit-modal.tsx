@@ -78,14 +78,14 @@ function ProjectAddEdit() {
         const file = e.target.files?.[0]
         if (!file) return
 
-        // Local preview
         const localUrl = URL.createObjectURL(file)
         setPreviewUrl(localUrl)
 
         try {
             const result = await uploadFile(file)
-            form.setValue("background", result.file)
-            setPreviewUrl(result.file)
+            // "result.file" emas, "result.url" ishlat
+            form.setValue("background", result.url)
+            setPreviewUrl(result.url)
         } catch {
             toast.error("Image upload failed")
             setPreviewUrl(form.getValues("background"))

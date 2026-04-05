@@ -5,7 +5,8 @@ import { useState } from "react"
 
 type UploadResult = {
     id: number
-    file: string
+    name: string
+    url: string
     created_at: string
 }
 

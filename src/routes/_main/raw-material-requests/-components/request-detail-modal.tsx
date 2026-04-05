@@ -20,6 +20,7 @@ interface RequestDetailModalProps {
 type DetailRow = {
     id: number
     material_name: string
+    raw_material: { name: string }
     contract_number: string
     ton: number | null
     weight: number | null
@@ -228,6 +229,12 @@ function DetailContent({
             "{id}",
             String(request.id),
         ),
+        {
+            options: {
+                staleTime: 0,
+                refetchOnMount: "always",
+            },
+        },
     )
     const items = getArray<DetailRow>(itemsData)
 
@@ -563,7 +570,7 @@ function DetailContent({
                                                             )
                                                         }
                                                     >
-                                                        {item.material_name}
+                                                        {item.raw_material.name}
                                                     </button>
                                                 </td>
                                                 <td className="px-3 py-2 whitespace-nowrap">

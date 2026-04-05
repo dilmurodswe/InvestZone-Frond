@@ -43,6 +43,12 @@ export const API = {
             INDEX: "extra/raw-materials",
             ID: { INDEX: "extra/raw-materials/{id}" },
         },
+        RAW_EXTRA_FIELDS: {
+            INDEX: "extra/row-extra-fields",
+        },
+        EXTRA_FIELDS: {
+            INDEX: "extra/extra-fields",
+        },
     },
     SETTINGS: {
         CURRENCY: {
