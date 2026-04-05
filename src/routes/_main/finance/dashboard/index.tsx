@@ -43,7 +43,7 @@ const today = new Date()
 const DEFAULT_START = format(startOfMonth(today), "yyyy-MM-dd")
 const DEFAULT_END = format(endOfMonth(today), "yyyy-MM-dd")
 
-type StatItem = { date: string; total: number }
+type StatItem = { date: string; USD: number; UZS: number }
 type PaymentTypeStats = Record<
     string,
     { total: number; items: { name: string; value: number }[] }
@@ -118,6 +118,116 @@ function DateRangePicker({
     )
 }
 
+// ─── Reusable dual chart ───────────────────────────────────────────────────
+function DualCurrencyChart({
+    data,
+    loading,
+    usdColor,
+    uzsColor,
+    label,
+}: {
+    data: StatItem[] | undefined
+    loading: boolean
+    usdColor: string
+    uzsColor: string
+    label: string
+}) {
+    if (loading) {
+        return (
+            <div className="h-60 flex items-center justify-center text-sm text-muted-foreground">
+                Loading...
+            </div>
+        )
+    }
+
+    const makeTooltip = (currency: string) => (v: number) => [
+        v.toLocaleString(),
+        `${label} ${currency}`,
+    ]
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* USD */}
+            <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5">
+                    <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: usdColor }}
+                    />
+                    <span className="text-xs font-medium text-muted-foreground">
+                        USD
+                    </span>
+                </div>
+                <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={data ?? []}>
+                        <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="hsl(var(--border))"
+                        />
+                        <XAxis
+                            dataKey="date"
+                            tick={{ fontSize: 10 }}
+                            tickFormatter={(v) => v.slice(5)}
+                        />
+                        <YAxis tick={{ fontSize: 10 }} width={50} />
+                        <Tooltip
+                            formatter={makeTooltip("USD")}
+                            labelFormatter={(l) => `Date: ${l}`}
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="USD"
+                            stroke={usdColor}
+                            strokeWidth={2}
+                            dot={false}
+                            activeDot={{ r: 4 }}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* UZS */}
+            <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5">
+                    <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: uzsColor }}
+                    />
+                    <span className="text-xs font-medium text-muted-foreground">
+                        UZS
+                    </span>
+                </div>
+                <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={data ?? []}>
+                        <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="hsl(var(--border))"
+                        />
+                        <XAxis
+                            dataKey="date"
+                            tick={{ fontSize: 10 }}
+                            tickFormatter={(v) => v.slice(5)}
+                        />
+                        <YAxis tick={{ fontSize: 10 }} width={60} />
+                        <Tooltip
+                            formatter={makeTooltip("UZS")}
+                            labelFormatter={(l) => `Date: ${l}`}
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="UZS"
+                            stroke={uzsColor}
+                            strokeWidth={2}
+                            dot={false}
+                            activeDot={{ r: 4 }}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
+    )
+}
+
 function RouteComponent() {
     const [dates, setDates] = useState({
         start: DEFAULT_START,
@@ -137,8 +247,10 @@ function RouteComponent() {
     const { data: paymentData, isLoading: paymentLoading } =
         useGet<PaymentTypeStats>(API.DASHBOARD.PAYMENT_TYPE_STATS, { params })
 
-    const totalExpense = expenseData?.reduce((s, i) => s + i.total, 0) ?? 0
-    const totalIncome = incomeData?.reduce((s, i) => s + i.total, 0) ?? 0
+    const totalExpenseUSD = expenseData?.reduce((s, i) => s + i.USD, 0) ?? 0
+    const totalExpenseUZS = expenseData?.reduce((s, i) => s + i.UZS, 0) ?? 0
+    const totalIncomeUSD = incomeData?.reduce((s, i) => s + i.USD, 0) ?? 0
+    const totalIncomeUZS = incomeData?.reduce((s, i) => s + i.UZS, 0) ?? 0
 
     return (
         <>
@@ -161,7 +273,7 @@ function RouteComponent() {
                     </div>
 
                     {/* Summary cards */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <Card>
                             <CardContent className="flex items-center gap-4 pt-6">
                                 <div className="p-3 rounded-xl bg-red-100">
@@ -169,10 +281,25 @@ function RouteComponent() {
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Total Expense
+                                        Expense USD
                                     </p>
                                     <p className="text-xl font-bold text-red-500">
-                                        {totalExpense.toLocaleString()}
+                                        ${totalExpenseUSD.toLocaleString()}
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="flex items-center gap-4 pt-6">
+                                <div className="p-3 rounded-xl bg-red-100">
+                                    <TrendingDown className="w-5 h-5 text-red-400" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Expense UZS
+                                    </p>
+                                    <p className="text-xl font-bold text-red-400">
+                                        {totalExpenseUZS.toLocaleString()}
                                     </p>
                                 </div>
                             </CardContent>
@@ -184,10 +311,25 @@ function RouteComponent() {
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Total Income
+                                        Income USD
                                     </p>
                                     <p className="text-xl font-bold text-green-500">
-                                        {totalIncome.toLocaleString()}
+                                        ${totalIncomeUSD.toLocaleString()}
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="flex items-center gap-4 pt-6">
+                                <div className="p-3 rounded-xl bg-green-100">
+                                    <TrendingUp className="w-5 h-5 text-green-400" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Income UZS
+                                    </p>
+                                    <p className="text-xl font-bold text-green-400">
+                                        {totalIncomeUZS.toLocaleString()}
                                     </p>
                                 </div>
                             </CardContent>
@@ -197,100 +339,41 @@ function RouteComponent() {
                     {/* Expense chart */}
                     <Card>
                         <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-base flex items-center gap-2">
-                                    <TrendingDown className="w-4 h-4 text-red-500" />
-                                    Expenses
-                                </CardTitle>
-                            </div>
+                            <CardTitle className="text-base flex items-center gap-2">
+                                <TrendingDown className="w-4 h-4 text-red-500" />
+                                Expenses
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {expenseLoading ?
-                                <div className="h-60 flex items-center justify-center text-sm text-muted-foreground">
-                                    Loading...
-                                </div>
-                            :   <ResponsiveContainer width="100%" height={240}>
-                                    <LineChart data={expenseData ?? []}>
-                                        <CartesianGrid
-                                            strokeDasharray="3 3"
-                                            stroke="hsl(var(--border))"
-                                        />
-                                        <XAxis
-                                            dataKey="date"
-                                            tick={{ fontSize: 11 }}
-                                            tickFormatter={(v) => v.slice(5)}
-                                        />
-                                        <YAxis tick={{ fontSize: 11 }} />
-                                        <Tooltip
-                                            formatter={(v: number) => [
-                                                v.toLocaleString(),
-                                                "Expense",
-                                            ]}
-                                            labelFormatter={(l) => `Date: ${l}`}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="total"
-                                            stroke="#ef4444"
-                                            strokeWidth={2}
-                                            dot={false}
-                                            activeDot={{ r: 4 }}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            }
+                            <DualCurrencyChart
+                                data={expenseData}
+                                loading={expenseLoading}
+                                usdColor="#ef4444"
+                                uzsColor="#f97316"
+                                label="Expense"
+                            />
                         </CardContent>
                     </Card>
 
                     {/* Income chart */}
                     <Card>
                         <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-base flex items-center gap-2">
-                                    <TrendingUp className="w-4 h-4 text-green-500" />
-                                    Income
-                                </CardTitle>
-                            </div>
+                            <CardTitle className="text-base flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-green-500" />
+                                Income
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {incomeLoading ?
-                                <div className="h-60 flex items-center justify-center text-sm text-muted-foreground">
-                                    Loading...
-                                </div>
-                            :   <ResponsiveContainer width="100%" height={240}>
-                                    <LineChart data={incomeData ?? []}>
-                                        <CartesianGrid
-                                            strokeDasharray="3 3"
-                                            stroke="hsl(var(--border))"
-                                        />
-                                        <XAxis
-                                            dataKey="date"
-                                            tick={{ fontSize: 11 }}
-                                            tickFormatter={(v) => v.slice(5)}
-                                        />
-                                        <YAxis tick={{ fontSize: 11 }} />
-                                        <Tooltip
-                                            formatter={(v: number) => [
-                                                v.toLocaleString(),
-                                                "Income",
-                                            ]}
-                                            labelFormatter={(l) => `Date: ${l}`}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="total"
-                                            stroke="#22c55e"
-                                            strokeWidth={2}
-                                            dot={false}
-                                            activeDot={{ r: 4 }}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            }
+                            <DualCurrencyChart
+                                data={incomeData}
+                                loading={incomeLoading}
+                                usdColor="#22c55e"
+                                uzsColor="#10b981"
+                                label="Income"
+                            />
                         </CardContent>
                     </Card>
 
-                    {/* Payment type stats */}
                     {/* Payment type stats - Using recharts PieChart */}
                     <Card>
                         <CardHeader className="pb-2">
@@ -468,11 +551,13 @@ function RouteComponent() {
                                                                                 {
                                                                                     item.percentage
                                                                                 }
+
                                                                                 %
                                                                             </span>
                                                                             <span className="text-xs text-muted-foreground">
                                                                                 (
                                                                                 {item.value.toLocaleString()}
+
                                                                                 )
                                                                             </span>
                                                                         </div>
