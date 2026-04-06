@@ -24,6 +24,7 @@ import { API } from "@/lib/constants/api-endpoints"
 import { cn } from "@/lib/utils/shadcn"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
+import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { useCurrenciesQuery } from "../-hooks/use-currencies-query"
@@ -35,9 +36,14 @@ interface Props {
 }
 
 export default function ExpenseAddEditModal({ expense }: Props) {
+    const { isOpen } = useModal("add-expense")
+
     return (
         <Modal modalKey="add-expense" title={null} className="md:max-w-lg">
-            <ExpenseFormInner expense={expense} />
+            <ExpenseFormInner
+                key={`${expense?.id ?? "new"}-${isOpen}`}
+                expense={expense}
+            />
         </Modal>
     )
 }
@@ -46,38 +52,45 @@ function ExpenseFormInner({ expense }: Props) {
     const { closeModal } = useModal("add-expense")
     const { invalidateByPatternMatch } = useRevalidate()
     const { post, patch, isPending } = useRequest()
-    const { currencyList } = useCurrenciesQuery()
-    const { paymentTypeList } = usePaymentTypesQuery()
+    const { currencyList, isLoading: currLoading } = useCurrenciesQuery()
+    const { paymentTypeList, isLoading: payLoading } = usePaymentTypesQuery()
+
+    const listsLoaded = !currLoading && !payLoading
 
     const form = useForm<ExpenseForm>({
         defaultValues: {
-            name: "",
-            payment_type: null,
-            currency: null,
-            current_rate: "",
-            custom_rate: "",
-            date: format(new Date(), "yyyy-MM-dd"),
-            amount: "",
-            comment: "",
+            name: expense?.name ?? "",
+            payment_type:
+                expense ?
+                    (paymentTypeList.find(
+                        (p) => p.name === expense.payment_type,
+                    )?.id ?? null)
+                :   null,
+            currency: expense?.currency?.id ?? null,
+            current_rate: expense?.current_rate ?? "",
+            custom_rate: expense?.custom_rate ?? "",
+            date: expense?.date ?? format(new Date(), "yyyy-MM-dd"),
+            amount: expense?.amount ?? "",
+            comment: expense?.comment ?? "",
         },
-        values:
-            expense ?
-                {
-                    name: expense.name,
-                    payment_type:
-                        paymentTypeList.find(
-                            (p) => p.name === expense.payment_type,
-                        )?.id ?? null,
-                    currency: expense.currency?.id ?? null,
-                    current_rate: expense.current_rate,
-                    custom_rate: expense.custom_rate,
-                    date: expense.date,
-                    amount: expense.amount,
-                    comment: expense.comment,
-                }
-            :   undefined,
     })
+    // useEffect qo'shing:
 
+    useEffect(() => {
+        if (!expense || !listsLoaded) return
+        form.reset({
+            name: expense.name,
+            payment_type:
+                paymentTypeList.find((p) => p.name === expense.payment_type)
+                    ?.id ?? null,
+            currency: expense.currency?.id ?? null,
+            current_rate: expense.current_rate ?? "",
+            custom_rate: expense.custom_rate ?? "",
+            date: expense.date,
+            amount: expense.amount ?? "",
+            comment: expense.comment ?? "",
+        })
+    }, [listsLoaded]) // eslint-disable-line
     const onSuccess = () => {
         invalidateByPatternMatch([API.FINANCE.EXPENSE.INDEX])
         closeModal()
@@ -108,15 +121,24 @@ function ExpenseFormInner({ expense }: Props) {
             <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                     <Label>Name</Label>
-                    <Input
-                        {...form.register("name")}
-                        placeholder="Enter name"
+                    <Controller
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <Input {...field} placeholder="Enter name" />
+                        )}
                     />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                     <Label>Amount</Label>
-                    <Input {...form.register("amount")} placeholder="0.00" />
+                    <Controller
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                            <Input {...field} placeholder="0.00" />
+                        )}
+                    />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
@@ -177,19 +199,23 @@ function ExpenseFormInner({ expense }: Props) {
 
                 <div className="flex flex-col gap-1.5">
                     <Label>Current Rate</Label>
-                    <Input
-                        {...form.register("current_rate")}
-                        placeholder="0"
-                        type="number"
+                    <Controller
+                        control={form.control}
+                        name="current_rate"
+                        render={({ field }) => (
+                            <Input {...field} placeholder="0" type="number" />
+                        )}
                     />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                     <Label>Custom Rate</Label>
-                    <Input
-                        {...form.register("custom_rate")}
-                        placeholder="0"
-                        type="number"
+                    <Controller
+                        control={form.control}
+                        name="custom_rate"
+                        render={({ field }) => (
+                            <Input {...field} placeholder="0" type="number" />
+                        )}
                     />
                 </div>
 
@@ -240,9 +266,12 @@ function ExpenseFormInner({ expense }: Props) {
 
                 <div className="flex flex-col gap-1.5 col-span-2">
                     <Label>Comment</Label>
-                    <Input
-                        {...form.register("comment")}
-                        placeholder="Enter comment"
+                    <Controller
+                        control={form.control}
+                        name="comment"
+                        render={({ field }) => (
+                            <Input {...field} placeholder="Enter comment" />
+                        )}
                     />
                 </div>
             </div>

@@ -1,6 +1,6 @@
 import FormAction from "@/components/custom/form-action"
 import Modal from "@/components/custom/modal"
-import FilterInput from "@/components/filter/filter-input"
+import LocalFilterInput from "@/components/filter/local-search-input"
 import { CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -46,6 +46,7 @@ function NewManufactureForm() {
     const [productId, setProductId] = useState("")
     const [stock, setStock] = useState("")
     const [selectedRawIds, setSelectedRawIds] = useState<number[]>([])
+    const [localSearch, setLocalSearch] = useState("")
 
     const { categoryOptions } = useCategoriesSelectQuery()
     const { subCategoryOptions } = useSubCategoriesSelectQuery(
@@ -55,6 +56,19 @@ function NewManufactureForm() {
         subCategoryId ? Number(subCategoryId) : undefined,
     )
     const { rawItemDetailOptions } = useRawItemDetailsSelectQuery()
+
+    // ── Local search filter ──
+    const filteredRawItems = rawItemDetailOptions.filter((r) => {
+        if (!localSearch) return true
+        const q = localSearch.toLowerCase()
+        return (
+            r.contract_number?.toLowerCase().includes(q) ||
+            r.supplier?.toLowerCase().includes(q) ||
+            r.raw_material_name?.toLowerCase().includes(q) ||
+            r.mark?.toLowerCase().includes(q) ||
+            r.plank?.toLowerCase().includes(q)
+        )
+    })
 
     const handleCategoryChange = (val: string) => {
         setCategoryId(val)
@@ -191,7 +205,7 @@ function NewManufactureForm() {
                             </span>
                         )}
                     </div>
-                    <FilterInput />
+                    <LocalFilterInput onChange={setLocalSearch} />
                 </div>
 
                 <div className="border rounded-lg overflow-hidden">
@@ -230,7 +244,7 @@ function NewManufactureForm() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {rawItemDetailOptions.length === 0 && (
+                                {filteredRawItems.length === 0 && (
                                     <tr>
                                         <td
                                             colSpan={10}
@@ -240,7 +254,7 @@ function NewManufactureForm() {
                                         </td>
                                     </tr>
                                 )}
-                                {rawItemDetailOptions.map((r) => {
+                                {filteredRawItems.map((r) => {
                                     const checked = selectedRawIds.includes(
                                         r.id,
                                     )

@@ -24,6 +24,7 @@ import { API } from "@/lib/constants/api-endpoints"
 import { cn } from "@/lib/utils/shadcn"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
+import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { useCurrenciesQuery } from "../-hooks/use-currencies-query"
@@ -36,9 +37,14 @@ interface Props {
 }
 
 export default function IncomeAddEditModal({ income }: Props) {
+    const { isOpen } = useModal("add-income")
+
     return (
         <Modal modalKey="add-income" title={null} className="md:max-w-lg">
-            <IncomeFormInner income={income} />
+            <IncomeFormInner
+                key={`${income?.id ?? "new"}-${isOpen}`}
+                income={income}
+            />
         </Modal>
     )
 }
@@ -47,40 +53,45 @@ function IncomeFormInner({ income }: Props) {
     const { closeModal } = useModal("add-income")
     const { invalidateByPatternMatch } = useRevalidate()
     const { post, patch, isPending } = useRequest()
-    const { currencyList } = useCurrenciesQuery()
-    const { paymentTypeList } = usePaymentTypesQuery()
-    const { salesAgentList } = useSalesAgentsQuery()
+    const { currencyList, isLoading: currLoading } = useCurrenciesQuery()
+    const { paymentTypeList, isLoading: payLoading } = usePaymentTypesQuery()
+    const { salesAgentList, isLoading: agentLoading } = useSalesAgentsQuery()
 
+    const listsLoaded = !currLoading && !payLoading && !agentLoading
     const form = useForm<IncomeForm>({
         defaultValues: {
-            name: "",
-            payment_type: null,
-            currency: null,
-            current_rate: "",
-            custom_rate: "",
-            date: format(new Date(), "yyyy-MM-dd"),
-            sales_agent: null,
-            amount: "",
-            comment: "",
+            name: income?.name ?? "",
+            payment_type: null, // list kerak, pastda reset qilinadi
+            currency: income?.currency?.id ?? null,
+            current_rate: income?.current_rate ?? "",
+            custom_rate: income?.custom_rate ?? "",
+            date: income?.date ?? format(new Date(), "yyyy-MM-dd"),
+            sales_agent: null, // list kerak, pastda reset qilinadi
+            amount: income?.amount ?? "",
+            comment: income?.comment ?? "",
         },
-        values:
-            income ?
-                {
-                    name: income.name,
-                    payment_type:
-                        paymentTypeList.find(
-                            (p) => p.name === income.payment_type,
-                        )?.id ?? null,
-                    currency: income.currency?.id ?? null,
-                    current_rate: income.current_rate,
-                    custom_rate: income.custom_rate,
-                    date: income.date,
-                    sales_agent: income.sales_agent,
-                    amount: income.amount,
-                    comment: income.comment,
-                }
-            :   undefined,
     })
+
+    useEffect(() => {
+        if (!income || !listsLoaded) return
+        form.reset({
+            name: income.name,
+            payment_type:
+                paymentTypeList.find((p) => p.name === income.payment_type)
+                    ?.id ?? null,
+            currency: income.currency?.id ?? null,
+            current_rate: income.current_rate ?? "",
+            custom_rate: income.custom_rate ?? "",
+            date: income.date,
+            sales_agent:
+                salesAgentList.find(
+                    (a) =>
+                        `${a.first_name} ${a.last_name}` === income.sales_agent,
+                )?.id ?? null,
+            amount: income.amount ?? "",
+            comment: income.comment ?? "",
+        })
+    }, [listsLoaded]) // eslint-disable-line
 
     const onSuccess = () => {
         invalidateByPatternMatch([API.FINANCE.INCOME.INDEX])
@@ -109,15 +120,24 @@ function IncomeFormInner({ income }: Props) {
             <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                     <Label>Name</Label>
-                    <Input
-                        {...form.register("name")}
-                        placeholder="Enter name"
+                    <Controller
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <Input {...field} placeholder="Enter name" />
+                        )}
                     />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                     <Label>Amount</Label>
-                    <Input {...form.register("amount")} placeholder="0.00" />
+                    <Controller
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                            <Input {...field} placeholder="0.00" />
+                        )}
+                    />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
@@ -178,19 +198,23 @@ function IncomeFormInner({ income }: Props) {
 
                 <div className="flex flex-col gap-1.5">
                     <Label>Current Rate</Label>
-                    <Input
-                        {...form.register("current_rate")}
-                        placeholder="0"
-                        type="number"
+                    <Controller
+                        control={form.control}
+                        name="current_rate"
+                        render={({ field }) => (
+                            <Input {...field} placeholder="0" type="number" />
+                        )}
                     />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                     <Label>Custom Rate</Label>
-                    <Input
-                        {...form.register("custom_rate")}
-                        placeholder="0"
-                        type="number"
+                    <Controller
+                        control={form.control}
+                        name="custom_rate"
+                        render={({ field }) => (
+                            <Input {...field} placeholder="0" type="number" />
+                        )}
                     />
                 </div>
 
@@ -269,9 +293,12 @@ function IncomeFormInner({ income }: Props) {
 
                 <div className="flex flex-col gap-1.5 col-span-2">
                     <Label>Comment</Label>
-                    <Input
-                        {...form.register("comment")}
-                        placeholder="Enter comment"
+                    <Controller
+                        control={form.control}
+                        name="comment"
+                        render={({ field }) => (
+                            <Input {...field} placeholder="Enter comment" />
+                        )}
                     />
                 </div>
             </div>

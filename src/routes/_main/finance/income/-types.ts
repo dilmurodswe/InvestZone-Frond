@@ -31,7 +31,7 @@ export type Income = {
     current_rate: string
     custom_rate: string
     date: string
-    sales_agent: number | null
+    sales_agent: string | null
     amount: string
     comment: string
 }

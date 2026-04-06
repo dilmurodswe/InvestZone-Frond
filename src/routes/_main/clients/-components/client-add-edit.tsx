@@ -114,7 +114,7 @@ function Content() {
                     label="Email"
                     optional
                 />
-                <UncontrolledInput
+                {/* <UncontrolledInput
                     methods={form}
                     name="region_address"
                     label="Address"
@@ -125,7 +125,7 @@ function Content() {
                     name="exact_address"
                     label="Address"
                     optional
-                />
+                /> */}
                 <UncontrolledInput
                     methods={form}
                     name="legal_address"

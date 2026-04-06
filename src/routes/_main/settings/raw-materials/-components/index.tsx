@@ -1,4 +1,5 @@
 import { CustomTable } from "@/components/custom/custom-table"
+import FilterInput from "@/components/filter/filter-input"
 import Layout from "@/components/layouts/layout"
 import Navbar from "@/components/navbar"
 import NoData from "@/components/no-data/nodata"
@@ -26,15 +27,18 @@ export default function Index() {
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <h2 className="text-2xl font-bold">Raw Material List</h2>
 
-                    <Button
-                        onClick={() => {
-                            setRawMaterial(null)
-                            addModal.openModal()
-                        }}
-                    >
-                        <PlusIcon />
-                        Add Raw Material
-                    </Button>
+                    <div className="flex gap-x-3">
+                        <FilterInput />
+                        <Button
+                            onClick={() => {
+                                setRawMaterial(null)
+                                addModal.openModal()
+                            }}
+                        >
+                            <PlusIcon />
+                            Add Raw Material
+                        </Button>
+                    </div>
                 </Group>
 
                 {!!rawMaterialList.length && (

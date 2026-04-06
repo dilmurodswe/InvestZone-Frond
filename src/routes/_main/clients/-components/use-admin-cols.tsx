@@ -144,14 +144,14 @@ export const useClientCols = (): ColumnDef<Client>[] => {
             ),
         },
         {
-            accessorKey: "region_address",
+            accessorKey: "official_name",
             header: "Address",
             cell: ({ row: { original } }) => (
                 <span
                     className="text-sm cursor-pointer"
                     onClick={() => handleRowClick(original)}
                 >
-                    {original.region_address || "—"}
+                    {original.official_name || "—"}
                 </span>
             ),
         },

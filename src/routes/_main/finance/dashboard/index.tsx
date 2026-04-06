@@ -336,44 +336,6 @@ function RouteComponent() {
                         </Card>
                     </div>
 
-                    {/* Expense chart */}
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <TrendingDown className="w-4 h-4 text-red-500" />
-                                Expenses
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <DualCurrencyChart
-                                data={expenseData}
-                                loading={expenseLoading}
-                                usdColor="#ef4444"
-                                uzsColor="#f97316"
-                                label="Expense"
-                            />
-                        </CardContent>
-                    </Card>
-
-                    {/* Income chart */}
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <TrendingUp className="w-4 h-4 text-green-500" />
-                                Income
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <DualCurrencyChart
-                                data={incomeData}
-                                loading={incomeLoading}
-                                usdColor="#22c55e"
-                                uzsColor="#10b981"
-                                label="Income"
-                            />
-                        </CardContent>
-                    </Card>
-
                     {/* Payment type stats - Using recharts PieChart */}
                     <Card>
                         <CardHeader className="pb-2">
@@ -572,6 +534,44 @@ function RouteComponent() {
                                     )}
                                 </div>
                             }
+                        </CardContent>
+                    </Card>
+
+                    {/* Expense chart */}
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-base flex items-center gap-2">
+                                <TrendingDown className="w-4 h-4 text-red-500" />
+                                Expenses
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <DualCurrencyChart
+                                data={expenseData}
+                                loading={expenseLoading}
+                                usdColor="#ef4444"
+                                uzsColor="#f97316"
+                                label="Expense"
+                            />
+                        </CardContent>
+                    </Card>
+
+                    {/* Income chart */}
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-base flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-green-500" />
+                                Income
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <DualCurrencyChart
+                                data={incomeData}
+                                loading={incomeLoading}
+                                usdColor="#22c55e"
+                                uzsColor="#10b981"
+                                label="Income"
+                            />
                         </CardContent>
                     </Card>
                 </div>

@@ -5,7 +5,15 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
-import { Loader2, Plus, Trash2, Upload } from "lucide-react"
+import {
+    File,
+    FileText,
+    Loader2,
+    Plus,
+    Sheet,
+    Trash2,
+    Upload,
+} from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { useFileUpload } from "../-hooks/use-file-upload"
@@ -30,6 +38,76 @@ type UploadedFile = {
     id: number
     url: string
     name: string
+}
+
+function getFileExt(url: string) {
+    if (!url) return ""
+    return url.split(".").pop()?.toLowerCase() ?? ""
+}
+
+function isImage(url: string) {
+    if (!url) return false
+    return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(
+        getFileExt(url),
+    )
+}
+
+function FileIcon({ url, name }: { url: string; name: string }) {
+    const ext = getFileExt(url)
+    const icons: Record<
+        string,
+        { icon: React.ReactNode; color: string; label: string }
+    > = {
+        pdf: {
+            icon: <FileText className="w-6 h-6" />,
+            color: "text-red-500",
+            label: "PDF",
+        },
+        doc: {
+            icon: <FileText className="w-6 h-6" />,
+            color: "text-blue-500",
+            label: "DOC",
+        },
+        docx: {
+            icon: <FileText className="w-6 h-6" />,
+            color: "text-blue-500",
+            label: "DOCX",
+        },
+        xls: {
+            icon: <Sheet className="w-6 h-6" />,
+            color: "text-green-500",
+            label: "XLS",
+        },
+        xlsx: {
+            icon: <Sheet className="w-6 h-6" />,
+            color: "text-green-500",
+            label: "XLSX",
+        },
+    }
+    const cfg = icons[ext] ?? {
+        icon: <File className="w-6 h-6" />,
+        color: "text-muted-foreground",
+        label: ext.toUpperCase(),
+    }
+    return (
+        <div>
+            <a
+                href={url}
+                download
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-1 w-36 h-16 rounded-lg border bg-muted/30 hover:bg-muted transition-colors"
+            >
+                <span className={cfg.color}>{cfg.icon}</span>
+                <span className="text-[10px] font-semibold text-muted-foreground">
+                    {cfg.label}
+                </span>
+            </a>
+            <p className="text-[10px] mt-0.5 text-center truncate w-36">
+                {name || "Unnamed file"}
+            </p>
+        </div>
+    )
 }
 
 function NewRequestForm() {
@@ -245,19 +323,43 @@ function NewRequestForm() {
                 )}
 
                 {uploadedFile && !isUploading && (
-                    <div className="relative w-32 h-32 rounded-lg overflow-hidden border bg-muted/30 group mx-auto">
-                        <img
-                            src={uploadedFile.url} // file → url
-                            alt={uploadedFile.name}
-                            className="w-full h-full object-cover"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setUploadedFile(null)}
-                            className="absolute top-1 right-1 bg-white/80 rounded-full p-1 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                            <Trash2 className="w-3 h-3" />
-                        </button>
+                    <div className="relative group mx-auto">
+                        {
+                            isImage(uploadedFile.url) ?
+                                // ── Rasm ──
+                                <div className="relative w-36 h-24 rounded-lg overflow-hidden border bg-muted/30">
+                                    <img
+                                        src={uploadedFile.url}
+                                        alt={uploadedFile.name}
+                                        className="w-full h-16 object-cover"
+                                    />
+                                    <p className="text-[10px] mt-0.5 text-center truncate px-1">
+                                        {uploadedFile.name}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => setUploadedFile(null)}
+                                        className="absolute top-1 right-1 bg-white/80 rounded-full p-1 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </button>
+                                </div>
+                                // ── File (pdf, docx, xlsx ...) ──
+                            :   <div className="relative inline-block">
+                                    <FileIcon
+                                        url={uploadedFile.url}
+                                        name={uploadedFile.name}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setUploadedFile(null)}
+                                        className="absolute -top-1.5 -right-1.5 bg-white/80 rounded-full p-1 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </button>
+                                </div>
+
+                        }
                     </div>
                 )}
 

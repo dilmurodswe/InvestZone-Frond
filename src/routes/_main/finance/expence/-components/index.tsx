@@ -1,4 +1,5 @@
 import { CustomTable } from "@/components/custom/custom-table"
+import FilterSelect from "@/components/filter/filter-select"
 import Layout from "@/components/layouts/layout"
 import Navbar from "@/components/navbar"
 import NoData from "@/components/no-data/nodata"
@@ -30,11 +31,21 @@ export default function ExpensePage() {
         },
     )
 
+    const expenseOptions = [
+        { id: "uzs", name: "UZS" },
+        { id: "usd", name: "USD" },
+    ]
+
     return (
         <>
             <Navbar links={[{ label: "Expense" }]} />
             <Layout>
-                <Group className="flex justify-end mb-4">
+                <Group className="flex justify-between mb-4">
+                    <FilterSelect
+                        filterKey="status"
+                        placeholder="Payment Type"
+                        options={expenseOptions}
+                    />
                     <Button
                         onClick={() => {
                             setSelected(null)
