@@ -35,17 +35,29 @@ export default function IncomePage() {
         { id: "uzs", name: "UZS" },
         { id: "usd", name: "USD" },
     ]
+    const paymentOptions = [
+        { id: "naxt", name: "NAXT" },
+        { id: "card", name: "CARD" },
+        { id: "bank", name: "BANK" },
+    ]
 
     return (
         <>
             <Navbar links={[{ label: "Income" }]} />
             <Layout>
                 <Group className="flex justify-between mb-4">
-                    <FilterSelect
-                        filterKey="status"
-                        placeholder="Payment Type"
-                        options={expenseOptions}
-                    />
+                    <div className="flex gap-x-3">
+                        <FilterSelect
+                            filterKey="currency"
+                            placeholder="Currency"
+                            options={expenseOptions}
+                        />
+                        <FilterSelect
+                            filterKey="payment_type"
+                            placeholder="Payment Type"
+                            options={paymentOptions}
+                        />
+                    </div>
                     <Button
                         onClick={() => {
                             setSelected(null)
