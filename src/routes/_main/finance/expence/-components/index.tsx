@@ -15,7 +15,7 @@ import { getExpenseCols } from "./expense-columns"
 import ExpenseDeleteModal from "./expense-delete-modal"
 
 export default function ExpensePage() {
-    const { expenseList, isFetching } = useExpensesQuery()
+    const { expenseList, data, isFetching } = useExpensesQuery()
     const [selected, setSelected] = useState<Expense | null>(null)
     const addModal = useModal("add-expense")
     const deleteModal = useModal("delete-expense")
@@ -73,6 +73,7 @@ export default function ExpensePage() {
                     <CustomTable
                         columns={cols}
                         data={expenseList}
+                        count={data?.count}
                         isLoading={isFetching}
                     />
                 )}

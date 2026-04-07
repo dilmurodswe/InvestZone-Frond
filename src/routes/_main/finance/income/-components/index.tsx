@@ -15,7 +15,7 @@ import { getIncomeCols } from "./income-columns"
 import IncomeDeleteModal from "./income-delete-modal"
 
 export default function IncomePage() {
-    const { incomeList, isFetching } = useIncomesQuery()
+    const { incomeList, data, isFetching } = useIncomesQuery()
     const [selected, setSelected] = useState<Income | null>(null)
     const addModal = useModal("add-income")
     const deleteModal = useModal("delete-income")
@@ -73,6 +73,7 @@ export default function IncomePage() {
                     <CustomTable
                         columns={cols}
                         data={incomeList}
+                        count={data?.count}
                         isLoading={isFetching}
                     />
                 )}

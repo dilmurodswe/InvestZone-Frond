@@ -17,7 +17,7 @@ import { useRequestCols } from "./use-request-cols"
 
 export default function Index() {
     const newRequestModal = useModal("new-request")
-    const { requestList, isFetching } = useRequestsQuery()
+    const { requestList, data, isFetching } = useRequestsQuery()
     const [selectedRequest, setSelectedRequest] =
         useState<RawMaterialRequest | null>(null)
     const [statusDropdown, setStatusDropdown] = useState<{
@@ -71,7 +71,7 @@ export default function Index() {
                     <CustomTable
                         columns={cols}
                         data={requestList}
-                        count={requestList.length}
+                        count={data?.count}
                         isLoading={isFetching}
                     />
                 )}
