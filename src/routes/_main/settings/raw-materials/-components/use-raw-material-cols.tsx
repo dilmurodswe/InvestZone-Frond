@@ -117,7 +117,9 @@ function TruncatedCell({
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
-export const useRawMaterialCols = (): ColumnDef<RawMaterial>[] => {
+export const useRawMaterialCols = (
+    visibleExtraKeys: string[],
+): ColumnDef<RawMaterial>[] => {
     const { rawMaterialList } = useRawMaterialsQuery()
     const { setRawMaterial } = useRawMaterialStore()
     const detailModal = useModal("raw-material-detail")
@@ -139,16 +141,20 @@ export const useRawMaterialCols = (): ColumnDef<RawMaterial>[] => {
         detailModal.openModal()
     }
 
-    const extraCols: ColumnDef<RawMaterial>[] = extraKeys.map((key) => ({
-        id: `extra_${key}`,
-        header: key,
-        cell: ({ row: { original } }: CellContext<RawMaterial, unknown>) => (
-            <TruncatedCell
-                value={original.extra_fields?.[key] ?? null}
-                onClick={() => handleRowClick(original)}
-            />
-        ),
-    }))
+    const extraCols: ColumnDef<RawMaterial>[] = extraKeys
+        .filter((key) => visibleExtraKeys.includes(key))
+        .map((key) => ({
+            id: `extra_${key}`,
+            header: key,
+            cell: ({
+                row: { original },
+            }: CellContext<RawMaterial, unknown>) => (
+                <TruncatedCell
+                    value={original.extra_fields?.[key] ?? null}
+                    onClick={() => handleRowClick(original)}
+                />
+            ),
+        }))
 
     return [
         {
