@@ -18,8 +18,10 @@ import { useRequestCols } from "./use-request-cols"
 export default function Index() {
     const newRequestModal = useModal("new-request")
     const { requestList, data, isFetching } = useRequestsQuery()
-    const [selectedRequest, setSelectedRequest] =
-        useState<RawMaterialRequest | null>(null)
+    const [selectedRequest, setSelectedRequest] = useState<{
+        data: RawMaterialRequest
+        openedAt: number
+    } | null>(null)
     const [statusDropdown, setStatusDropdown] = useState<{
         request: RawMaterialRequest
         anchorEl: HTMLElement
@@ -33,7 +35,11 @@ export default function Index() {
     }
 
     const cols = useRequestCols(
-        (request: RawMaterialRequest) => setSelectedRequest(request),
+        (request: RawMaterialRequest) =>
+            setSelectedRequest({
+                data: request,
+                openedAt: Date.now(),
+            }),
         handleStatusClick,
     )
     const roleOptions = [
@@ -92,8 +98,13 @@ export default function Index() {
                 <NewRequestModal />
 
                 <RequestDetailModal
-                    request={selectedRequest}
+                    request={selectedRequest?.data ?? null}
                     onClose={() => setSelectedRequest(null)}
+                    key={
+                        selectedRequest ?
+                            `${selectedRequest.data.id}-${selectedRequest.openedAt}`
+                        :   "none"
+                    }
                 />
 
                 {statusDropdown && (
@@ -103,7 +114,10 @@ export default function Index() {
                         onClose={() => setStatusDropdown(null)}
                         onStatusChanged={(req) => {
                             setStatusDropdown(null)
-                            setSelectedRequest(req)
+                            setSelectedRequest({
+                                data: req,
+                                openedAt: Date.now(),
+                            })
                         }}
                     />
                 )}

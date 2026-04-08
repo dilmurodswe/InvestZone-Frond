@@ -189,7 +189,7 @@ function DetailContent({
 
     // ── Files ──
     // GET so‘rovini qayta yuklash uchun ishlatiladigan `key`
-    const [filesFetchKey] = useState(0)
+    // const [filesFetchKey] = useState(0)
     const {
         data: filesData,
         isLoading: filesLoading,
@@ -199,8 +199,12 @@ function DetailContent({
             "{id}",
             String(request.id),
         ),
-        // @ts-expect-error - Agar hookingiz `key` ni qabul qilmasa, bu qatorni o‘chiring
-        { key: filesFetchKey },
+        {
+            options: {
+                staleTime: 0,
+                refetchOnMount: "always",
+            },
+        },
     )
 
     // Backenddan kelgan ma'lumotlarni UI formatiga o'tkazish
