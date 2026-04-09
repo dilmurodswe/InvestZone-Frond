@@ -49,12 +49,6 @@ export default function Index() {
         { id: "4", name: "Accepted" },
         { id: "5", name: "Station" },
         { id: "6", name: "In UZB" },
-        { id: "7", name: "Paid" },
-        { id: "8", name: "Customs Clearance" },
-        { id: "9", name: "Arrived Warehouse" },
-        { id: "10", name: "Production Again" },
-        { id: "11", name: "Partially Shipped" },
-        { id: "12", name: "Cancelled" },
     ]
 
     return (
