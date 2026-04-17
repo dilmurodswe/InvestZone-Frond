@@ -209,6 +209,32 @@ export const useRawMaterialCols = (
                 />
             ),
         },
+        {
+            accessorKey: "width",
+            header: "Ширина",
+            cell: ({
+                row: { original },
+            }: CellContext<RawMaterial, unknown>) => (
+                <TruncatedCell
+                    value={original.width ?? null}
+                    onClick={() => handleRowClick(original)}
+                    maxWidth={100}
+                />
+            ),
+        },
+        {
+            accessorKey: "thickness",
+            header: "Толщина",
+            cell: ({
+                row: { original },
+            }: CellContext<RawMaterial, unknown>) => (
+                <TruncatedCell
+                    value={original.thickness ?? null}
+                    onClick={() => handleRowClick(original)}
+                    maxWidth={100}
+                />
+            ),
+        },
         ...extraCols,
         {
             id: "description",

@@ -116,7 +116,9 @@ function TruncatedCell({
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
-export const useProductCols = (): ColumnDef<Product>[] => {
+export const useProductCols = (
+    visibleExtraKeys: string[],
+): ColumnDef<Product>[] => {
     const { productList } = useProductsQuery()
     const { setProduct } = useProductStore()
     const detailModal = useModal("product-detail")
@@ -138,16 +140,18 @@ export const useProductCols = (): ColumnDef<Product>[] => {
         detailModal.openModal()
     }
 
-    const extraCols: ColumnDef<Product>[] = extraKeys.map((key) => ({
-        id: `extra_${key}`,
-        header: key,
-        cell: ({ row: { original } }: CellContext<Product, unknown>) => (
-            <TruncatedCell
-                value={original.extra_fields?.[key] ?? null}
-                onClick={() => handleRowClick(original)}
-            />
-        ),
-    }))
+    const extraCols: ColumnDef<Product>[] = extraKeys
+        .filter((key) => visibleExtraKeys.includes(key))
+        .map((key) => ({
+            id: `extra_${key}`,
+            header: key,
+            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+                <TruncatedCell
+                    value={original.extra_fields?.[key] ?? null}
+                    onClick={() => handleRowClick(original)}
+                />
+            ),
+        }))
 
     return [
         {

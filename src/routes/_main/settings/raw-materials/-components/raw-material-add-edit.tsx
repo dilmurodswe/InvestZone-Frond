@@ -296,6 +296,8 @@ function RawMaterialAddEdit() {
             standard: "",
             mark: "",
             sku: "",
+            width: null,
+            thickness: null,
             description: "",
             extra_fields: [],
         },
@@ -306,6 +308,8 @@ function RawMaterialAddEdit() {
                     standard: rawMaterial.standard,
                     mark: rawMaterial.mark,
                     sku: rawMaterial.sku,
+                    width: rawMaterial.width ?? null,
+                    thickness: rawMaterial.thickness ?? null,
                     description: rawMaterial.description ?? "",
                     extra_fields: extraFieldsDefault,
                 }
@@ -338,6 +342,8 @@ function RawMaterialAddEdit() {
             standard: vals.standard,
             mark: vals.mark,
             sku: vals.sku,
+            width: vals.width ? Number(vals.width) : null,
+            thickness: vals.thickness ? Number(vals.thickness) : null,
             description: vals.description,
             extra_fields,
         }
@@ -370,6 +376,18 @@ function RawMaterialAddEdit() {
             />
             <UncontrolledInput methods={form} name="mark" label="Mark" />
             <UncontrolledInput methods={form} name="sku" label="SKU" />
+            <UncontrolledInput
+                methods={form}
+                name="width"
+                label="Ширина"
+                type="number"
+            />
+            <UncontrolledInput
+                methods={form}
+                name="thickness"
+                label="Толщина"
+                type="number"
+            />
 
             {/* Description – rich text */}
             <div className="flex flex-col gap-1.5">

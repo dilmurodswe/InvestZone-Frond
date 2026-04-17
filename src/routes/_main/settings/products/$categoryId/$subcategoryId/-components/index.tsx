@@ -16,12 +16,39 @@ import ProductAddEditModal from "./product-add-edit"
 import ProductDeleteModal from "./product-delete-modal"
 import ProductDetailModal from "./product-detail-modal"
 import { useProductCols } from "./use-product-cols"
+// import { ExtraFieldFilter } from "./ExtraFieldFilter"
+import { useMemo, useState } from "react"
+import { ExtraFieldColumnToggle } from "./ExtraFieldColumnToggle"
 
 export default function Index() {
     const { productList, data, isFetching } = useProductsQuery()
     const { setProduct } = useProductStore()
     const addModal = useModal("add-product")
-    const cols = useProductCols()
+    const extraKeys = useMemo(() => {
+        const keys = new Set<string>()
+        for (const p of productList) {
+            if (p.extra_fields) {
+                for (const k of Object.keys(p.extra_fields)) keys.add(k)
+            }
+        }
+        return Array.from(keys)
+    }, [productList])
+
+    const [hiddenExtraKeys, setHiddenExtraKeys] = useState<Set<string>>(
+        () => new Set(),
+    )
+
+    const visibleExtraKeys = useMemo(
+        () => extraKeys.filter((k) => !hiddenExtraKeys.has(k)),
+        [extraKeys, hiddenExtraKeys],
+    )
+
+    const handleColumnToggle = (keys: string[]) => {
+        const hidden = new Set(extraKeys.filter((k) => !keys.includes(k)))
+        setHiddenExtraKeys(hidden)
+    }
+
+    const cols = useProductCols(visibleExtraKeys)
     const { categoryId, subcategoryId } = useParams({ strict: false })
 
     const { data: categoryData } = useGet<Category>(
@@ -40,7 +67,13 @@ export default function Index() {
                     <h2 className="text-2xl font-bold">Product List</h2>
 
                     <div className="flex gap-x-2">
+                        {/* <ExtraFieldFilter /> */}
                         <FilterInput />
+                        <ExtraFieldColumnToggle
+                            extraKeys={extraKeys}
+                            visibleKeys={visibleExtraKeys}
+                            onChange={handleColumnToggle}
+                        />
                         <Button
                             onClick={() => {
                                 setProduct(null)

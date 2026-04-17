@@ -26,6 +26,8 @@ function RawMaterialDetail() {
             <div className="grid grid-cols-2 gap-3">
                 <DetailRow label="Standard" value={rawMaterial.standard} />
                 <DetailRow label="Mark" value={rawMaterial.mark} />
+                <DetailRow label="Ширина" value={rawMaterial.width} />
+                <DetailRow label="Толщина" value={rawMaterial.thickness} />
             </div>
 
             {/* Extra fields */}

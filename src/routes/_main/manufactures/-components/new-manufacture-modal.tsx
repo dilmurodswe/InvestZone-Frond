@@ -112,86 +112,6 @@ function NewManufactureForm() {
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-5">
             <CardTitle>New manufacture</CardTitle>
-
-            {/* Top row — 4 selects + quantity */}
-            <div className="grid grid-cols-4 gap-3 items-end">
-                {/* Category */}
-                <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">Category</label>
-                    <Select
-                        value={categoryId}
-                        onValueChange={handleCategoryChange}
-                    >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {categoryOptions.map((c) => (
-                                <SelectItem key={c.id} value={String(c.id)}>
-                                    {c.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Sub category */}
-                <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">Sub category</label>
-                    <Select
-                        value={subCategoryId}
-                        onValueChange={handleSubCategoryChange}
-                        disabled={!categoryId}
-                    >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {subCategoryOptions.map((s) => (
-                                <SelectItem key={s.id} value={String(s.id)}>
-                                    {s.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Product */}
-                <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">Product</label>
-                    <Select
-                        value={productId}
-                        onValueChange={setProductId}
-                        disabled={!subCategoryId}
-                    >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {productOptions.map((p) => (
-                                <SelectItem key={p.id} value={String(p.id)}>
-                                    {p.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Quantity */}
-                <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">Quantity</label>
-                    <input
-                        type="number"
-                        placeholder="0"
-                        className="w-full border rounded-md px-3 py-2 text-sm bg-background h-9"
-                        value={stock}
-                        onChange={(e) => setStock(e.target.value)}
-                        required
-                        min={0}
-                    />
-                </div>
-            </div>
-
             {/* Raw Material table */}
             <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
@@ -305,6 +225,84 @@ function NewManufactureForm() {
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+            {/* Top row — 4 selects + quantity */}
+            <div className="grid grid-cols-4 gap-3 items-end">
+                {/* Category */}
+                <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium">Category</label>
+                    <Select
+                        value={categoryId}
+                        onValueChange={handleCategoryChange}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {categoryOptions.map((c) => (
+                                <SelectItem key={c.id} value={String(c.id)}>
+                                    {c.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Sub category */}
+                <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium">Sub category</label>
+                    <Select
+                        value={subCategoryId}
+                        onValueChange={handleSubCategoryChange}
+                        disabled={!categoryId}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {subCategoryOptions.map((s) => (
+                                <SelectItem key={s.id} value={String(s.id)}>
+                                    {s.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Product */}
+                <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium">Product</label>
+                    <Select
+                        value={productId}
+                        onValueChange={setProductId}
+                        disabled={!subCategoryId}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {productOptions.map((p) => (
+                                <SelectItem key={p.id} value={String(p.id)}>
+                                    {p.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Quantity */}
+                <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium">Quantity</label>
+                    <input
+                        type="number"
+                        placeholder="0"
+                        className="w-full border rounded-md px-3 py-2 text-sm bg-background h-9"
+                        value={stock}
+                        onChange={(e) => setStock(e.target.value)}
+                        required
+                        min={0}
+                    />
                 </div>
             </div>
 
