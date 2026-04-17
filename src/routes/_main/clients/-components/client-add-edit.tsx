@@ -25,9 +25,14 @@ export default function ClientAddEditModal() {
     )
 }
 const customerTypeOptions: { id: CustomerType; name: string }[] = [
-    { id: "LLC", name: "LLC" },
-    { id: "INDIV", name: "INDIV" },
-    { id: "TD", name: "TD" },
+    { id: "llc", name: "LLC" },
+    { id: "jv_llc", name: "JV LLC" },
+    { id: "family", name: "Family" },
+    { id: "jsc", name: "JSC" },
+    { id: "fie", name: "FIE" },
+    { id: "ue", name: "UE" },
+    { id: "be", name: "BE" },
+    { id: "sp", name: "SP" },
 ]
 
 function Content() {

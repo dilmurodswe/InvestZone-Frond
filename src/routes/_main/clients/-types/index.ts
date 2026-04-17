@@ -1,4 +1,12 @@
-export type CustomerType = "LLC" | "INDIV" | "TD"
+export type CustomerType =
+    | "llc"
+    | "jv_llc"
+    | "family"
+    | "jsc"
+    | "fie"
+    | "ue"
+    | "be"
+    | "sp"
 
 export interface Client {
     id: number

@@ -23,6 +23,11 @@ export type RawMaterialRequest = {
     differance?: number
     row_items: RowItem[]
     row_request_files: RowRequestFile[]
+    total_quantity?: number
+    shipped_quantity?: number
+    specification_amount?: number
+    shipped_amount?: number
+    difference_usd?: number
 }
 
 export type RequestDetailRow = {

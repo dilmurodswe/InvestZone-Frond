@@ -5,6 +5,12 @@ import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useCategoryStore } from "../-hooks/use-category-store"
 import type { Category } from "../-types"
+
+const typeLabels: Record<string, string> = {
+    truba: "Truba",
+    profil: "Profil",
+}
+
 // eslint-disable-next-line react-refresh/only-export-components
 function CategoryActions({ category }: { category: Category }) {
     const [open, setOpen] = useState(false)
@@ -107,6 +113,15 @@ export const useCategoryCols = (): ColumnDef<Category>[] => {
                 >
                     {original.name}
                 </button>
+            ),
+        },
+        {
+            accessorKey: "type",
+            header: "Type",
+            cell: ({ row: { original } }) => (
+                <span className="text-sm">
+                    {typeLabels[original.type] ?? original.type}
+                </span>
             ),
         },
         {

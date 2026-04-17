@@ -19,26 +19,26 @@ interface RequestDetailModalProps {
 
 type DetailRow = {
     id: number
-    material_name: string
-    raw_material: { name: string }
-    contract_number: string
-    ton: number | null
-    weight: number | null
-    netto: number | null
-    plank: string | null
-    reference_number: string | null
+    raw_material: {
+        name: string
+        extra_fields?: Record<string, string>
+    }
+    unit: string | null
+    quantity: number | null
+    shipped_quantity: number | null
     price: number | null
-    wagon: number | null
+    line_total: number | null
+    shipped_amount: number | null
+    difference: number | null
 }
 
 type RowEdit = {
-    ton: string
-    weight: string
-    netto: string
-    plank: string
-    reference_number: string
+    quantity: string
+    shipped_quantity: string
     price: string
-    wagon: string
+    line_total: string
+    shipped_amount: string
+    difference: string
 }
 
 // Backenddan keladigan file ma'lumotlari uchun type
@@ -66,13 +66,12 @@ const TABLE_FIELDS: {
     label: string
     isNumber?: boolean
 }[] = [
-    { key: "ton", label: "Ton", isNumber: true },
-    { key: "weight", label: "Weight", isNumber: true },
-    { key: "netto", label: "Netto", isNumber: true },
-    { key: "plank", label: "Plank" },
-    { key: "reference_number", label: "Reference number" },
+    { key: "quantity", label: "Quantity", isNumber: true },
+    { key: "shipped_quantity", label: "Shipped qty", isNumber: true },
     { key: "price", label: "Price", isNumber: true },
-    // { key: "wagon", label: "Wagon", isNumber: true },
+    { key: "line_total", label: "Line total", isNumber: true },
+    { key: "shipped_amount", label: "Shipped amount", isNumber: true },
+    { key: "difference", label: "Difference", isNumber: true },
 ]
 
 // ─── File helpers ─────────────────────────────────────────────────────────────
@@ -186,6 +185,23 @@ function DetailContent({
     const [differance, setDifferance] = useState(
         request.differance ? String(request.differance) : "",
     )
+    const [totalQuantity, setTotalQuantity] = useState(
+        request.total_quantity ? String(request.total_quantity) : "",
+    )
+    const [shippedQuantity, setShippedQuantity] = useState(
+        request.shipped_quantity ? String(request.shipped_quantity) : "",
+    )
+    const [specificationAmount, setSpecificationAmount] = useState(
+        request.specification_amount ?
+            String(request.specification_amount)
+        :   "",
+    )
+    const [shippedAmount, setShippedAmount] = useState(
+        request.shipped_amount ? String(request.shipped_amount) : "",
+    )
+    const [differenceUsd, setDifferenceUsd] = useState(
+        request.difference_usd ? String(request.difference_usd) : "",
+    )
 
     // ── Files ──
     // GET so‘rovini qayta yuklash uchun ishlatiladigan `key`
@@ -249,13 +265,21 @@ function DetailContent({
             const map: Record<number, RowEdit> = {}
             items.forEach((item) => {
                 map[item.id] = {
-                    ton: item.ton != null ? String(item.ton) : "",
-                    weight: item.weight != null ? String(item.weight) : "",
-                    netto: item.netto != null ? String(item.netto) : "",
-                    plank: item.plank ?? "",
-                    reference_number: item.reference_number ?? "",
+                    quantity:
+                        item.quantity != null ? String(item.quantity) : "",
+                    shipped_quantity:
+                        item.shipped_quantity != null ?
+                            String(item.shipped_quantity)
+                        :   "",
                     price: item.price != null ? String(item.price) : "",
-                    wagon: item.wagon != null ? String(item.wagon) : "",
+                    line_total:
+                        item.line_total != null ? String(item.line_total) : "",
+                    shipped_amount:
+                        item.shipped_amount != null ?
+                            String(item.shipped_amount)
+                        :   "",
+                    difference:
+                        item.difference != null ? String(item.difference) : "",
                 }
             })
             setRowEdits(map)
@@ -280,13 +304,20 @@ function DetailContent({
                     String(id),
                 ),
                 {
-                    ton: edit.ton ? Number(edit.ton) : null,
-                    weight: edit.weight ? Number(edit.weight) : null,
-                    netto: edit.netto ? Number(edit.netto) : null,
-                    plank: edit.plank || null,
-                    reference_number: edit.reference_number || null,
+                    quantity: edit.quantity ? Number(edit.quantity) : null,
+                    shipped_quantity:
+                        edit.shipped_quantity ?
+                            Number(edit.shipped_quantity)
+                        :   null,
                     price: edit.price ? Number(edit.price) : null,
-                    wagon: edit.wagon ? Number(edit.wagon) : null,
+                    line_total:
+                        edit.line_total ? Number(edit.line_total) : null,
+                    shipped_amount:
+                        edit.shipped_amount ?
+                            Number(edit.shipped_amount)
+                        :   null,
+                    difference:
+                        edit.difference ? Number(edit.difference) : null,
                 },
                 {},
             )
@@ -361,11 +392,16 @@ function DetailContent({
                 status: request.status,
                 tolerant: tolerant ? Number(tolerant) : 0,
                 differance: differance ? Number(differance) : 0,
+                total_quantity: totalQuantity ? Number(totalQuantity) : 0,
+                shipped_quantity: shippedQuantity ? Number(shippedQuantity) : 0,
+                specification_amount:
+                    specificationAmount ? Number(specificationAmount) : 0,
+                shipped_amount: shippedAmount ? Number(shippedAmount) : 0,
+                difference_usd: differenceUsd ? Number(differenceUsd) : 0,
             },
             {
-                onSuccess: () => {
-                    invalidateByExactMatch([API.RAW_MATERIAL_ITEMS.INDEX])
-                },
+                onSuccess: () =>
+                    invalidateByExactMatch([API.RAW_MATERIAL_ITEMS.INDEX]),
             },
         )
     }, [
@@ -375,6 +411,11 @@ function DetailContent({
         tolerant,
         differance,
         invalidateByExactMatch,
+        totalQuantity,
+        shippedQuantity,
+        specificationAmount,
+        shippedAmount,
+        differenceUsd,
     ])
 
     return (
@@ -438,6 +479,82 @@ function DetailContent({
                                 value={differance}
                                 placeholder="—"
                                 onChange={(e) => setDifferance(e.target.value)}
+                                onBlur={handleHeaderBlur}
+                            />
+                        </div>
+                        {/* mavjud ikkitasi o'zgarmaydi, quyidagilar qo'shiladi */}
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-muted-foreground">
+                                Total quantity
+                            </label>
+                            <input
+                                type="number"
+                                className="border rounded px-3 py-2 text-sm w-48"
+                                value={totalQuantity}
+                                placeholder="—"
+                                onChange={(e) =>
+                                    setTotalQuantity(e.target.value)
+                                }
+                                onBlur={handleHeaderBlur}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-muted-foreground">
+                                Shipped quantity
+                            </label>
+                            <input
+                                type="number"
+                                className="border rounded px-3 py-2 text-sm w-48"
+                                value={shippedQuantity}
+                                placeholder="—"
+                                onChange={(e) =>
+                                    setShippedQuantity(e.target.value)
+                                }
+                                onBlur={handleHeaderBlur}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-muted-foreground">
+                                Specification amount
+                            </label>
+                            <input
+                                type="number"
+                                className="border rounded px-3 py-2 text-sm w-48"
+                                value={specificationAmount}
+                                placeholder="—"
+                                onChange={(e) =>
+                                    setSpecificationAmount(e.target.value)
+                                }
+                                onBlur={handleHeaderBlur}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-muted-foreground">
+                                Shipped amount
+                            </label>
+                            <input
+                                type="number"
+                                className="border rounded px-3 py-2 text-sm w-48"
+                                value={shippedAmount}
+                                placeholder="—"
+                                onChange={(e) =>
+                                    setShippedAmount(e.target.value)
+                                }
+                                onBlur={handleHeaderBlur}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-muted-foreground">
+                                Difference (USD)
+                            </label>
+                            <input
+                                type="number"
+                                className="border rounded px-3 py-2 text-sm w-48"
+                                value={differenceUsd}
+                                placeholder="—"
+                                onChange={(e) =>
+                                    setDifferenceUsd(e.target.value)
+                                }
                                 onBlur={handleHeaderBlur}
                             />
                         </div>
@@ -525,7 +642,7 @@ function DetailContent({
                                             Raw material name
                                         </th>
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                            Contract number
+                                            Unit
                                         </th>
                                         {TABLE_FIELDS.map((f) => (
                                             <th
@@ -567,9 +684,11 @@ function DetailContent({
                                                                     rowItemId:
                                                                         item.id,
                                                                     materialName:
-                                                                        item.material_name,
+                                                                        item
+                                                                            .raw_material
+                                                                            .name,
                                                                     contractNumber:
-                                                                        item.contract_number,
+                                                                        "",
                                                                 },
                                                             )
                                                         }
@@ -577,25 +696,13 @@ function DetailContent({
                                                         {item.raw_material.name}
                                                     </button>
                                                 </td>
-                                                <td className="px-3 py-2 whitespace-nowrap">
-                                                    <button
-                                                        type="button"
-                                                        className="text-sm text-left hover:text-primary hover:underline transition-colors text-muted-foreground"
-                                                        onClick={() =>
-                                                            setItemDetailTarget(
-                                                                {
-                                                                    rowItemId:
-                                                                        item.id,
-                                                                    materialName:
-                                                                        item.material_name,
-                                                                    contractNumber:
-                                                                        item.contract_number,
-                                                                },
-                                                            )
-                                                        }
-                                                    >
-                                                        {item.contract_number}
-                                                    </button>
+                                                <td className="px-3 py-2 whitespace-nowrap text-sm text-muted-foreground">
+                                                    {item.unit ??
+                                                        item.raw_material
+                                                            .extra_fields?.[
+                                                            "Eд. Изм"
+                                                        ] ??
+                                                        "—"}
                                                 </td>
                                                 {TABLE_FIELDS.map((f) => (
                                                     <td

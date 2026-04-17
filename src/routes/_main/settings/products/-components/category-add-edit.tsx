@@ -1,5 +1,6 @@
 import FormAction from "@/components/custom/form-action"
 import Modal from "@/components/custom/modal"
+import SelectField from "@/components/form/select-field" // ← import
 import UncontrolledInput from "@/components/form/uncontrolled-input"
 import { CardTitle } from "@/components/ui/card"
 import { useRequest } from "@/hooks/react-query/use-request"
@@ -21,14 +22,23 @@ export default function CategoryAddEditModal() {
 
 type Form = Omit<Category, "id">
 
+// ← qo'shildi
+const typeOptions = [
+    { name: "Truba", id: "truba" },
+    { name: "Profil", id: "profil" },
+]
+
 function CategoryAddEdit() {
     const { closeModal } = useModal("add-category")
     const { invalidateByExactMatch } = useRevalidate()
     const { category } = useCategoryStore()
     const { post, patch, isPending } = useRequest()
     const form = useForm<Form>({
-        defaultValues: { name: "" },
-        values: category ? { name: category.name } : undefined,
+        defaultValues: { name: "", type: "truba" }, // ← type default
+        values:
+            category ?
+                { name: category.name, type: category.type } // ← type value
+            :   undefined,
     })
 
     const onSuccess = () => {
@@ -61,6 +71,14 @@ function CategoryAddEdit() {
                 methods={form}
                 name="name"
                 label="Category name"
+            />
+            {/* ← qo'shildi */}
+            <SelectField
+                methods={form}
+                name="type"
+                options={typeOptions}
+                label="Type"
+                placeholder="Select type"
             />
             <FormAction
                 submitName={category ? "Save" : "Add"}
