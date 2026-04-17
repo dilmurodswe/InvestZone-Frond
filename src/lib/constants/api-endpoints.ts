@@ -110,11 +110,14 @@ export const API = {
     },
     RAW_MATERIALS: {
         INDEX: "raw-material",
+        THICKNESSES: "raw-material/thicknesses",
+        WIDTHS: "raw-material/widths",
     },
     MANUFACTURES: {
         INDEX: "manufactures",
         ID: "manufactures/{id}",
         READY_PRODUCTS: "manufactures/ready-products",
+        CALCULATE_AMOUNT: "manufactures/calculate-amount",
     },
     FINANCE: {
         EXPENSE: {
