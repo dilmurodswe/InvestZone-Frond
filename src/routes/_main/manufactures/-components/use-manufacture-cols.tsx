@@ -71,7 +71,7 @@ export const getManufactureCols = (
             cell: ({ row: { original } }) => (
                 <ClickableCell manufacture={original}>
                     <span className="text-sm">
-                        {original.stock.toLocaleString()}
+                        {original.stock != null ? original.stock : "—"}
                     </span>
                 </ClickableCell>
             ),
