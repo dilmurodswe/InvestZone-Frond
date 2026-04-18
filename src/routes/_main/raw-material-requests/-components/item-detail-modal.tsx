@@ -1,3 +1,13 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { useGet } from "@/hooks/react-query/use-get"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { API } from "@/lib/constants/api-endpoints"
@@ -16,8 +26,8 @@ interface ItemDetailModalProps {
 type ItemRow = {
     _id: number
     status: string
-    serverId?: number // mavjud bo'lsa PATCH, bo'lmasa POST
-    ton: string
+    serverId?: number
+    brutto: string
     weight: string
     netto: string
     inner_size: string
@@ -33,7 +43,7 @@ type ItemRow = {
 type ServerItem = {
     id: number
     status: string | null
-    ton: number | null
+    brutto: number | null
     weight: number | null
     netto: number | null
     inner_size: number | null
@@ -46,11 +56,22 @@ type ServerItem = {
     wagon: number | null
 }
 
+const STATUSES = [
+    { value: "shipped", label: "Shipped" },
+    { value: "in_uzb", label: "In UZB" },
+    { value: "at_station", label: "At Station" },
+    { value: "customs_cleared", label: "Customs Cleared" },
+    { value: "received", label: "Received" },
+]
+
+const getStatusIndex = (status: string) =>
+    STATUSES.findIndex((s) => s.value === status)
+
 const EMPTY_ROW = (): ItemRow => ({
     _id: Date.now() + Math.random(),
     serverId: undefined,
-    status: "",
-    ton: "",
+    status: "shipped", // default birinchi status
+    brutto: "",
     weight: "",
     netto: "",
     inner_size: "",
@@ -66,8 +87,8 @@ const EMPTY_ROW = (): ItemRow => ({
 const serverToRow = (item: ServerItem): ItemRow => ({
     _id: item.id,
     serverId: item.id,
-    status: item.status ?? "",
-    ton: item.ton != null ? String(item.ton) : "",
+    status: item.status ?? "shipped",
+    brutto: item.brutto != null ? String(item.brutto) : "",
     weight: item.weight != null ? String(item.weight) : "",
     netto: item.netto != null ? String(item.netto) : "",
     inner_size: item.inner_size != null ? String(item.inner_size) : "",
@@ -85,8 +106,7 @@ const FIELDS: {
     label: string
     isNumber?: boolean
 }[] = [
-    { key: "ton", label: "Brutto", isNumber: true },
-
+    { key: "brutto", label: "Brutto", isNumber: true },
     { key: "netto", label: "Netto", isNumber: true },
     { key: "inner_size", label: "Inner size", isNumber: true },
     { key: "outer_size", label: "Outer size", isNumber: true },
@@ -96,7 +116,7 @@ const FIELDS: {
 ]
 
 const toPayload = (r: ItemRow) => ({
-    ton: r.ton ? Number(r.ton) : null,
+    brutto: r.brutto ? Number(r.brutto) : null,
     weight: r.weight ? Number(r.weight) : null,
     netto: r.netto ? Number(r.netto) : null,
     inner_size: r.inner_size ? Number(r.inner_size) : null,
@@ -109,6 +129,153 @@ const toPayload = (r: ItemRow) => ({
     wagon: r.wagon ? Number(r.wagon) : null,
 })
 
+// ─── Status dropdown — portal orqali render ──────────────────────────────────
+function StatusDropdown({
+    row,
+    onSelect,
+}: {
+    row: ItemRow
+    onSelect: (row: ItemRow, val: string) => void
+}) {
+    const [open, setOpen] = useState(false)
+    const currentIndex = getStatusIndex(row.status)
+    const currentLabel =
+        STATUSES.find((s) => s.value === row.status)?.label ?? "Select"
+
+    return (
+        <div className="relative">
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                className="flex items-center justify-between gap-2 h-8 w-full min-w-[150px] border rounded-md px-3 text-xs bg-background hover:bg-muted transition-colors"
+            >
+                <span>{currentLabel}</span>
+                <svg
+                    className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 9l-7 7-7-7"
+                    />
+                </svg>
+            </button>
+
+            {open && (
+                <>
+                    {/* backdrop */}
+                    <div
+                        className="fixed inset-0 z-[9998]"
+                        onClick={() => setOpen(false)}
+                    />
+                    <div className="absolute left-0 top-full mt-1 z-[9999] bg-white border rounded-lg shadow-xl overflow-hidden min-w-[160px]">
+                        {STATUSES.map((s, i) => {
+                            const isDisabled = i < currentIndex
+                            const isActive = s.value === row.status
+                            return (
+                                <button
+                                    key={s.value}
+                                    type="button"
+                                    disabled={isDisabled}
+                                    onClick={() => {
+                                        setOpen(false)
+                                        if (!isActive) onSelect(row, s.value)
+                                    }}
+                                    className={`
+                                        flex items-center gap-2 w-full px-3 py-2 text-xs text-left transition-colors
+                                        ${isActive ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"}
+                                        ${isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
+                                    `}
+                                >
+                                    <span
+                                        className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? "bg-primary" : "bg-muted-foreground/40"}`}
+                                    />
+                                    {s.label}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
+
+// ─── New row status select (extraRows uchun) ──────────────────────────────────
+function NewRowStatusSelect({
+    value,
+    onChange,
+}: {
+    value: string
+    onChange: (val: string) => void
+}) {
+    const [open, setOpen] = useState(false)
+    const currentLabel =
+        STATUSES.find((s) => s.value === value)?.label ?? "Select"
+
+    return (
+        <div className="relative">
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                className="flex items-center justify-between gap-2 h-8 w-full min-w-[150px] border rounded-md px-3 text-xs bg-background hover:bg-muted transition-colors"
+            >
+                <span>{currentLabel}</span>
+                <svg
+                    className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 9l-7 7-7-7"
+                    />
+                </svg>
+            </button>
+
+            {open && (
+                <>
+                    <div
+                        className="fixed inset-0 z-[9998]"
+                        onClick={() => setOpen(false)}
+                    />
+                    <div className="absolute left-0 top-full mt-1 z-[9999] bg-white border rounded-lg shadow-xl overflow-hidden min-w-[160px]">
+                        {STATUSES.map((s) => {
+                            const isActive = s.value === value
+                            return (
+                                <button
+                                    key={s.value}
+                                    type="button"
+                                    onClick={() => {
+                                        onChange(s.value)
+                                        setOpen(false)
+                                    }}
+                                    className={`
+                                        flex items-center gap-2 w-full px-3 py-2 text-xs text-left transition-colors cursor-pointer
+                                        ${isActive ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"}
+                                    `}
+                                >
+                                    <span
+                                        className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? "bg-primary" : "bg-muted-foreground/40"}`}
+                                    />
+                                    {s.label}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
+
 export default function ItemDetailModal({
     rowItemId,
     materialName,
@@ -117,7 +284,6 @@ export default function ItemDetailModal({
 }: ItemDetailModalProps) {
     const { post, patch, isPending } = useRequest()
 
-    // ── GET: mavjud itemlarni yuklash ──
     const { data: serverData, isLoading } = useGet<ServerItem[]>(
         API.RAW_MATERIAL_REQUESTS.ITEM_DETAIL.BY_ROW.replace(
             "{id}",
@@ -132,29 +298,30 @@ export default function ItemDetailModal({
     )
     const serverItems = getArray<ServerItem>(serverData)
 
-    // BU IKKALASINI SHU BILAN ALMASHTIRING:
     const [extraRows, setExtraRows] = useState<ItemRow[]>([])
     const [editedRows, setEditedRows] = useState<Record<number, ItemRow>>({})
+    const [pendingStatus, setPendingStatus] = useState<{
+        rowId: number
+        serverId: number
+        newStatus: string
+    } | null>(null)
 
-    // server rows + foydalanuvchi qo'shgan yangi rows
     const serverRows =
         isLoading ? []
         : serverItems.length > 0 ? serverItems.map(serverToRow)
         : []
+
     const rows: ItemRow[] = [
         ...serverRows.map((r) => editedRows[r._id] ?? r),
         ...extraRows,
     ]
 
-    // addRow — extraRows ga qo'shadi
     const addRow = () => setExtraRows((prev) => [...prev, EMPTY_ROW()])
 
-    // removeRow — faqat extraRows dan o'chiradi
     const removeRow = (id: number) => {
         setExtraRows((prev) => prev.filter((r) => r._id !== id))
     }
 
-    // updateRow — server row bo'lsa editedRows ga, yangi row bo'lsa extraRows ga
     const updateRow = (
         id: number,
         field: keyof Omit<ItemRow, "_id" | "serverId">,
@@ -175,7 +342,7 @@ export default function ItemDetailModal({
             )
         }
     }
-    // handleRowBlur — o'zgarmaydi, lekin extraRows uchun PATCH yo'q (serverId yo'q)
+
     const handleRowBlur = (row: ItemRow) => {
         if (row.serverId) {
             patch(
@@ -189,7 +356,6 @@ export default function ItemDetailModal({
         }
     }
 
-    // handleSubmit — faqat extraRows ni POST qiladi
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -199,7 +365,10 @@ export default function ItemDetailModal({
             return
         }
 
-        const items = extraRows.map(toPayload)
+        const items = extraRows.map((r) => ({
+            ...toPayload(r),
+            status: r.status,
+        }))
 
         post(
             API.RAW_MATERIAL_REQUESTS.ITEM_DETAIL.INDEX,
@@ -213,204 +382,256 @@ export default function ItemDetailModal({
         )
     }
 
+    // Server row status o'zgartirish — alertDialog orqali
+    const handleServerStatusSelect = (row: ItemRow, newStatus: string) => {
+        if (!row.serverId) return
+        setPendingStatus({
+            rowId: row._id,
+            serverId: row.serverId,
+            newStatus,
+        })
+    }
+
+    const confirmStatusChange = () => {
+        if (!pendingStatus) return
+        patch(
+            API.RAW_MATERIAL_REQUESTS.ITEM_DETAIL.ID.replace(
+                "{id}",
+                String(pendingStatus.serverId),
+            ),
+            { status: pendingStatus.newStatus },
+            {
+                onSuccess: () => {
+                    setEditedRows((prev) => ({
+                        ...prev,
+                        [pendingStatus.rowId]: {
+                            ...(prev[pendingStatus.rowId] ??
+                                serverRows.find(
+                                    (r) => r._id === pendingStatus.rowId,
+                                )!),
+                            status: pendingStatus.newStatus,
+                        },
+                    }))
+                    setPendingStatus(null)
+                    toast.success("Status updated")
+                },
+            },
+        )
+    }
+
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
-            <div className="bg-background rounded-xl shadow-2xl w-full max-w-[80vw] mx-4 max-h-[90vh] flex flex-col">
-                {/* ── Header ── */}
-                <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
-                    <div className="flex items-center gap-3">
-                        <h3 className="text-base font-semibold">
-                            {materialName}
-                        </h3>
-                        <span className="text-muted-foreground text-sm">|</span>
-                        <span className="text-sm text-muted-foreground">
-                            {contractNumber}
-                        </span>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-1 rounded hover:bg-muted"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                <form
-                    onSubmit={handleSubmit}
-                    className="flex flex-col gap-4 overflow-hidden flex-1"
-                >
-                    <div className="overflow-auto flex-1 px-6 pt-4">
-                        {isLoading ?
-                            <div className="flex justify-center py-10">
-                                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                            </div>
-                        :   <>
-                                <table className="w-full text-sm border-collapse">
-                                    <thead>
-                                        <tr className="border-b">
-                                            <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                                Status
-                                            </th>
-                                            {FIELDS.map((f) => (
-                                                <th
-                                                    key={f.key}
-                                                    className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap"
-                                                >
-                                                    {f.label}
-                                                </th>
-                                            ))}
-                                            <th className="w-8" />
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {rows.map((row) => (
-                                            <tr
-                                                key={row._id}
-                                                className="border-b last:border-0"
-                                            >
-                                                <td className="px-2 py-1.5">
-                                                    {row.status ?
-                                                        <span
-                                                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
-                                                            style={{
-                                                                backgroundColor:
-                                                                    (
-                                                                        row.status ===
-                                                                        "new"
-                                                                    ) ?
-                                                                        "#e0f2fe"
-                                                                    : (
-                                                                        row.status ===
-                                                                        "in_processing"
-                                                                    ) ?
-                                                                        "#fef9c3"
-                                                                    : (
-                                                                        row.status ===
-                                                                        "completed"
-                                                                    ) ?
-                                                                        "#dcfce7"
-                                                                    :   "#f1f5f9",
-                                                                color:
-                                                                    (
-                                                                        row.status ===
-                                                                        "new"
-                                                                    ) ?
-                                                                        "#0369a1"
-                                                                    : (
-                                                                        row.status ===
-                                                                        "in_processing"
-                                                                    ) ?
-                                                                        "#854d0e"
-                                                                    : (
-                                                                        row.status ===
-                                                                        "completed"
-                                                                    ) ?
-                                                                        "#15803d"
-                                                                    :   "#64748b",
-                                                            }}
-                                                        >
-                                                            {(
-                                                                row.status ===
-                                                                "new"
-                                                            ) ?
-                                                                "New"
-                                                            : (
-                                                                row.status ===
-                                                                "in_processing"
-                                                            ) ?
-                                                                "In Processing"
-                                                            : (
-                                                                row.status ===
-                                                                "completed"
-                                                            ) ?
-                                                                "Completed"
-                                                            :   row.status}
-                                                        </span>
-                                                    :   <span className="text-xs text-muted-foreground">
-                                                            —
-                                                        </span>
-                                                    }
-                                                </td>
-                                                {FIELDS.map((f) => (
-                                                    <td
-                                                        key={f.key}
-                                                        className="px-2 py-1.5"
-                                                    >
-                                                        <input
-                                                            type={
-                                                                f.isNumber ?
-                                                                    "number"
-                                                                :   "text"
-                                                            }
-                                                            placeholder="—"
-                                                            value={row[f.key]}
-                                                            onChange={(e) =>
-                                                                updateRow(
-                                                                    row._id,
-                                                                    f.key,
-                                                                    e.target
-                                                                        .value,
-                                                                )
-                                                            }
-                                                            onBlur={() =>
-                                                                handleRowBlur(
-                                                                    row,
-                                                                )
-                                                            }
-                                                            className="w-full min-w-[80px] border rounded px-2 py-1 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground"
-                                                        />
-                                                    </td>
-                                                ))}
-                                                <td className="px-2 py-1.5">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            removeRow(row._id)
-                                                        }
-                                                        disabled={
-                                                            rows.length === 1
-                                                        }
-                                                        className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-30"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-
-                                <button
-                                    type="button"
-                                    onClick={addRow}
-                                    className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground border border-dashed rounded-lg px-4 py-2 w-full justify-center hover:bg-muted transition-colors"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    Add row
-                                </button>
-                            </>
-                        }
-                    </div>
-
-                    {/* ── Footer ── */}
-                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t flex-shrink-0">
+        <>
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+                <div className="bg-background rounded-xl shadow-2xl w-full max-w-[80vw] mx-4 max-h-[90vh] flex flex-col">
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
+                        <div className="flex items-center gap-3">
+                            <h3 className="text-base font-semibold">
+                                {materialName}
+                            </h3>
+                            <span className="text-muted-foreground text-sm">
+                                |
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                                {contractNumber}
+                            </span>
+                        </div>
                         <button
-                            type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-sm rounded-lg border hover:bg-muted transition-colors"
+                            className="p-1 rounded hover:bg-muted"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <form
+                        onSubmit={handleSubmit}
+                        className="flex flex-col gap-4 overflow-hidden flex-1"
+                    >
+                        <div className="overflow-auto flex-1 px-6 pt-4  min-h-[60vh] ">
+                            {isLoading ?
+                                <div className="flex justify-center py-10">
+                                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                                </div>
+                            :   <>
+                                    <table className="w-full text-sm border-collapse">
+                                        <thead>
+                                            <tr className="border-b">
+                                                <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                                    Status
+                                                </th>
+                                                {FIELDS.map((f) => (
+                                                    <th
+                                                        key={f.key}
+                                                        className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap"
+                                                    >
+                                                        {f.label}
+                                                    </th>
+                                                ))}
+                                                <th className="w-8" />
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {rows.map((row) => {
+                                                const isNew = !row.serverId
+                                                return (
+                                                    <tr
+                                                        key={row._id}
+                                                        className="border-b last:border-0"
+                                                    >
+                                                        <td className="px-2 py-1.5">
+                                                            {isNew ?
+                                                                <NewRowStatusSelect
+                                                                    value={
+                                                                        row.status
+                                                                    }
+                                                                    onChange={(
+                                                                        val,
+                                                                    ) =>
+                                                                        updateRow(
+                                                                            row._id,
+                                                                            "status",
+                                                                            val,
+                                                                        )
+                                                                    }
+                                                                />
+                                                            :   <StatusDropdown
+                                                                    row={row}
+                                                                    onSelect={
+                                                                        handleServerStatusSelect
+                                                                    }
+                                                                />
+                                                            }
+                                                        </td>
+                                                        {FIELDS.map((f) => (
+                                                            <td
+                                                                key={f.key}
+                                                                className="px-2 py-1.5"
+                                                            >
+                                                                <input
+                                                                    type={
+                                                                        (
+                                                                            f.isNumber
+                                                                        ) ?
+                                                                            "number"
+                                                                        :   "text"
+                                                                    }
+                                                                    placeholder="—"
+                                                                    value={
+                                                                        row[
+                                                                            f
+                                                                                .key
+                                                                        ]
+                                                                    }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) =>
+                                                                        updateRow(
+                                                                            row._id,
+                                                                            f.key,
+                                                                            e
+                                                                                .target
+                                                                                .value,
+                                                                        )
+                                                                    }
+                                                                    onBlur={() =>
+                                                                        handleRowBlur(
+                                                                            row,
+                                                                        )
+                                                                    }
+                                                                    className="w-full min-w-[80px] border rounded px-2 py-1 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground"
+                                                                />
+                                                            </td>
+                                                        ))}
+                                                        <td className="px-2 py-1.5">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    removeRow(
+                                                                        row._id,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    !isNew
+                                                                }
+                                                                className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-30"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })}
+                                        </tbody>
+                                    </table>
+
+                                    <button
+                                        type="button"
+                                        onClick={addRow}
+                                        className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground border border-dashed rounded-lg px-4 py-2 w-full justify-center hover:bg-muted transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Add row
+                                    </button>
+                                </>
+                            }
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t flex-shrink-0">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-4 py-2 text-sm rounded-lg border hover:bg-muted transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isPending}
+                                className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60"
+                            >
+                                {isPending ? "Saving..." : "Save"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {/* AlertDialog — modal tashqarisida render */}
+            <AlertDialog
+                open={!!pendingStatus}
+                onOpenChange={(open) => !open && setPendingStatus(null)}
+            >
+                <AlertDialogContent className="z-[99999]">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Change status?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Status will change to{" "}
+                            <span className="font-semibold">
+                                {
+                                    STATUSES.find(
+                                        (s) =>
+                                            s.value ===
+                                            pendingStatus?.newStatus,
+                                    )?.label
+                                }
+                            </span>
+                            . This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            onClick={() => setPendingStatus(null)}
                         >
                             Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isPending}
-                            className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60"
-                        >
-                            {isPending ? "Saving..." : "Save"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                        </AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmStatusChange}>
+                            Confirm
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     )
 }

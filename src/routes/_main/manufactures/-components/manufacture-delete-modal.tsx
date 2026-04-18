@@ -22,18 +22,20 @@ function ManufactureDelete() {
     const { manufacture } = useManufactureStore()
     const { remove, isPending } = useRequest()
 
-    const onSuccess = () => {
-        invalidateByExactMatch([API.MANUFACTURES.INDEX])
-        closeModal()
-        toast.success("Deleted successfully")
-    }
-
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (manufacture) {
+            // YANGI — payload undefined, mutateOptions uchinchi argument
             remove(
                 API.MANUFACTURES.ID.replace("{id}", String(manufacture.id)),
-                { onSuccess },
+                undefined,
+                {
+                    onSuccess: () => {
+                        invalidateByExactMatch([API.MANUFACTURES.INDEX])
+                        closeModal()
+                        toast.success("Deleted successfully")
+                    },
+                },
             )
         }
     }
@@ -43,8 +45,10 @@ function ManufactureDelete() {
             <CardTitle>Delete Manufacture</CardTitle>
             <CardDescription>
                 Are you sure you want to delete{" "}
-                <span className="font-semibold">{manufacture?.product}</span>?
-                This action cannot be undone.
+                <span className="font-semibold">
+                    manufacture #{manufacture?.id}
+                </span>
+                ? This action cannot be undone.
             </CardDescription>
             <FormAction submitName="Delete" loading={isPending} />
         </form>

@@ -121,19 +121,19 @@ function CalculateResults({
                                     Category
                                 </th>
                                 <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                    Amount
+                                    Strip Width Theoretical
                                 </th>
                                 <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">
-                                    Input 1
+                                    Strip Cut Width (mm)
                                 </th>
                                 <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">
-                                    Input 2
+                                    Quantity in Cut
                                 </th>
                                 <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">
-                                    Input 3
+                                    Total Amount
                                 </th>
                                 <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">
-                                    Input 4
+                                    Weight from Cut
                                 </th>
                             </tr>
                         </thead>
@@ -332,14 +332,25 @@ function NewManufactureForm() {
         setCalculateParams(null)
     }
 
+    // YANGI
     const handleSubmit = (rows: ProductRow[]) => {
         post(
             API.MANUFACTURES.INDEX,
             {
-                product_ids: selectedProductIds,
-                raw_item_detail_ids: selectedRawIds,
+                width: Number(width),
+                thickness: Number(thickness),
                 status: "ready",
-                rows, // keyingi promptda aniqlashtirramiz
+                raw_item_detail_ids: selectedRawIds,
+                details: rows.map((row) => ({
+                    product_id: row.product_id,
+                    strip_width_theoretical: row.amount,
+                    strip_cut_width_mm: parseFloat(row.input1) || 0,
+                    quantity_in_cut: parseFloat(row.input2) || 0,
+                    total_amount:
+                        (parseFloat(row.input1) || 0) *
+                        (parseFloat(row.input2) || 0),
+                    weight_from_cut: parseFloat(row.input4) || 0,
+                })),
             },
             {
                 onSuccess: () => {
@@ -350,27 +361,28 @@ function NewManufactureForm() {
             },
         )
     }
-
     // Raw material stats
     const selectedRaws = rawItemDetailOptions.filter((r) =>
         selectedRawIds.includes(r.id),
     )
     const totalNetto = selectedRaws.reduce((sum, r) => sum + (r.netto ?? 0), 0)
 
-    // Filtered raw items
+    // YANGI
     const filteredRawItems = rawItemDetailOptions.filter((r) => {
         if (!localSearch) return true
         const q = localSearch.toLowerCase()
         return (
-            r.contract_number?.toLowerCase().includes(q) ||
-            r.supplier?.toLowerCase().includes(q) ||
-            r.raw_material_name?.toLowerCase().includes(q) ||
-            r.mark?.toLowerCase().includes(q) ||
-            r.plank?.toLowerCase().includes(q)
+            r.reference_number?.toLowerCase().includes(q) ||
+            r.plank?.toLowerCase().includes(q) ||
+            r.status?.toLowerCase().includes(q)
         )
     })
 
-    const canNext = selectedRawIds.length > 0 && selectedProductIds.length > 0
+    const canNext =
+        selectedRawIds.length > 0 &&
+        selectedProductIds.length > 0 &&
+        !!thickness &&
+        !!width
 
     // ── Step 2 ──
     if (step === 2) {
@@ -544,16 +556,13 @@ function NewManufactureForm() {
                                                 <Checkbox checked={checked} />
                                             </td>
                                             <td className="px-3 py-2">
-                                                {r.contract_number ?? "—"}
+                                                {r.reference_number ?? "—"}
                                             </td>
                                             <td className="px-3 py-2">
-                                                {r.supplier ?? "—"}
+                                                {r.status ?? "—"}
                                             </td>
                                             <td className="px-3 py-2">
-                                                {r.raw_material_name ?? "—"}
-                                            </td>
-                                            <td className="px-3 py-2">
-                                                {r.weight ?? "—"}
+                                                {r.brutto ?? "—"}
                                             </td>
                                             <td className="px-3 py-2">
                                                 {r.netto ?? "—"}
@@ -565,10 +574,10 @@ function NewManufactureForm() {
                                                 {r.outer_size ?? "—"}
                                             </td>
                                             <td className="px-3 py-2">
-                                                {r.mark ?? "—"}
+                                                {r.plank ?? "—"}
                                             </td>
                                             <td className="px-3 py-2">
-                                                {r.plank ?? "—"}
+                                                {r.wagon ?? "—"}
                                             </td>
                                         </tr>
                                     )

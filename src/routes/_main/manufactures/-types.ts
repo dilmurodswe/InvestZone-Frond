@@ -7,48 +7,41 @@ export type ManufactureStatus =
 
 export type RawItemDetail = {
     id: number
-    // ✅ qo'shildi
-    contract_number: string | null
-    supplier: string | null
-    raw_material_name: string | null
-    // mavjudlar
-    ton: number | null
-    weight: number | null
     status: string
+    brutto: number | null
     netto: number | null
     inner_size: number | null
     outer_size: number | null
-    standard: string | null
-    mark: string | null
     plank: string | null
     reference_number: string | null
-    price: number | null
-    wagon: string | null
+    wagon: number | null
+    created_at: string
+    updated_at: string
+}
+export type DetailItem = {
+    id: number
+    product: {
+        id: number
+        name: string
+        code: number | null
+        articul: string | null
+        price: number | null
+    }
+    strip_width_theoretical: number
+    strip_cut_width_mm: number
+    quantity_in_cut: number
+    total_amount: number
+    weight_from_cut: number
+}
+export type Manufacture = {
+    id: number
+    width: number
+    thickness: number
+    status: ManufactureStatus
+    raw_item_details: RawItemDetail[]
+    detail_items: DetailItem[]
     created_at: string
     updated_at: string
 }
 
-export type ManufactureDetail = {
-    id: number
-    category_id: number
-    category: string
-    sub_category_id: number
-    sub_category: string
-    product_id: number
-    product: string
-    raw_item_details: RawItemDetail[]
-    stock: number
-    status: ManufactureStatus
-    created_at: string
-}
-
-// List uchun (jadvalda)
-export type Manufacture = {
-    id: number
-    category: string
-    sub_category: string
-    product: string
-    stock: number
-    status: ManufactureStatus
-    created_at: string
-}
+export type ManufactureDetail = Manufacture

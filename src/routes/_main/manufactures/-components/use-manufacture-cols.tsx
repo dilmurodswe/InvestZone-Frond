@@ -5,7 +5,8 @@ import type { Manufacture } from "../-types"
 import { ManufactureActions } from "./manufacture-actions"
 import ManufactureStatusBadge from "./status-badge"
 
-const fmtStr = (val: string | null | undefined) => (val?.trim() ? val : "—")
+const fmt = (val: string | number | null | undefined) =>
+    val != null && val !== "" ? val : "—"
 
 export const getManufactureCols = (
     onStatusClick: (manufacture: Manufacture, el: HTMLElement) => void,
@@ -35,43 +36,51 @@ export const getManufactureCols = (
 
     return [
         {
-            accessorKey: "category",
-            header: "Category",
+            id: "products",
+            header: "Products",
+            cell: ({ row: { original } }) => {
+                const names = original.detail_items
+                    .map((d) => d.product.name)
+                    .join(", ")
+                return (
+                    <ClickableCell manufacture={original}>
+                        <span className="text-sm" title={names}>
+                            {names.length > 40 ?
+                                names.slice(0, 40) + "…"
+                            :   names || "—"}
+                        </span>
+                    </ClickableCell>
+                )
+            },
+        },
+        {
+            accessorKey: "thickness",
+            header: "Thickness",
             cell: ({ row: { original } }) => (
                 <ClickableCell manufacture={original}>
-                    <span className="text-sm hover:underline hover:text-primary">
-                        {fmtStr(original.category)}
-                    </span>
+                    <span className="text-sm">{fmt(original.thickness)}</span>
                 </ClickableCell>
             ),
         },
         {
-            accessorKey: "sub_category",
-            header: "Sub category",
+            accessorKey: "width",
+            header: "Width",
+            cell: ({ row: { original } }) => (
+                <ClickableCell manufacture={original}>
+                    <span className="text-sm">{fmt(original.width)}</span>
+                </ClickableCell>
+            ),
+        },
+
+        {
+            id: "raw_count",
+            header: "Raw Materials",
             cell: ({ row: { original } }) => (
                 <ClickableCell manufacture={original}>
                     <span className="text-sm">
-                        {fmtStr(original.sub_category)}
-                    </span>
-                </ClickableCell>
-            ),
-        },
-        {
-            accessorKey: "product",
-            header: "Product",
-            cell: ({ row: { original } }) => (
-                <ClickableCell manufacture={original}>
-                    <span className="text-sm">{fmtStr(original.product)}</span>
-                </ClickableCell>
-            ),
-        },
-        {
-            accessorKey: "stock",
-            header: "Stock",
-            cell: ({ row: { original } }) => (
-                <ClickableCell manufacture={original}>
-                    <span className="text-sm">
-                        {original.stock != null ? original.stock : "—"}
+                        {original.raw_item_details.length > 0 ?
+                            `${original.raw_item_details.length} item(s)`
+                        :   "—"}
                     </span>
                 </ClickableCell>
             ),
