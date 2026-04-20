@@ -14,8 +14,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
-// import { getArray } from "@/lib/utils/get-array"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import {
     useCategoriesSelectQuery,
@@ -31,8 +30,8 @@ export default function NewManufactureModal() {
         <Modal
             modalKey="new-manufacture"
             title={null}
-            wrapperClassname="md:w-[900px]! md:max-w-none"
-            className="min-w-[860px]!"
+            wrapperClassname="md:w-[1200px]! md:max-w-none"
+            className="min-w-[860px]! max-w-full!"
         >
             <NewManufactureForm />
         </Modal>
@@ -62,12 +61,10 @@ type ProductRow = CalculateResult & {
 // ─── Calculate Results Component ─────────────────────────────────────────────
 function CalculateResults({
     data,
-    onBack,
     onSubmit,
     isPending,
 }: {
     data: CalculateResponse
-    onBack: () => void
     onSubmit: (rows: ProductRow[]) => void
     isPending: boolean
 }) {
@@ -79,6 +76,20 @@ function CalculateResults({
             input4: "",
         })),
     )
+
+    // data.results o'zgarganda rows ni reset qilish
+    const [prevData, setPrevData] = useState(data)
+    if (prevData !== data) {
+        setPrevData(data)
+        setRows(
+            data.results.map((r) => ({
+                ...r,
+                input1: "",
+                input2: "",
+                input4: "",
+            })),
+        )
+    }
 
     const updateRow = (
         index: number,
@@ -92,52 +103,85 @@ function CalculateResults({
         )
     }
 
+    const totalAmountSum = rows.reduce((sum, row) => {
+        const val1 = parseFloat(row.input1) || 0
+        const val2 = parseFloat(row.input2) || 0
+        return sum + val1 * val2
+    }, 0)
+
+    const weightFromCutSum = rows.reduce((sum, row) => {
+        return sum + (parseFloat(row.input4) || 0)
+    }, 0)
+
+    const fmt = (n: number) => (n % 1 === 0 ? n : n.toFixed(2))
+
     return (
         <div className="flex flex-col gap-4">
             {/* Thickness / Width info */}
-            <div className="flex items-center gap-4 text-sm">
-                <div className="flex flex-col gap-0.5 bg-muted/30 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex gap-1.5 bg-muted/40 border rounded-lg px-3 py-2 items-center">
                     <span className="text-xs text-muted-foreground">
-                        Thickness
+                        Thickness:
                     </span>
-                    <span className="font-semibold">{data.thickness}</span>
+                    <span className="font-semibold text-sm">
+                        {data.thickness}
+                    </span>
                 </div>
-                <div className="flex flex-col gap-0.5 bg-muted/30 rounded-lg px-3 py-2">
-                    <span className="text-xs text-muted-foreground">Width</span>
-                    <span className="font-semibold">{data.width}</span>
+                <div className="flex gap-1.5 bg-muted/40 border rounded-lg px-3 py-2 items-center">
+                    <span className="text-xs text-muted-foreground">
+                        Width:
+                    </span>
+                    <span className="font-semibold text-sm">{data.width}</span>
+                </div>
+                <div className="flex gap-1.5 bg-muted/40 border rounded-lg px-3 py-2 items-center">
+                    <span className="text-xs text-muted-foreground">Rows:</span>
+                    <span className="font-semibold text-sm">{rows.length}</span>
                 </div>
             </div>
 
             {/* Table */}
             <div className="border rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto overflow-y-auto max-h-[320px]">
                     <table className="w-full text-sm border-collapse">
-                        <thead className="sticky top-0 bg-muted/60 backdrop-blur-sm z-10">
+                        <thead className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10">
                             <tr className="border-b">
-                                <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                    #
+                                </th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
                                     Product
                                 </th>
-                                <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
                                     Category
                                 </th>
-                                <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
                                     Strip Width Theoretical
                                 </th>
-                                <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[120px]">
                                     Strip Cut Width (mm)
                                 </th>
-                                <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[120px]">
                                     Quantity in Cut
                                 </th>
-                                <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[120px]">
                                     Total Amount
                                 </th>
-                                <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[110px]">
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[120px]">
                                     Weight from Cut
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
+                            {rows.length === 0 && (
+                                <tr>
+                                    <td
+                                        colSpan={8}
+                                        className="text-center py-8 text-sm text-muted-foreground"
+                                    >
+                                        No results
+                                    </td>
+                                </tr>
+                            )}
                             {rows.map((row, index) => {
                                 const val1 = parseFloat(row.input1) || 0
                                 const val2 = parseFloat(row.input2) || 0
@@ -146,21 +190,26 @@ function CalculateResults({
                                 return (
                                     <tr
                                         key={row.product_id}
-                                        className="border-b last:border-0 hover:bg-muted/20"
+                                        className="border-b last:border-0 hover:bg-muted/20 transition-colors"
                                     >
-                                        <td className="px-3 py-2 max-w-[220px]">
+                                        <td className="px-3 py-2 text-xs text-muted-foreground">
+                                            {index + 1}
+                                        </td>
+                                        <td className="px-3 py-2 max-w-[200px]">
                                             <span
                                                 title={row.product_name}
-                                                className="block truncate"
+                                                className="block truncate font-medium"
                                             >
                                                 {row.product_name}
                                             </span>
                                         </td>
-                                        <td className="px-3 py-2 whitespace-nowrap">
+                                        <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">
                                             {row.category_type}
                                         </td>
-                                        <td className="px-3 py-2 whitespace-nowrap font-medium">
-                                            {row.amount}
+                                        <td className="px-3 py-2 whitespace-nowrap">
+                                            <span className="inline-flex items-center justify-center bg-muted/50 rounded px-2 py-0.5 font-mono text-xs font-semibold">
+                                                {row.amount}
+                                            </span>
                                         </td>
                                         <td className="px-3 py-2">
                                             <input
@@ -175,6 +224,7 @@ function CalculateResults({
                                                 }
                                                 className="w-full h-8 border rounded-md px-2 text-sm bg-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                                 placeholder="0"
+                                                min={0}
                                             />
                                         </td>
                                         <td className="px-3 py-2">
@@ -190,13 +240,14 @@ function CalculateResults({
                                                 }
                                                 className="w-full h-8 border rounded-md px-2 text-sm bg-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                                 placeholder="0"
+                                                min={0}
                                             />
                                         </td>
                                         <td className="px-3 py-2">
-                                            <div className="w-full h-8 border rounded-md px-2 text-sm bg-muted/30 flex items-center font-medium text-muted-foreground">
-                                                {multiplied % 1 === 0 ?
-                                                    multiplied
-                                                :   multiplied.toFixed(2)}
+                                            <div
+                                                className={`w-full h-8 border rounded-md px-2 text-sm flex items-center font-medium transition-colors ${multiplied > 0 ? "bg-primary/5 border-primary/20 text-foreground" : "bg-muted/30 text-muted-foreground"}`}
+                                            >
+                                                {fmt(multiplied)}
                                             </div>
                                         </td>
                                         <td className="px-3 py-2">
@@ -211,31 +262,50 @@ function CalculateResults({
                                                     )
                                                 }
                                                 className="w-full h-8 border rounded-md px-2 text-sm bg-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                                placeholder="—"
+                                                placeholder="0"
+                                                min={0}
                                             />
                                         </td>
                                     </tr>
                                 )
                             })}
                         </tbody>
+                        {/* Footer: yig'indilar */}
+                        <tfoot className="sticky bottom-0 border-t-2 bg-muted/70 backdrop-blur-sm z-10">
+                            <tr>
+                                <td
+                                    colSpan={6}
+                                    className="px-3 py-2.5 text-xs font-semibold text-muted-foreground text-right whitespace-nowrap"
+                                >
+                                    Total Sum:
+                                </td>
+                                <td className="px-3 py-2.5">
+                                    <div
+                                        className={`w-full h-8 border-2 rounded-md px-2 text-sm flex items-center font-bold transition-colors ${totalAmountSum > 0 ? "border-primary/30 bg-primary/5 text-foreground" : "bg-muted/50 text-muted-foreground"}`}
+                                    >
+                                        {fmt(totalAmountSum)}
+                                    </div>
+                                </td>
+                                <td className="px-3 py-2.5">
+                                    <div
+                                        className={`w-full h-8 border-2 rounded-md px-2 text-sm flex items-center font-bold transition-colors ${weightFromCutSum > 0 ? "border-primary/30 bg-primary/5 text-foreground" : "bg-muted/50 text-muted-foreground"}`}
+                                    >
+                                        {fmt(weightFromCutSum)}
+                                    </div>
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-between">
-                <button
-                    type="button"
-                    onClick={onBack}
-                    className="h-9 px-4 rounded-md border text-sm font-medium hover:bg-muted transition-colors"
-                >
-                    ← Back
-                </button>
+            <div className="flex items-center justify-end">
                 <button
                     type="button"
                     onClick={() => onSubmit(rows)}
                     disabled={isPending}
-                    className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+                    className="h-9 px-6 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
                 >
                     {isPending ? "Creating..." : "Create"}
                 </button>
@@ -250,7 +320,7 @@ function NewManufactureForm() {
     const { invalidateByExactMatch } = useRevalidate()
     const { post, isPending } = useRequest()
 
-    const [step, setStep] = useState<1 | 2>(1)
+    const resultsRef = useRef<HTMLDivElement>(null)
 
     // Raw material filters
     const [thickness, setThickness] = useState("")
@@ -263,7 +333,6 @@ function NewManufactureForm() {
     const [subCategoryId, setSubCategoryId] = useState("")
     const [selectedProductIds, setSelectedProductIds] = useState<number[]>([])
 
-    // Calculate params — faqat Next bosilganda o'rnatiladi
     const [calculateParams, setCalculateParams] = useState<Record<
         string,
         unknown
@@ -289,16 +358,24 @@ function NewManufactureForm() {
         subCategoryId ? Number(subCategoryId) : undefined,
     )
 
-    // Calculate GET
     const { data: calcResponse, isFetching: isCalculating } =
         useGet<CalculateResponse>(API.MANUFACTURES.CALCULATE_AMOUNT, {
             params: calculateParams ?? undefined,
-            options: {
-                enabled: !!calculateParams,
-            },
+            options: { enabled: !!calculateParams },
         })
 
-    // Handlers
+    // Results chiqganda scroll
+    useEffect(() => {
+        if (calcResponse && resultsRef.current) {
+            setTimeout(() => {
+                resultsRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                })
+            }, 100)
+        }
+    }, [calcResponse])
+
     const toggleRaw = (id: number) => {
         setSelectedRawIds((prev) =>
             prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
@@ -317,6 +394,16 @@ function NewManufactureForm() {
         setSelectedProductIds([])
     }
 
+    const handleThicknessChange = (val: string) => {
+        setThickness(val)
+        setCalculateParams(null) // eski natijani tozalash
+    }
+
+    const handleWidthChange = (val: string) => {
+        setWidth(val)
+        setCalculateParams(null) // eski natijani tozalash
+    }
+
     const handleNext = () => {
         const params: Record<string, unknown> = {
             product_ids: selectedProductIds,
@@ -324,15 +411,8 @@ function NewManufactureForm() {
         if (thickness) params.thickness = thickness
         if (width) params.width = width
         setCalculateParams(params)
-        setStep(2)
     }
 
-    const handleBack = () => {
-        setStep(1)
-        setCalculateParams(null)
-    }
-
-    // YANGI
     const handleSubmit = (rows: ProductRow[]) => {
         post(
             API.MANUFACTURES.INDEX,
@@ -361,13 +441,12 @@ function NewManufactureForm() {
             },
         )
     }
-    // Raw material stats
+
     const selectedRaws = rawItemDetailOptions.filter((r) =>
         selectedRawIds.includes(r.id),
     )
     const totalNetto = selectedRaws.reduce((sum, r) => sum + (r.netto ?? 0), 0)
 
-    // YANGI
     const filteredRawItems = rawItemDetailOptions.filter((r) => {
         if (!localSearch) return true
         const q = localSearch.toLowerCase()
@@ -384,48 +463,9 @@ function NewManufactureForm() {
         !!thickness &&
         !!width
 
-    // ── Step 2 ──
-    if (step === 2) {
-        if (isCalculating) {
-            return (
-                <div className="flex flex-col gap-5">
-                    <CardTitle>New manufacture</CardTitle>
-                    <div className="py-12 text-center text-sm text-muted-foreground">
-                        Calculating...
-                    </div>
-                </div>
-            )
-        }
-
-        if (!calcResponse) return null
-
-        return (
-            <div className="flex flex-col gap-5">
-                <div className="flex items-center justify-between">
-                    <CardTitle>New manufacture</CardTitle>
-                    <span className="text-xs text-muted-foreground">
-                        Step 2 of 2
-                    </span>
-                </div>
-                <CalculateResults
-                    data={calcResponse}
-                    onBack={handleBack}
-                    onSubmit={handleSubmit}
-                    isPending={isPending}
-                />
-            </div>
-        )
-    }
-
-    // ── Step 1 ──
     return (
         <div className="flex flex-col gap-5">
-            <div className="flex items-center justify-between">
-                <CardTitle>New manufacture</CardTitle>
-                <span className="text-xs text-muted-foreground">
-                    Step 1 of 2
-                </span>
-            </div>
+            <CardTitle>New manufacture</CardTitle>
 
             {/* ── Raw Material section ── */}
             <div className="flex flex-col gap-3">
@@ -436,7 +476,10 @@ function NewManufactureForm() {
                         <label className="text-xs font-medium text-muted-foreground">
                             Thickness
                         </label>
-                        <Select value={thickness} onValueChange={setThickness}>
+                        <Select
+                            value={thickness}
+                            onValueChange={handleThicknessChange}
+                        >
                             <SelectTrigger className="w-[130px]">
                                 <SelectValue placeholder="All" />
                             </SelectTrigger>
@@ -457,7 +500,7 @@ function NewManufactureForm() {
                         <label className="text-xs font-medium text-muted-foreground">
                             Width
                         </label>
-                        <Select value={width} onValueChange={setWidth}>
+                        <Select value={width} onValueChange={handleWidthChange}>
                             <SelectTrigger className="w-[130px]">
                                 <SelectValue placeholder="All" />
                             </SelectTrigger>
@@ -495,7 +538,7 @@ function NewManufactureForm() {
                         </div>
                     </div>
 
-                    <div className="ml-auto hidden">
+                    <div className="ml-auto">
                         <LocalFilterInput onChange={setLocalSearch} />
                     </div>
                 </div>
@@ -505,21 +548,20 @@ function NewManufactureForm() {
                         <table className="w-full text-sm border-collapse">
                             <thead className="sticky top-0 bg-muted/60 backdrop-blur-sm z-10">
                                 <tr className="border-b">
-                                    <th className="w-10 px-3 py-2" />
+                                    <th className="w-10 px-3 py-2.5" />
                                     {[
                                         "Contract #",
-                                        "Supplier",
-                                        "Material",
-                                        "Weight",
+                                        "Status",
+                                        "Brutto",
                                         "Netto",
                                         "Inner",
                                         "Outer",
-                                        "Mark",
                                         "Plank",
+                                        "Wagon",
                                     ].map((h) => (
                                         <th
                                             key={h}
-                                            className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground"
+                                            className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap"
                                         >
                                             {h}
                                         </th>
@@ -530,8 +572,8 @@ function NewManufactureForm() {
                                 {filteredRawItems.length === 0 && (
                                     <tr>
                                         <td
-                                            colSpan={10}
-                                            className="text-center py-6 text-sm text-muted-foreground"
+                                            colSpan={9}
+                                            className="text-center py-8 text-sm text-muted-foreground"
                                         >
                                             No data
                                         </td>
@@ -555,7 +597,7 @@ function NewManufactureForm() {
                                             >
                                                 <Checkbox checked={checked} />
                                             </td>
-                                            <td className="px-3 py-2">
+                                            <td className="px-3 py-2 font-medium">
                                                 {r.reference_number ?? "—"}
                                             </td>
                                             <td className="px-3 py-2">
@@ -652,11 +694,11 @@ function NewManufactureForm() {
                         <table className="w-full text-sm border-collapse">
                             <thead className="sticky top-0 bg-muted/60 backdrop-blur-sm z-10">
                                 <tr className="border-b">
-                                    <th className="w-10 px-3 py-2" />
+                                    <th className="w-10 px-3 py-2.5" />
                                     {["Name", "Code", "SKU"].map((h) => (
                                         <th
                                             key={h}
-                                            className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground"
+                                            className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground"
                                         >
                                             {h}
                                         </th>
@@ -668,7 +710,7 @@ function NewManufactureForm() {
                                     <tr>
                                         <td
                                             colSpan={4}
-                                            className="text-center py-6 text-sm text-muted-foreground"
+                                            className="text-center py-8 text-sm text-muted-foreground"
                                         >
                                             No data
                                         </td>
@@ -692,7 +734,7 @@ function NewManufactureForm() {
                                             >
                                                 <Checkbox checked={checked} />
                                             </td>
-                                            <td className="px-3 py-2">
+                                            <td className="px-3 py-2 font-medium">
                                                 {p.name}
                                             </td>
                                             <td className="px-3 py-2">
@@ -718,17 +760,58 @@ function NewManufactureForm() {
                 </div>
             </div>
 
-            {/* Next button */}
-            <div className="flex justify-end">
-                <button
-                    type="button"
-                    onClick={handleNext}
-                    disabled={!canNext}
-                    className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
-                >
-                    Next →
-                </button>
+            {/* ── Next button ── */}
+            <div className="flex items-center justify-between">
+                {/* Validation hint */}
+                {!canNext && (
+                    <p className="text-xs text-muted-foreground">
+                        {!thickness || !width ?
+                            "Select thickness and width to continue"
+                        : !selectedRawIds.length ?
+                            "Select at least one raw material"
+                        :   "Select at least one product"}
+                    </p>
+                )}
+                <div className="ml-auto flex items-center gap-2">
+                    {calculateParams && (
+                        <span className="text-xs text-muted-foreground">
+                            {isCalculating ?
+                                "Calculating..."
+                            :   "Results updated ✓"}
+                        </span>
+                    )}
+                    <button
+                        type="button"
+                        onClick={handleNext}
+                        disabled={!canNext || isCalculating}
+                        className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+                    >
+                        {isCalculating ?
+                            "Calculating..."
+                        : calculateParams ?
+                            "Recalculate →"
+                        :   "Next →"}
+                    </button>
+                </div>
             </div>
+
+            {/* ── Results (inline) ── */}
+            {calculateParams && (
+                <div ref={resultsRef} className="border-t pt-5">
+                    <p className="text-sm font-semibold mb-4">Results</p>
+                    {isCalculating ?
+                        <div className="py-10 text-center text-sm text-muted-foreground">
+                            Calculating...
+                        </div>
+                    : calcResponse ?
+                        <CalculateResults
+                            data={calcResponse}
+                            onSubmit={handleSubmit}
+                            isPending={isPending}
+                        />
+                    :   null}
+                </div>
+            )}
         </div>
     )
 }
