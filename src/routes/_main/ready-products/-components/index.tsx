@@ -4,12 +4,25 @@ import Layout from "@/components/layouts/layout"
 import Navbar from "@/components/navbar"
 import NoData from "@/components/no-data/nodata"
 import Group from "@/components/semantic/group"
+import { useModal } from "@/hooks/use-modal"
+import { useState } from "react"
 import { useReadyProductsQuery } from "../-hooks/use-ready-products-query"
+import type { ReadyProduct } from "../-types"
+import ReadyProductDetailModal from "./ready-product-detail-modal"
 import { getReadyProductCols } from "./use-ready-product-cols"
 
 export default function Index() {
     const { readyProductList, count, isFetching } = useReadyProductsQuery()
-    const cols = getReadyProductCols()
+    const { openModal } = useModal("ready-product-detail")
+
+    const [selected, setSelected] = useState<ReadyProduct | null>(null)
+
+    function handleRowClick(row: ReadyProduct) {
+        setSelected(row)
+        openModal()
+    }
+
+    const cols = getReadyProductCols(handleRowClick)
 
     return (
         <>
@@ -30,6 +43,8 @@ export default function Index() {
 
                 {!readyProductList.length && !isFetching && <NoData />}
             </Layout>
+
+            {selected && <ReadyProductDetailModal data={selected} />}
         </>
     )
 }

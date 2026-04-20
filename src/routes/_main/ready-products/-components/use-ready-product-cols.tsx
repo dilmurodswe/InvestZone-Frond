@@ -4,53 +4,53 @@ import type { ReadyProduct } from "../-types"
 const fmt = (val: number | null | undefined) =>
     val != null ? val.toLocaleString() : "—"
 
-const fmtStr = (val: string | null | undefined) => (val?.trim() ? val : "—")
-
-export const getReadyProductCols = (): ColumnDef<ReadyProduct>[] => [
+export const getReadyProductCols = (
+    onRowClick: (row: ReadyProduct) => void,
+): ColumnDef<ReadyProduct>[] => [
     {
-        accessorKey: "product.name",
-        header: "Product",
+        accessorKey: "id",
+        header: "#",
         cell: ({ row: { original } }) => (
-            <div className="flex flex-col">
-                <span className="text-sm font-medium">
-                    {fmtStr(original.product.name)}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                    {fmtStr(original.product.articul)}
-                </span>
-            </div>
-        ),
-    },
-    {
-        accessorKey: "product.code",
-        header: "Code",
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">{fmt(original.product.code)}</span>
-        ),
-    },
-    {
-        accessorKey: "product.price",
-        header: "Price",
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">
-                {original.product.price != null ?
-                    `$${original.product.price.toLocaleString()}`
-                :   "—"}
+            <span
+                className="text-sm text-muted-foreground cursor-pointer"
+                onClick={() => onRowClick(original)}
+            >
+                #{original.id}
             </span>
         ),
     },
     {
-        accessorKey: "stock",
-        header: "Stock",
+        accessorKey: "thickness",
+        header: "Thickness",
         cell: ({ row: { original } }) => (
-            <span className="text-sm">{fmt(original.stock)}</span>
+            <span
+                className="text-sm cursor-pointer"
+                onClick={() => onRowClick(original)}
+            >
+                {fmt(original.thickness)}
+            </span>
+        ),
+    },
+    {
+        accessorKey: "width",
+        header: "Width",
+        cell: ({ row: { original } }) => (
+            <span
+                className="text-sm cursor-pointer"
+                onClick={() => onRowClick(original)}
+            >
+                {fmt(original.width)}
+            </span>
         ),
     },
     {
         accessorKey: "status",
         header: "Status",
         cell: ({ row: { original } }) => (
-            <span className="text-sm capitalize">
+            <span
+                className="text-sm capitalize cursor-pointer"
+                onClick={() => onRowClick(original)}
+            >
                 {original.status.replace(/_/g, " ")}
             </span>
         ),
@@ -59,7 +59,10 @@ export const getReadyProductCols = (): ColumnDef<ReadyProduct>[] => [
         accessorKey: "created_at",
         header: "Date",
         cell: ({ row: { original } }) => (
-            <span className="text-sm text-muted-foreground">
+            <span
+                className="text-sm text-muted-foreground cursor-pointer"
+                onClick={() => onRowClick(original)}
+            >
                 {new Date(original.created_at).toLocaleDateString()}
             </span>
         ),
