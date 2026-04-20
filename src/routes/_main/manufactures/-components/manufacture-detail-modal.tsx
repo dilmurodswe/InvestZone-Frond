@@ -11,8 +11,8 @@ export default function ManufactureDetailModal() {
         <Modal
             modalKey="manufacture-detail"
             title={null}
-            wrapperClassname="md:w-[1000px]! md:max-w-none"
-            className="min-w-[960px]!"
+            wrapperClassname="md:w-[1200px]! md:max-w-none"
+            className="min-w-[860px]! max-w-full!"
         >
             <ManufactureDetailContent />
         </Modal>
