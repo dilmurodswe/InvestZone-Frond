@@ -8,18 +8,6 @@ export const getReadyProductCols = (
     onRowClick: (row: ReadyProduct) => void,
 ): ColumnDef<ReadyProduct>[] => [
     {
-        accessorKey: "id",
-        header: "#",
-        cell: ({ row: { original } }) => (
-            <span
-                className="text-sm text-muted-foreground cursor-pointer"
-                onClick={() => onRowClick(original)}
-            >
-                #{original.id}
-            </span>
-        ),
-    },
-    {
         accessorKey: "thickness",
         header: "Thickness",
         cell: ({ row: { original } }) => (
