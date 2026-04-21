@@ -421,6 +421,8 @@ function NewManufactureForm() {
                 thickness: Number(thickness),
                 status: "ready",
                 raw_item_detail_ids: selectedRawIds,
+                count_raw: selectedRawIds.length,
+                total_netto: totalNetto,
                 details: rows.map((row) => ({
                     product_id: row.product_id,
                     strip_width_theoretical: row.amount,
@@ -431,6 +433,16 @@ function NewManufactureForm() {
                         (parseFloat(row.input2) || 0),
                     weight_from_cut: parseFloat(row.input4) || 0,
                 })),
+                total_sum: rows.reduce((sum, row) => {
+                    return (
+                        sum +
+                        (parseFloat(row.input1) || 0) *
+                            (parseFloat(row.input2) || 0)
+                    )
+                }, 0),
+                total_cut_weight: rows.reduce((sum, row) => {
+                    return sum + (parseFloat(row.input4) || 0)
+                }, 0),
             },
             {
                 onSuccess: () => {

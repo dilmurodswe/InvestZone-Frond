@@ -11,8 +11,8 @@ export default function ReadyProductDetailModal({ data }: Props) {
         <Modal
             modalKey="ready-product-detail"
             title={null}
-            wrapperClassname="md:w-[1000px]! md:max-w-none"
-            className="min-w-[960px]!"
+            wrapperClassname="md:w-[1200px]! md:max-w-none"
+            className="min-w-[860px]! max-w-full!"
         >
             <div className="flex flex-col gap-5">
                 {/* Header */}
@@ -25,13 +25,32 @@ export default function ReadyProductDetailModal({ data }: Props) {
 
                 {/* General */}
                 <Section title="General">
-                    <div className="grid grid-cols-3 divide-x divide-y">
-                        <Cell label="Thickness" value={data.thickness} />
-                        <Cell label="Width" value={data.width} />
-                        <Cell
-                            label="Created at"
-                            value={new Date(data.created_at).toLocaleString()}
-                        />
+                    <div className="flex flex-col divide-y">
+                        <div className="grid grid-cols-3 divide-x">
+                            <Cell label="Thickness" value={data.thickness} />
+                            <Cell label="Width" value={data.width} />
+                            <Cell
+                                label="Created at"
+                                value={new Date(
+                                    data.created_at,
+                                ).toLocaleString()}
+                            />
+                        </div>
+                        <div className="grid grid-cols-4 divide-x">
+                            <Cell
+                                label="Count Raw Material"
+                                value={data.count_raw}
+                            />
+                            <Cell
+                                label="Total Netto"
+                                value={data.total_netto}
+                            />
+                            <Cell label="Total Sum" value={data.total_sum} />
+                            <Cell
+                                label="Total Cut Weight"
+                                value={data.total_cut_weight}
+                            />
+                        </div>
                     </div>
                 </Section>
 

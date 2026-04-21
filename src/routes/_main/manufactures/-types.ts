@@ -38,6 +38,10 @@ export type Manufacture = {
     width: number
     thickness: number
     status: ManufactureStatus
+    count_raw: number
+    total_netto: number
+    total_sum: number
+    total_cut_weight: number
     raw_item_details: RawItemDetail[]
     detail_items: DetailItem[]
     created_at: string

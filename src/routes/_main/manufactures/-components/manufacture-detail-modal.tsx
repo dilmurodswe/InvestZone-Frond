@@ -44,15 +44,28 @@ function ManufactureDetailContent() {
                 <ManufactureStatusBadge status={data.status} />
             </div>
 
-            {/* General */}
             <Section title="General">
-                <div className="grid grid-cols-3 divide-x divide-y">
-                    <Cell label="Thickness" value={data.thickness} />
-                    <Cell label="Width" value={data.width} />
-                    <Cell
-                        label="Created at"
-                        value={new Date(data.created_at).toLocaleString()}
-                    />
+                <div className="flex flex-col divide-y">
+                    <div className="grid grid-cols-3 divide-x">
+                        <Cell label="Thickness" value={data.thickness} />
+                        <Cell label="Width" value={data.width} />
+                        <Cell
+                            label="Created at"
+                            value={new Date(data.created_at).toLocaleString()}
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 divide-x">
+                        <Cell
+                            label="Count Raw Material"
+                            value={data.count_raw}
+                        />
+                        <Cell label="Total Netto" value={data.total_netto} />
+                        <Cell label="Total Sum" value={data.total_sum} />
+                        <Cell
+                            label="Total Cut Weight"
+                            value={data.total_cut_weight}
+                        />
+                    </div>
                 </div>
             </Section>
 
