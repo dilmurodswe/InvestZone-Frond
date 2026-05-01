@@ -33,12 +33,8 @@ type DetailRow = {
 }
 
 type RowEdit = {
-    quantity: string
-    shipped_quantity: string
     price: string
-    line_total: string
-    shipped_amount: string
-    difference: string
+    present: string
 }
 
 // Backenddan keladigan file ma'lumotlari uchun type
@@ -60,19 +56,6 @@ type RequestFile = {
     file: string
     name: string
 }
-
-const TABLE_FIELDS: {
-    key: keyof RowEdit
-    label: string
-    isNumber?: boolean
-}[] = [
-    { key: "quantity", label: "Quantity", isNumber: true },
-    { key: "shipped_quantity", label: "Shipped qty", isNumber: true },
-    { key: "price", label: "Price", isNumber: true },
-    { key: "line_total", label: "Line total", isNumber: true },
-    { key: "shipped_amount", label: "Shipped amount", isNumber: true },
-    { key: "difference", label: "Difference", isNumber: true },
-]
 
 // ─── File helpers ─────────────────────────────────────────────────────────────
 
@@ -179,33 +162,7 @@ function DetailContent({
         contractNumber: string
     } | null>(null)
 
-    const [tolerant, setTolerant] = useState(
-        request.tolerant ? String(request.tolerant) : "",
-    )
-    const [differance, setDifferance] = useState(
-        request.differance ? String(request.differance) : "",
-    )
-    const [totalQuantity, setTotalQuantity] = useState(
-        request.total_quantity ? String(request.total_quantity) : "",
-    )
-    const [shippedQuantity, setShippedQuantity] = useState(
-        request.shipped_quantity ? String(request.shipped_quantity) : "",
-    )
-    const [specificationAmount, setSpecificationAmount] = useState(
-        request.specification_amount ?
-            String(request.specification_amount)
-        :   "",
-    )
-    const [shippedAmount, setShippedAmount] = useState(
-        request.shipped_amount ? String(request.shipped_amount) : "",
-    )
-    const [differenceUsd, setDifferenceUsd] = useState(
-        request.difference_usd ? String(request.difference_usd) : "",
-    )
-
     // ── Files ──
-    // GET so‘rovini qayta yuklash uchun ishlatiladigan `key`
-    // const [filesFetchKey] = useState(0)
     const {
         data: filesData,
         isLoading: filesLoading,
@@ -223,7 +180,6 @@ function DetailContent({
         },
     )
 
-    // Backenddan kelgan ma'lumotlarni UI formatiga o'tkazish
     const fetchedFiles = getArray<RequestFileResponse>(filesData)
     const [localFiles, setLocalFiles] = useState<RequestFile[]>([])
 
@@ -231,20 +187,23 @@ function DetailContent({
         if (fetchedFiles.length > 0) {
             const formattedFiles: RequestFile[] = fetchedFiles.map((file) => ({
                 id: file.request_file.id,
-                request_file_id: file.id, // ← 23 — delete uchun
+                request_file_id: file.id,
                 file: file.request_file.url,
                 name: file.request_file.name || `File ${file.request_file.id}`,
             }))
             setLocalFiles(formattedFiles)
         } else if (fetchedFiles.length === 0 && !filesLoading) {
-            // Agar ro‘yxat bo‘sh bo‘lsa, localFiles ni tozalaymiz
             setLocalFiles([])
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filesData])
 
     // ── Detail rows ──
-    const { data: itemsData, isLoading: itemsLoading } = useGet<DetailRow[]>(
+    const {
+        data: itemsData,
+        isLoading: itemsLoading,
+        refetch: refetchItems,
+    } = useGet<DetailRow[]>(
         API.RAW_MATERIAL_REQUESTS.ITEMS_ID.INDEX.replace(
             "{id}",
             String(request.id),
@@ -258,6 +217,7 @@ function DetailContent({
     )
     const items = getArray<DetailRow>(itemsData)
 
+    // Only price and present are editable
     const [rowEdits, setRowEdits] = useState<Record<number, RowEdit>>({})
 
     useEffect(() => {
@@ -265,21 +225,8 @@ function DetailContent({
             const map: Record<number, RowEdit> = {}
             items.forEach((item) => {
                 map[item.id] = {
-                    quantity:
-                        item.quantity != null ? String(item.quantity) : "",
-                    shipped_quantity:
-                        item.shipped_quantity != null ?
-                            String(item.shipped_quantity)
-                        :   "",
                     price: item.price != null ? String(item.price) : "",
-                    line_total:
-                        item.line_total != null ? String(item.line_total) : "",
-                    shipped_amount:
-                        item.shipped_amount != null ?
-                            String(item.shipped_amount)
-                        :   "",
-                    difference:
-                        item.difference != null ? String(item.difference) : "",
+                    present: "",
                 }
             })
             setRowEdits(map)
@@ -294,30 +241,35 @@ function DetailContent({
         }))
     }
 
+    // Compute derived values for a row
+    const getDerivedValues = (item: DetailRow, edit: RowEdit) => {
+        const price = edit?.price ? Number(edit.price) : (item.price ?? 0)
+        const quantity = item.quantity ?? 0
+        const shippedQty = item.shipped_quantity ?? 0
+
+        const lineTotal = quantity * price
+        const shippedAmount = shippedQty * price
+        const difference = lineTotal - shippedAmount
+        const present =
+            lineTotal !== 0 ?
+                ((shippedAmount / lineTotal) * 100).toFixed(2)
+            :   "0.00"
+
+        return { price, lineTotal, shippedAmount, difference, present }
+    }
+
     const handleRowBlur = useCallback(
-        (id: number) => {
+        (id: number, item: DetailRow) => {
             const edit = rowEdits[id]
             if (!edit) return
+            const { price } = getDerivedValues(item, edit)
             patch(
                 API.RAW_MATERIAL_REQUESTS.REQUEST_ITEMS_ID.INDEX.replace(
                     "{id}",
                     String(id),
                 ),
                 {
-                    quantity: edit.quantity ? Number(edit.quantity) : null,
-                    shipped_quantity:
-                        edit.shipped_quantity ?
-                            Number(edit.shipped_quantity)
-                        :   null,
-                    price: edit.price ? Number(edit.price) : null,
-                    line_total:
-                        edit.line_total ? Number(edit.line_total) : null,
-                    shipped_amount:
-                        edit.shipped_amount ?
-                            Number(edit.shipped_amount)
-                        :   null,
-                    difference:
-                        edit.difference ? Number(edit.difference) : null,
+                    price: price || null,
                 },
                 {},
             )
@@ -331,13 +283,11 @@ function DetailContent({
         e.target.value = ""
         try {
             const uploaded = await uploadFile(file)
-            // POST so‘rov yuborish
             post(
                 API.RAW_MATERIAL_REQUESTS.REQUEST_FILES.POST,
                 { request_id: request.id, file_id: uploaded.id },
                 {
                     onSuccess: () => {
-                        // Muvaffaqiyatli POST dan so‘ng, fayllar ro‘yxatini qayta yuklaymiz
                         refetchFiles().catch(() => {
                             toast.error("Failed to refresh file list")
                         })
@@ -355,14 +305,12 @@ function DetailContent({
         }
     }
 
-    // handleDeleteFile — request_file_id ishlatish:
     const handleDeleteFile = (requestFileId: number) => {
         const fileToDelete = localFiles.find(
             (f) => f.request_file_id === requestFileId,
         )
         if (!fileToDelete) return
 
-        // Optimistic — darhol o'chirish
         setLocalFiles((prev) =>
             prev.filter((f) => f.request_file_id !== requestFileId),
         )
@@ -370,7 +318,7 @@ function DetailContent({
         remove(
             API.RAW_MATERIAL_REQUESTS.REQUEST_FILES.DELETE.replace(
                 "{id}",
-                String(requestFileId), // ← 23 ketadi
+                String(requestFileId),
             ),
             {
                 onSuccess: () => toast.success("File deleted successfully"),
@@ -382,41 +330,25 @@ function DetailContent({
         )
     }
 
-    const handleHeaderBlur = useCallback(() => {
-        patch(
-            API.RAW_MATERIAL_REQUESTS.ID.PATCH.replace(
-                "{id}",
-                String(request.id),
-            ),
-            {
-                status: request.status,
-                tolerant: tolerant ? Number(tolerant) : 0,
-                differance: differance ? Number(differance) : 0,
-                total_quantity: totalQuantity ? Number(totalQuantity) : 0,
-                shipped_quantity: shippedQuantity ? Number(shippedQuantity) : 0,
-                specification_amount:
-                    specificationAmount ? Number(specificationAmount) : 0,
-                shipped_amount: shippedAmount ? Number(shippedAmount) : 0,
-                difference_usd: differenceUsd ? Number(differenceUsd) : 0,
-            },
-            {
-                onSuccess: () =>
-                    invalidateByExactMatch([API.RAW_MATERIAL_ITEMS.INDEX]),
-            },
-        )
-    }, [
-        patch,
-        request.id,
-        request.status,
-        tolerant,
-        differance,
-        invalidateByExactMatch,
-        totalQuantity,
-        shippedQuantity,
-        specificationAmount,
-        shippedAmount,
-        differenceUsd,
-    ])
+    // Header fields are now read-only (GET only, no patch)
+    const headerFields = [
+        { label: "Tolerants (%)", value: request.tolerant },
+        { label: "Total quantity", value: request.total_quantity },
+        { label: "Shipped quantity", value: request.shipped_quantity },
+        { label: "Specification amount", value: request.specification_amount },
+        { label: "Shipped amount", value: request.shipped_amount },
+        { label: "Difference (USD)", value: request.difference_usd },
+    ]
+
+    const handleItemModalClose = useCallback(() => {
+        setItemDetailTarget(null)
+        // Refetch items table so shipped_amount updates are reflected
+        refetchItems().catch(() => {
+            toast.error("Failed to refresh items")
+        })
+        // Also invalidate the main list
+        invalidateByExactMatch([API.RAW_MATERIAL_ITEMS.INDEX])
+    }, [refetchItems, invalidateByExactMatch])
 
     return (
         <>
@@ -454,110 +386,21 @@ function DetailContent({
                         </button>
                     </div>
 
-                    {/* ── Tolerant / Differance ── */}
+                    {/* ── Header fields (read-only) ── */}
                     <div className="flex gap-4 flex-wrap items-end">
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs text-muted-foreground">
-                                Tolerants (%)
-                            </label>
-                            <input
-                                type="number"
-                                className="border rounded px-3 py-2 text-sm w-48"
-                                value={tolerant}
-                                placeholder="—"
-                                onChange={(e) => setTolerant(e.target.value)}
-                                onBlur={handleHeaderBlur}
-                            />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs text-muted-foreground">
-                                Difference ($)
-                            </label>
-                            <input
-                                type="number"
-                                className="border rounded px-3 py-2 text-sm w-48"
-                                value={differance}
-                                placeholder="—"
-                                onChange={(e) => setDifferance(e.target.value)}
-                                onBlur={handleHeaderBlur}
-                            />
-                        </div>
-                        {/* mavjud ikkitasi o'zgarmaydi, quyidagilar qo'shiladi */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs text-muted-foreground">
-                                Total quantity
-                            </label>
-                            <input
-                                type="number"
-                                className="border rounded px-3 py-2 text-sm w-48"
-                                value={totalQuantity}
-                                placeholder="—"
-                                onChange={(e) =>
-                                    setTotalQuantity(e.target.value)
-                                }
-                                onBlur={handleHeaderBlur}
-                            />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs text-muted-foreground">
-                                Shipped quantity
-                            </label>
-                            <input
-                                type="number"
-                                className="border rounded px-3 py-2 text-sm w-48"
-                                value={shippedQuantity}
-                                placeholder="—"
-                                onChange={(e) =>
-                                    setShippedQuantity(e.target.value)
-                                }
-                                onBlur={handleHeaderBlur}
-                            />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs text-muted-foreground">
-                                Specification amount
-                            </label>
-                            <input
-                                type="number"
-                                className="border rounded px-3 py-2 text-sm w-48"
-                                value={specificationAmount}
-                                placeholder="—"
-                                onChange={(e) =>
-                                    setSpecificationAmount(e.target.value)
-                                }
-                                onBlur={handleHeaderBlur}
-                            />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs text-muted-foreground">
-                                Shipped amount
-                            </label>
-                            <input
-                                type="number"
-                                className="border rounded px-3 py-2 text-sm w-48"
-                                value={shippedAmount}
-                                placeholder="—"
-                                onChange={(e) =>
-                                    setShippedAmount(e.target.value)
-                                }
-                                onBlur={handleHeaderBlur}
-                            />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs text-muted-foreground">
-                                Difference (USD)
-                            </label>
-                            <input
-                                type="number"
-                                className="border rounded px-3 py-2 text-sm w-48"
-                                value={differenceUsd}
-                                placeholder="—"
-                                onChange={(e) =>
-                                    setDifferenceUsd(e.target.value)
-                                }
-                                onBlur={handleHeaderBlur}
-                            />
-                        </div>
+                        {headerFields.map((field) => (
+                            <div
+                                key={field.label}
+                                className="flex flex-col gap-1"
+                            >
+                                <label className="text-xs text-muted-foreground">
+                                    {field.label}
+                                </label>
+                                <div className="border rounded px-3 py-2 text-sm w-48 bg-muted/30 text-foreground min-h-[38px]">
+                                    {field.value != null ? field.value : "—"}
+                                </div>
+                            </div>
+                        ))}
                     </div>
 
                     {/* ── File upload ── */}
@@ -642,25 +485,33 @@ function DetailContent({
                                             Raw material name
                                         </th>
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                            Unit
+                                            Quantity
                                         </th>
-                                        {TABLE_FIELDS.map((f) => (
-                                            <th
-                                                key={f.key}
-                                                className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap"
-                                            >
-                                                {f.label}
-                                            </th>
-                                        ))}
+                                        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                            Shipped qty
+                                        </th>
+                                        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                            Price
+                                        </th>
+                                        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                            Line total
+                                        </th>
+                                        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                            Shipped amount
+                                        </th>
+                                        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                            Difference
+                                        </th>
+                                        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                            Present (%)
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {items.length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan={
-                                                    2 + TABLE_FIELDS.length
-                                                }
+                                                colSpan={8}
                                                 className="text-center py-6 text-muted-foreground text-sm"
                                             >
                                                 No data
@@ -668,12 +519,21 @@ function DetailContent({
                                         </tr>
                                     )}
                                     {items.map((item) => {
-                                        const edit = rowEdits[item.id] ?? {}
+                                        const edit = rowEdits[item.id] ?? {
+                                            price: "",
+                                            present: "",
+                                        }
+                                        const derived = getDerivedValues(
+                                            item,
+                                            edit,
+                                        )
+
                                         return (
                                             <tr
                                                 key={item.id}
                                                 className="border-b last:border-0"
                                             >
+                                                {/* Raw material name */}
                                                 <td className="px-3 py-2 whitespace-nowrap">
                                                     <button
                                                         type="button"
@@ -696,47 +556,87 @@ function DetailContent({
                                                         {item.raw_material.name}
                                                     </button>
                                                 </td>
-                                                <td className="px-3 py-2 whitespace-nowrap text-sm text-muted-foreground">
-                                                    {item.unit ??
-                                                        item.raw_material
-                                                            .extra_fields?.[
-                                                            "Eд. Изм"
-                                                        ] ??
+
+                                                {/* Quantity — read-only */}
+                                                <td className="px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
+                                                    {item.quantity ?? "—"}
+                                                </td>
+
+                                                {/* Shipped qty — read-only */}
+                                                <td className="px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
+                                                    {item.shipped_quantity ??
                                                         "—"}
                                                 </td>
-                                                {TABLE_FIELDS.map((f) => (
-                                                    <td
-                                                        key={f.key}
-                                                        className="px-2 py-1"
-                                                    >
-                                                        <input
-                                                            type={
-                                                                f.isNumber ?
-                                                                    "number"
-                                                                :   "text"
-                                                            }
-                                                            className="w-full min-w-[80px] border-0 border-b border-muted focus:border-primary outline-none bg-transparent text-sm py-1 transition-colors"
-                                                            value={
-                                                                edit[f.key] ??
-                                                                ""
-                                                            }
-                                                            onChange={(e) =>
-                                                                updateRowEdit(
-                                                                    item.id,
-                                                                    f.key,
-                                                                    e.target
-                                                                        .value,
-                                                                )
-                                                            }
-                                                            onBlur={() =>
-                                                                handleRowBlur(
-                                                                    item.id,
-                                                                )
-                                                            }
-                                                            placeholder="—"
-                                                        />
-                                                    </td>
-                                                ))}
+
+                                                {/* Price — editable */}
+                                                <td className="px-2 py-1">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full min-w-[80px] border-0 border-b border-muted focus:border-primary outline-none bg-transparent text-sm py-1 transition-colors"
+                                                        value={edit.price}
+                                                        onChange={(e) =>
+                                                            updateRowEdit(
+                                                                item.id,
+                                                                "price",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        onBlur={() =>
+                                                            handleRowBlur(
+                                                                item.id,
+                                                                item,
+                                                            )
+                                                        }
+                                                        placeholder="—"
+                                                    />
+                                                </td>
+
+                                                {/* Line total — computed, read-only */}
+                                                <td className="px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
+                                                    {edit.price ?
+                                                        derived.lineTotal.toLocaleString()
+                                                    :   "—"}
+                                                </td>
+
+                                                {/* Shipped amount — computed, read-only */}
+                                                <td className="px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
+                                                    {edit.price ?
+                                                        derived.shippedAmount.toLocaleString()
+                                                    :   "—"}
+                                                </td>
+
+                                                {/* Difference — computed, read-only */}
+                                                <td className="px-3 py-2 text-sm whitespace-nowrap">
+                                                    {edit.price ?
+                                                        <span
+                                                            className="font-semibold"
+                                                            style={{
+                                                                color:
+                                                                    (
+                                                                        derived.difference >=
+                                                                        0
+                                                                    ) ?
+                                                                        "#16C647"
+                                                                    :   "#E73C50",
+                                                            }}
+                                                        >
+                                                            {(
+                                                                derived.difference >=
+                                                                0
+                                                            ) ?
+                                                                "+"
+                                                            :   ""}
+                                                            {derived.difference.toLocaleString()}
+                                                        </span>
+                                                    :   "—"}
+                                                </td>
+
+                                                {/* Present (%) — computed, read-only */}
+                                                <td className="px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
+                                                    {edit.price ?
+                                                        `${derived.present}%`
+                                                    :   "—"}
+                                                </td>
                                             </tr>
                                         )
                                     })}
@@ -752,7 +652,7 @@ function DetailContent({
                     rowItemId={itemDetailTarget.rowItemId}
                     materialName={itemDetailTarget.materialName}
                     contractNumber={itemDetailTarget.contractNumber}
-                    onClose={() => setItemDetailTarget(null)}
+                    onClose={handleItemModalClose}
                 />
             )}
         </>

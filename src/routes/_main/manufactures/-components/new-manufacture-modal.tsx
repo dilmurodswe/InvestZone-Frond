@@ -14,7 +14,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import {
     useCategoriesSelectQuery,
@@ -55,7 +55,7 @@ type CalculateResponse = {
 type ProductRow = CalculateResult & {
     input1: string
     input2: string
-    input4: string
+    weightFromCut: number | null
 }
 
 // ─── Calculate Results Component ─────────────────────────────────────────────
@@ -63,17 +63,19 @@ function CalculateResults({
     data,
     onSubmit,
     isPending,
+    selectedRawIds,
 }: {
     data: CalculateResponse
     onSubmit: (rows: ProductRow[]) => void
     isPending: boolean
+    selectedRawIds: number[]
 }) {
     const [rows, setRows] = useState<ProductRow[]>(
         data.results.map((r) => ({
             ...r,
             input1: "",
             input2: "",
-            input4: "",
+            weightFromCut: null,
         })),
     )
 
@@ -86,21 +88,80 @@ function CalculateResults({
                 ...r,
                 input1: "",
                 input2: "",
-                input4: "",
+                weightFromCut: null,
             })),
         )
     }
 
+    const { post: postWeight } = useRequest()
+
+    const fetchWeightForRow = useCallback(
+        async (index: number, currentRows: ProductRow[]) => {
+            const row = currentRows[index]
+            const strip = parseFloat(row.input1)
+            const qty = parseFloat(row.input2)
+            if (!strip || !qty) return
+
+            postWeight(
+                "manufactures/calculate-weight-from-cut",
+                {
+                    raw_item_detail_ids: selectedRawIds,
+                    products: [
+                        {
+                            product_id: row.product_id,
+                            strip_cut_width_mm: strip,
+                            quantity_in_cut: qty,
+                        },
+                    ],
+                },
+                {
+                    onSuccess: (res: {
+                        results: {
+                            product_id: number
+                            weight_from_cut: number
+                        }[]
+                    }) => {
+                        const found = res.results.find(
+                            (r) => r.product_id === row.product_id,
+                        )
+                        if (found) {
+                            setRows((prev) =>
+                                prev.map((r, i) =>
+                                    i === index ?
+                                        {
+                                            ...r,
+                                            weightFromCut:
+                                                found.weight_from_cut,
+                                        }
+                                    :   r,
+                                ),
+                            )
+                        }
+                    },
+                },
+            )
+        },
+        [selectedRawIds, postWeight],
+    )
+
     const updateRow = (
         index: number,
-        field: "input1" | "input2" | "input4",
+        field: "input1" | "input2",
         value: string,
     ) => {
-        setRows((prev) =>
-            prev.map((row, i) =>
+        setRows((prev) => {
+            const next = prev.map((row, i) =>
                 i === index ? { ...row, [field]: value } : row,
-            ),
-        )
+            )
+            // Ikkala input to'liq bo'lsa fetch qilamiz
+            const updated = next[index]
+            const strip = parseFloat(updated.input1)
+            const qty = parseFloat(updated.input2)
+            if (strip > 0 && qty > 0) {
+                fetchWeightForRow(index, next)
+            }
+            return next
+        })
     }
 
     const totalAmountSum = rows.reduce((sum, row) => {
@@ -110,7 +171,7 @@ function CalculateResults({
     }, 0)
 
     const weightFromCutSum = rows.reduce((sum, row) => {
-        return sum + (parseFloat(row.input4) || 0)
+        return sum + (row.weightFromCut ?? 0)
     }, 0)
 
     const fmt = (n: number) => (n % 1 === 0 ? n : n.toFixed(2))
@@ -208,7 +269,7 @@ function CalculateResults({
                                         </td>
                                         <td className="px-3 py-2 whitespace-nowrap">
                                             <span className="inline-flex items-center justify-center bg-muted/50 rounded px-2 py-0.5 font-mono text-xs font-semibold">
-                                                {row.amount}
+                                                {row.amount?.toFixed(2)}
                                             </span>
                                         </td>
                                         <td className="px-3 py-2">
@@ -251,20 +312,17 @@ function CalculateResults({
                                             </div>
                                         </td>
                                         <td className="px-3 py-2">
-                                            <input
-                                                type="number"
-                                                value={row.input4}
-                                                onChange={(e) =>
-                                                    updateRow(
-                                                        index,
-                                                        "input4",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className="w-full h-8 border rounded-md px-2 text-sm bg-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                                placeholder="0"
-                                                min={0}
-                                            />
+                                            <div
+                                                className={`w-full h-8 border rounded-md px-2 text-sm flex items-center font-medium transition-colors ${
+                                                    row.weightFromCut != null ?
+                                                        "bg-primary/5 border-primary/20 text-foreground"
+                                                    :   "bg-muted/30 text-muted-foreground"
+                                                }`}
+                                            >
+                                                {row.weightFromCut != null ?
+                                                    fmt(row.weightFromCut)
+                                                :   "—"}
+                                            </div>
                                         </td>
                                     </tr>
                                 )
@@ -327,7 +385,7 @@ function NewManufactureForm() {
     const [width, setWidth] = useState("")
     const [localSearch, setLocalSearch] = useState("")
     const [selectedRawIds, setSelectedRawIds] = useState<number[]>([])
-
+    const [productThickness, setProductThickness] = useState("")
     // Product filters
     const [categoryId, setCategoryId] = useState("")
     const [subCategoryId, setSubCategoryId] = useState("")
@@ -356,6 +414,7 @@ function NewManufactureForm() {
     )
     const { productOptions } = useProductsSelectQuery(
         subCategoryId ? Number(subCategoryId) : undefined,
+        productThickness || undefined,
     )
 
     const { data: calcResponse, isFetching: isCalculating } =
@@ -431,8 +490,9 @@ function NewManufactureForm() {
                     total_amount:
                         (parseFloat(row.input1) || 0) *
                         (parseFloat(row.input2) || 0),
-                    weight_from_cut: parseFloat(row.input4) || 0,
+                    weight_from_cut: row.weightFromCut ?? 0, // o'zgardi
                 })),
+
                 total_sum: rows.reduce((sum, row) => {
                     return (
                         sum +
@@ -441,7 +501,7 @@ function NewManufactureForm() {
                     )
                 }, 0),
                 total_cut_weight: rows.reduce((sum, row) => {
-                    return sum + (parseFloat(row.input4) || 0)
+                    return sum + (row.weightFromCut ?? 0) // o'zgardi
                 }, 0),
             },
             {
@@ -692,6 +752,32 @@ function NewManufactureForm() {
                             </SelectContent>
                         </Select>
                     </div>
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-muted-foreground">
+                            Thickness
+                        </label>
+                        <Select
+                            value={productThickness}
+                            onValueChange={(val) => {
+                                setProductThickness(val)
+                                setSelectedProductIds([])
+                            }}
+                        >
+                            <SelectTrigger className="w-[130px]">
+                                <SelectValue placeholder="All" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {thicknessOptions.map((t) => (
+                                    <SelectItem
+                                        key={t.id}
+                                        value={String(t.name)}
+                                    >
+                                        {t.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
                     <div className="ml-auto text-sm text-muted-foreground">
                         Selected:{" "}
@@ -820,6 +906,7 @@ function NewManufactureForm() {
                             data={calcResponse}
                             onSubmit={handleSubmit}
                             isPending={isPending}
+                            selectedRawIds={selectedRawIds}
                         />
                     :   null}
                 </div>

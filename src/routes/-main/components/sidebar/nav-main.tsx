@@ -161,6 +161,16 @@ export function NavMain() {
                     enabled: isAdmin,
                     title: "Manufactures",
                 }),
+                linkOptions({
+                    to: "/ready-strips",
+                    enabled: isAdmin,
+                    title: "Ready Strips",
+                }),
+                linkOptions({
+                    to: "/rolling-plans",
+                    enabled: isAdmin,
+                    title: "Rolling Plans",
+                }),
             ],
         }),
         linkOptions({
@@ -188,6 +198,11 @@ export function NavMain() {
                     to: "/settings/payment-type",
                     enabled: isAdmin,
                     title: "Payment Types",
+                }),
+                linkOptions({
+                    to: "/settings/machine",
+                    enabled: isAdmin,
+                    title: "Machine",
                 }),
             ],
         }),

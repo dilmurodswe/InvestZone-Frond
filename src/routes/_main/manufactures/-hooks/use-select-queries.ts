@@ -47,12 +47,17 @@ type ProductOption = {
     sub_category?: number
 }
 
-export const useProductsSelectQuery = (subCategoryId?: number) => {
+export const useProductsSelectQuery = (
+    subCategoryId?: number,
+    thickness?: string,
+) => {
+    const params: Record<string, unknown> = {}
+    if (subCategoryId) params.sub_category = subCategoryId
+    if (thickness) params.thickness = thickness
+
     const res = useGet<PaginatedResponse<ProductOption>>(
         API.EXTRA.PRODUCTS.INDEX,
-        {
-            params: subCategoryId ? { sub_category: subCategoryId } : {},
-        },
+        { params },
     )
     const productOptions = getArray<ProductOption>(res.data?.results)
     return { ...res, productOptions }

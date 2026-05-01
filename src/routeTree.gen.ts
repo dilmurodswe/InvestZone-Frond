@@ -15,6 +15,8 @@ import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainTaskManagerIndexRouteImport } from './routes/_main/task-manager/index'
 import { Route as MainSuppliersIndexRouteImport } from './routes/_main/suppliers/index'
 import { Route as MainSettingsIndexRouteImport } from './routes/_main/settings/index'
+import { Route as MainRollingPlansIndexRouteImport } from './routes/_main/rolling-plans/index'
+import { Route as MainReadyStripsIndexRouteImport } from './routes/_main/ready-strips/index'
 import { Route as MainReadyProductsIndexRouteImport } from './routes/_main/ready-products/index'
 import { Route as MainRawMaterialsIndexRouteImport } from './routes/_main/raw-materials/index'
 import { Route as MainRawMaterialRequestsIndexRouteImport } from './routes/_main/raw-material-requests/index'
@@ -29,6 +31,7 @@ import { Route as AuthLoginIndexRouteImport } from './routes/_auth/login/index'
 import { Route as MainSettingsRawMaterialsIndexRouteImport } from './routes/_main/settings/raw-materials/index'
 import { Route as MainSettingsProductsIndexRouteImport } from './routes/_main/settings/products/index'
 import { Route as MainSettingsPaymentTypeIndexRouteImport } from './routes/_main/settings/payment-type/index'
+import { Route as MainSettingsMachineIndexRouteImport } from './routes/_main/settings/machine/index'
 import { Route as MainSettingsCurrencyIndexRouteImport } from './routes/_main/settings/currency/index'
 import { Route as MainFinanceIncomeIndexRouteImport } from './routes/_main/finance/income/index'
 import { Route as MainFinanceExpenceIndexRouteImport } from './routes/_main/finance/expence/index'
@@ -62,6 +65,16 @@ const MainSuppliersIndexRoute = MainSuppliersIndexRouteImport.update({
 const MainSettingsIndexRoute = MainSettingsIndexRouteImport.update({
   id: '/settings/',
   path: '/settings/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainRollingPlansIndexRoute = MainRollingPlansIndexRouteImport.update({
+  id: '/rolling-plans/',
+  path: '/rolling-plans/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainReadyStripsIndexRoute = MainReadyStripsIndexRouteImport.update({
+  id: '/ready-strips/',
+  path: '/ready-strips/',
   getParentRoute: () => MainRoute,
 } as any)
 const MainReadyProductsIndexRoute = MainReadyProductsIndexRouteImport.update({
@@ -138,6 +151,12 @@ const MainSettingsPaymentTypeIndexRoute =
     path: '/settings/payment-type/',
     getParentRoute: () => MainRoute,
   } as any)
+const MainSettingsMachineIndexRoute =
+  MainSettingsMachineIndexRouteImport.update({
+    id: '/settings/machine/',
+    path: '/settings/machine/',
+    getParentRoute: () => MainRoute,
+  } as any)
 const MainSettingsCurrencyIndexRoute =
   MainSettingsCurrencyIndexRouteImport.update({
     id: '/settings/currency/',
@@ -186,6 +205,8 @@ export interface FileRoutesByFullPath {
   '/raw-material-requests': typeof MainRawMaterialRequestsIndexRoute
   '/raw-materials': typeof MainRawMaterialsIndexRoute
   '/ready-products': typeof MainReadyProductsIndexRoute
+  '/ready-strips': typeof MainReadyStripsIndexRoute
+  '/rolling-plans': typeof MainRollingPlansIndexRoute
   '/settings': typeof MainSettingsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
   '/task-manager': typeof MainTaskManagerIndexRoute
@@ -193,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/finance/expence': typeof MainFinanceExpenceIndexRoute
   '/finance/income': typeof MainFinanceIncomeIndexRoute
   '/settings/currency': typeof MainSettingsCurrencyIndexRoute
+  '/settings/machine': typeof MainSettingsMachineIndexRoute
   '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
   '/settings/products': typeof MainSettingsProductsIndexRoute
   '/settings/raw-materials': typeof MainSettingsRawMaterialsIndexRoute
@@ -212,6 +234,8 @@ export interface FileRoutesByTo {
   '/raw-material-requests': typeof MainRawMaterialRequestsIndexRoute
   '/raw-materials': typeof MainRawMaterialsIndexRoute
   '/ready-products': typeof MainReadyProductsIndexRoute
+  '/ready-strips': typeof MainReadyStripsIndexRoute
+  '/rolling-plans': typeof MainRollingPlansIndexRoute
   '/settings': typeof MainSettingsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
   '/task-manager': typeof MainTaskManagerIndexRoute
@@ -219,6 +243,7 @@ export interface FileRoutesByTo {
   '/finance/expence': typeof MainFinanceExpenceIndexRoute
   '/finance/income': typeof MainFinanceIncomeIndexRoute
   '/settings/currency': typeof MainSettingsCurrencyIndexRoute
+  '/settings/machine': typeof MainSettingsMachineIndexRoute
   '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
   '/settings/products': typeof MainSettingsProductsIndexRoute
   '/settings/raw-materials': typeof MainSettingsRawMaterialsIndexRoute
@@ -241,6 +266,8 @@ export interface FileRoutesById {
   '/_main/raw-material-requests/': typeof MainRawMaterialRequestsIndexRoute
   '/_main/raw-materials/': typeof MainRawMaterialsIndexRoute
   '/_main/ready-products/': typeof MainReadyProductsIndexRoute
+  '/_main/ready-strips/': typeof MainReadyStripsIndexRoute
+  '/_main/rolling-plans/': typeof MainRollingPlansIndexRoute
   '/_main/settings/': typeof MainSettingsIndexRoute
   '/_main/suppliers/': typeof MainSuppliersIndexRoute
   '/_main/task-manager/': typeof MainTaskManagerIndexRoute
@@ -248,6 +275,7 @@ export interface FileRoutesById {
   '/_main/finance/expence/': typeof MainFinanceExpenceIndexRoute
   '/_main/finance/income/': typeof MainFinanceIncomeIndexRoute
   '/_main/settings/currency/': typeof MainSettingsCurrencyIndexRoute
+  '/_main/settings/machine/': typeof MainSettingsMachineIndexRoute
   '/_main/settings/payment-type/': typeof MainSettingsPaymentTypeIndexRoute
   '/_main/settings/products/': typeof MainSettingsProductsIndexRoute
   '/_main/settings/raw-materials/': typeof MainSettingsRawMaterialsIndexRoute
@@ -269,6 +297,8 @@ export interface FileRouteTypes {
     | '/raw-material-requests'
     | '/raw-materials'
     | '/ready-products'
+    | '/ready-strips'
+    | '/rolling-plans'
     | '/settings'
     | '/suppliers'
     | '/task-manager'
@@ -276,6 +306,7 @@ export interface FileRouteTypes {
     | '/finance/expence'
     | '/finance/income'
     | '/settings/currency'
+    | '/settings/machine'
     | '/settings/payment-type'
     | '/settings/products'
     | '/settings/raw-materials'
@@ -295,6 +326,8 @@ export interface FileRouteTypes {
     | '/raw-material-requests'
     | '/raw-materials'
     | '/ready-products'
+    | '/ready-strips'
+    | '/rolling-plans'
     | '/settings'
     | '/suppliers'
     | '/task-manager'
@@ -302,6 +335,7 @@ export interface FileRouteTypes {
     | '/finance/expence'
     | '/finance/income'
     | '/settings/currency'
+    | '/settings/machine'
     | '/settings/payment-type'
     | '/settings/products'
     | '/settings/raw-materials'
@@ -323,6 +357,8 @@ export interface FileRouteTypes {
     | '/_main/raw-material-requests/'
     | '/_main/raw-materials/'
     | '/_main/ready-products/'
+    | '/_main/ready-strips/'
+    | '/_main/rolling-plans/'
     | '/_main/settings/'
     | '/_main/suppliers/'
     | '/_main/task-manager/'
@@ -330,6 +366,7 @@ export interface FileRouteTypes {
     | '/_main/finance/expence/'
     | '/_main/finance/income/'
     | '/_main/settings/currency/'
+    | '/_main/settings/machine/'
     | '/_main/settings/payment-type/'
     | '/_main/settings/products/'
     | '/_main/settings/raw-materials/'
@@ -384,6 +421,20 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof MainSettingsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/rolling-plans/': {
+      id: '/_main/rolling-plans/'
+      path: '/rolling-plans'
+      fullPath: '/rolling-plans'
+      preLoaderRoute: typeof MainRollingPlansIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/ready-strips/': {
+      id: '/_main/ready-strips/'
+      path: '/ready-strips'
+      fullPath: '/ready-strips'
+      preLoaderRoute: typeof MainReadyStripsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/ready-products/': {
@@ -484,6 +535,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainSettingsPaymentTypeIndexRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/settings/machine/': {
+      id: '/_main/settings/machine/'
+      path: '/settings/machine'
+      fullPath: '/settings/machine'
+      preLoaderRoute: typeof MainSettingsMachineIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/settings/currency/': {
       id: '/_main/settings/currency/'
       path: '/settings/currency'
@@ -551,6 +609,8 @@ interface MainRouteChildren {
   MainRawMaterialRequestsIndexRoute: typeof MainRawMaterialRequestsIndexRoute
   MainRawMaterialsIndexRoute: typeof MainRawMaterialsIndexRoute
   MainReadyProductsIndexRoute: typeof MainReadyProductsIndexRoute
+  MainReadyStripsIndexRoute: typeof MainReadyStripsIndexRoute
+  MainRollingPlansIndexRoute: typeof MainRollingPlansIndexRoute
   MainSettingsIndexRoute: typeof MainSettingsIndexRoute
   MainSuppliersIndexRoute: typeof MainSuppliersIndexRoute
   MainTaskManagerIndexRoute: typeof MainTaskManagerIndexRoute
@@ -558,6 +618,7 @@ interface MainRouteChildren {
   MainFinanceExpenceIndexRoute: typeof MainFinanceExpenceIndexRoute
   MainFinanceIncomeIndexRoute: typeof MainFinanceIncomeIndexRoute
   MainSettingsCurrencyIndexRoute: typeof MainSettingsCurrencyIndexRoute
+  MainSettingsMachineIndexRoute: typeof MainSettingsMachineIndexRoute
   MainSettingsPaymentTypeIndexRoute: typeof MainSettingsPaymentTypeIndexRoute
   MainSettingsProductsIndexRoute: typeof MainSettingsProductsIndexRoute
   MainSettingsRawMaterialsIndexRoute: typeof MainSettingsRawMaterialsIndexRoute
@@ -577,6 +638,8 @@ const MainRouteChildren: MainRouteChildren = {
   MainRawMaterialRequestsIndexRoute: MainRawMaterialRequestsIndexRoute,
   MainRawMaterialsIndexRoute: MainRawMaterialsIndexRoute,
   MainReadyProductsIndexRoute: MainReadyProductsIndexRoute,
+  MainReadyStripsIndexRoute: MainReadyStripsIndexRoute,
+  MainRollingPlansIndexRoute: MainRollingPlansIndexRoute,
   MainSettingsIndexRoute: MainSettingsIndexRoute,
   MainSuppliersIndexRoute: MainSuppliersIndexRoute,
   MainTaskManagerIndexRoute: MainTaskManagerIndexRoute,
@@ -584,6 +647,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainFinanceExpenceIndexRoute: MainFinanceExpenceIndexRoute,
   MainFinanceIncomeIndexRoute: MainFinanceIncomeIndexRoute,
   MainSettingsCurrencyIndexRoute: MainSettingsCurrencyIndexRoute,
+  MainSettingsMachineIndexRoute: MainSettingsMachineIndexRoute,
   MainSettingsPaymentTypeIndexRoute: MainSettingsPaymentTypeIndexRoute,
   MainSettingsProductsIndexRoute: MainSettingsProductsIndexRoute,
   MainSettingsRawMaterialsIndexRoute: MainSettingsRawMaterialsIndexRoute,

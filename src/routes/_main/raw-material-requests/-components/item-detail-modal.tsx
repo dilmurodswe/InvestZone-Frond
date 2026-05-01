@@ -70,7 +70,7 @@ const getStatusIndex = (status: string) =>
 const EMPTY_ROW = (): ItemRow => ({
     _id: Date.now() + Math.random(),
     serverId: undefined,
-    status: "shipped", // default birinchi status
+    status: "shipped",
     brutto: "",
     weight: "",
     netto: "",
@@ -129,7 +129,7 @@ const toPayload = (r: ItemRow) => ({
     wagon: r.wagon ? Number(r.wagon) : null,
 })
 
-// ─── Status dropdown — portal orqali render ──────────────────────────────────
+// ─── Status dropdown ──────────────────────────────────────────────────────────
 function StatusDropdown({
     row,
     onSelect,
@@ -167,7 +167,6 @@ function StatusDropdown({
 
             {open && (
                 <>
-                    {/* backdrop */}
                     <div
                         className="fixed inset-0 z-[9998]"
                         onClick={() => setOpen(false)}
@@ -205,7 +204,7 @@ function StatusDropdown({
     )
 }
 
-// ─── New row status select (extraRows uchun) ──────────────────────────────────
+// ─── New row status select ────────────────────────────────────────────────────
 function NewRowStatusSelect({
     value,
     onChange,
@@ -361,6 +360,7 @@ export default function ItemDetailModal({
 
         if (extraRows.length === 0) {
             toast.success("Saved")
+            // onClose triggers refetch in parent (RequestDetailModal)
             onClose()
             return
         }
@@ -376,13 +376,13 @@ export default function ItemDetailModal({
             {
                 onSuccess: () => {
                     toast.success("Saved successfully")
+                    // onClose triggers refetch in parent (RequestDetailModal)
                     onClose()
                 },
             },
         )
     }
 
-    // Server row status o'zgartirish — alertDialog orqali
     const handleServerStatusSelect = (row: ItemRow, newStatus: string) => {
         if (!row.serverId) return
         setPendingStatus({
@@ -448,7 +448,7 @@ export default function ItemDetailModal({
                         onSubmit={handleSubmit}
                         className="flex flex-col gap-4 overflow-hidden flex-1"
                     >
-                        <div className="overflow-auto flex-1 px-6 pt-4  min-h-[60vh] ">
+                        <div className="overflow-auto flex-1 px-6 pt-4 min-h-[60vh]">
                             {isLoading ?
                                 <div className="flex justify-center py-10">
                                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -598,7 +598,6 @@ export default function ItemDetailModal({
                 </div>
             </div>
 
-            {/* AlertDialog — modal tashqarisida render */}
             <AlertDialog
                 open={!!pendingStatus}
                 onOpenChange={(open) => !open && setPendingStatus(null)}

@@ -35,7 +35,8 @@ import {
 } from "react-hook-form"
 import { toast } from "sonner"
 import { useProductStore } from "../-hooks/use-product-store"
-import type { Product } from "../../../-types"
+import type { Category, Product } from "../../../-types"
+
 export default function ProductAddEditModal() {
     return (
         <Modal modalKey="add-product" title={null}>
@@ -46,9 +47,14 @@ export default function ProductAddEditModal() {
 
 type ExtraField = { key: string; value: string }
 
-type Form = Omit<Product, "id" | "extra_fields" | "description"> & {
+type Form = Omit<
+    Product,
+    "id" | "extra_fields" | "description" | "diameter" | "outer_dimension"
+> & {
     description: string
     extra_fields: ExtraField[]
+    outer_dimension: string
+    diameter: string
 }
 
 // ─── Tiptap Toolbar ────────────────────────────────────────────────────────────
@@ -108,7 +114,6 @@ function RichTextEditor({
 
     return (
         <div className="border rounded-lg overflow-hidden flex flex-col">
-            {/* Toolbar */}
             <div className="flex flex-wrap items-center gap-0.5 p-1.5 border-b bg-muted/40">
                 <ToolbarButton
                     active={editor.isActive("bold")}
@@ -173,8 +178,6 @@ function RichTextEditor({
                     <ListOrdered className="w-4 h-4" />
                 </ToolbarButton>
             </div>
-
-            {/* Editor area */}
             <EditorContent
                 editor={editor}
                 className="prose prose-sm max-w-none min-h-[120px] p-3 focus-within:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[100px]"
@@ -182,6 +185,7 @@ function RichTextEditor({
         </div>
     )
 }
+
 function ComboboxExtraField({
     index,
     form,
@@ -269,6 +273,7 @@ function ComboboxExtraField({
         </div>
     )
 }
+
 // ─── Main Form ─────────────────────────────────────────────────────────────────
 function ProductAddEdit() {
     const { closeModal } = useModal("add-product")
@@ -277,12 +282,17 @@ function ProductAddEdit() {
     const { categoryId, subcategoryId } = useParams({ strict: false })
     const { post, patch, isPending } = useRequest()
 
+    // Category info — to check if type === "truba"
+    const { data: categoryData } = useGet<Category>(
+        `extra/categories/${categoryId}`,
+    )
+    const isTruba = categoryData?.type === "truba"
+
     const { data: extraFieldSuggestions } = useGet<
         { key: string; value: string }[]
     >(API.EXTRA.EXTRA_FIELDS.INDEX)
     const suggestions = extraFieldSuggestions?.map((f) => f.key) ?? []
 
-    // Convert extra_fields object → array for the form
     const extraFieldsDefault: ExtraField[] =
         product?.extra_fields ?
             Object.entries(product.extra_fields).map(([key, value]) => ({
@@ -303,6 +313,8 @@ function ProductAddEdit() {
             factually_price: 0,
             description: "",
             extra_fields: [],
+            outer_dimension: "",
+            diameter: "",
         },
         values:
             product ?
@@ -317,6 +329,11 @@ function ProductAddEdit() {
                     factually_price: product.factually_price,
                     description: product.description ?? "",
                     extra_fields: extraFieldsDefault,
+                    outer_dimension: product.outer_dimension ?? "",
+                    diameter:
+                        product.diameter != null ?
+                            String(product.diameter)
+                        :   "",
                 }
             :   undefined,
     })
@@ -335,13 +352,12 @@ function ProductAddEdit() {
     }
 
     const onSubmit = form.handleSubmit((vals) => {
-        // Convert extra_fields array → object
         const extra_fields: Record<string, string> = {}
         for (const f of vals.extra_fields) {
             if (f.key.trim()) extra_fields[f.key.trim()] = f.value
         }
 
-        const payload = {
+        const payload: Record<string, unknown> = {
             name: vals.name,
             category: vals.category,
             sub_category: vals.sub_category,
@@ -352,6 +368,12 @@ function ProductAddEdit() {
             factually_price: vals.factually_price,
             description: vals.description,
             extra_fields,
+            outer_dimension: vals.outer_dimension || null,
+        }
+
+        // diameter only for truba
+        if (isTruba) {
+            payload.diameter = vals.diameter ? Number(vals.diameter) : null
         }
 
         if (product) {
@@ -369,19 +391,12 @@ function ProductAddEdit() {
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
             <CardTitle>{product ? "Edit Product" : "Add Product"}</CardTitle>
 
-            {/* Base fields */}
             <UncontrolledInput
                 methods={form}
                 name="name"
                 label="Product name"
             />
             <UncontrolledInput methods={form} name="articul" label="SKU" />
-            {/* <UncontrolledInput
-                methods={form}
-                name="code"
-                label="Product code"
-                type="number"
-            /> */}
             <UncontrolledInput
                 methods={form}
                 name="price"
@@ -401,7 +416,24 @@ function ProductAddEdit() {
                 type="number"
             />
 
-            {/* Description – rich text */}
+            {/* Наружный размер, мм — always visible */}
+            <UncontrolledInput
+                methods={form}
+                name="outer_dimension"
+                label="Наружный размер, мм"
+            />
+
+            {/* diameter — only for truba */}
+            {isTruba && (
+                <UncontrolledInput
+                    methods={form}
+                    name="diameter"
+                    label="Diameter"
+                    type="number"
+                />
+            )}
+
+            {/* Description */}
             <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-foreground">
                     Description{" "}

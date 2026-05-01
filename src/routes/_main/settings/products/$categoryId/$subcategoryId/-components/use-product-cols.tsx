@@ -1,10 +1,13 @@
+import { useGet } from "@/hooks/react-query/use-get"
 import { useModal } from "@/hooks/use-modal"
+import { useParams } from "@tanstack/react-router"
 import type { CellContext, ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useProductStore } from "../-hooks/use-product-store"
 import { useProductsQuery } from "../-hooks/use-products-query"
-import type { Product } from "../../../-types"
+import type { Category, Product } from "../../../-types"
+
 // ─── Actions dropdown ─────────────────────────────────────────────────────────
 // eslint-disable-next-line react-refresh/only-export-components
 function ProductActions({ product }: { product: Product }) {
@@ -122,6 +125,13 @@ export const useProductCols = (
     const { productList } = useProductsQuery()
     const { setProduct } = useProductStore()
     const detailModal = useModal("product-detail")
+    const { categoryId } = useParams({ strict: false })
+
+    // Fetch category to check if truba
+    const { data: categoryData } = useGet<Category>(
+        `extra/categories/${categoryId}`,
+    )
+    const isTruba = categoryData?.type === "truba"
 
     const extraKeys = useMemo(() => {
         const keys = new Set<string>()
@@ -152,6 +162,30 @@ export const useProductCols = (
                 />
             ),
         }))
+
+    const outerDimensionCol: ColumnDef<Product> = {
+        id: "outer_dimension",
+        header: "Наружный размер, мм",
+        cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+            <TruncatedCell
+                value={original.outer_dimension ?? null}
+                onClick={() => handleRowClick(original)}
+                maxWidth={160}
+            />
+        ),
+    }
+
+    const diameterCol: ColumnDef<Product> = {
+        id: "diameter",
+        header: "Diameter",
+        cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+            <TruncatedCell
+                value={original.diameter ?? null}
+                onClick={() => handleRowClick(original)}
+                maxWidth={100}
+            />
+        ),
+    }
 
     return [
         {
@@ -220,6 +254,10 @@ export const useProductCols = (
                 />
             ),
         },
+        // Наружный размер, мм — always visible
+        outerDimensionCol,
+        // diameter — only for truba
+        ...(isTruba ? [diameterCol] : []),
         ...extraCols,
         {
             id: "description",

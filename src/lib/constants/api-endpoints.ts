@@ -52,6 +52,10 @@ export const API = {
         },
     },
     SETTINGS: {
+        MACHINE: {
+            INDEX: "extra/machines",
+            ID: { INDEX: "extra/machines/{id}" },
+        },
         CURRENCY: {
             INDEX: "extra/currency",
             ID: { INDEX: "extra/currency/{id}" },
@@ -118,6 +122,7 @@ export const API = {
         ID: "manufactures/{id}",
         READY_PRODUCTS: "manufactures/ready-products",
         CALCULATE_AMOUNT: "manufactures/calculate-amount",
+        READY_STRIPS: "manufactures/ready-strips",
     },
     FINANCE: {
         EXPENSE: {
@@ -133,5 +138,9 @@ export const API = {
         EXPENSE_STATS: "dashboard/expense-stats",
         INCOME_STATS: "dashboard/income-stats",
         PAYMENT_TYPE_STATS: "dashboard/payment-type-stats",
+    },
+    ROLLING_PLANS: {
+        INDEX: "rolling-plans",
+        ID: "rolling-plans/{id}",
     },
 } as const

@@ -22,4 +22,6 @@ export type Product = {
     factually_price: number
     description?: string
     extra_fields?: Record<string, string>
+    outer_dimension?: string
+    diameter?: number
 }
