@@ -39,7 +39,13 @@ export default function RollingPlanStatusDropdown({
     const handleSelect = (status: RollingPlanStatus) => {
         patch(
             API.ROLLING_PLANS.ID.replace("{id}", String(rollingPlan.id)),
-            { status },
+            {
+                machine: rollingPlan.machine,
+                items: rollingPlan.items.map((item) => ({
+                    ready_strip: item.ready_strip,
+                    status,
+                })),
+            },
             {
                 onSuccess: () => {
                     invalidateByExactMatch([API.ROLLING_PLANS.INDEX])

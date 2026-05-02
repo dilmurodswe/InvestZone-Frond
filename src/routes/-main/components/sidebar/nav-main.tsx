@@ -159,17 +159,17 @@ export function NavMain() {
                 linkOptions({
                     to: "/manufactures",
                     enabled: isAdmin,
-                    title: "Manufactures",
+                    title: "Reska Shtrips",
                 }),
                 linkOptions({
                     to: "/ready-strips",
                     enabled: isAdmin,
-                    title: "Ready Strips",
+                    title: "Ready shtrips",
                 }),
                 linkOptions({
                     to: "/rolling-plans",
                     enabled: isAdmin,
-                    title: "Rolling Plans",
+                    title: "Prokatka",
                 }),
             ],
         }),
