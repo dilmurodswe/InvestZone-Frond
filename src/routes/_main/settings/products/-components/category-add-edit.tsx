@@ -26,6 +26,7 @@ type Form = Omit<Category, "id">
 const typeOptions = [
     { name: "Truba", id: "truba" },
     { name: "Profil", id: "profil" },
+    { name: "List", id: "list" },
 ]
 
 function CategoryAddEdit() {

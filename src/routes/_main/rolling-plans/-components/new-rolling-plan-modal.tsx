@@ -1,7 +1,13 @@
 import Modal from "@/components/custom/modal"
 import LocalFilterInput from "@/components/filter/local-search-input"
+import { Calendar } from "@/components/ui/calendar"
 import { CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
 import {
     Select,
     SelectContent,
@@ -13,6 +19,9 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { cn } from "@/lib/utils/shadcn"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import {
@@ -39,12 +48,56 @@ export default function NewRollingPlanModal() {
 }
 
 type SelectedStrip = ReadyStrip & {
-    total_pcs: string
-    total_weight: string
-    selected_weight_ton: string
-    end_date: string
-    calculated_meters: string
+    vibor_th: string
+    end_date: Date | undefined
     pipe_length_mm: string
+}
+
+function calcKolvMetar(strip: SelectedStrip): string {
+    const x = Number(strip.vibor_th) || 0
+    const denom = strip.strip_cut_width_mm * strip.quantity * 0.00785
+    if (!denom) return "0"
+    const result = x / denom
+    return result % 1 === 0 ? String(result) : result.toFixed(4)
+}
+
+// Inline date picker cell using Calendar + Popover
+function DatePickerCell({
+    value,
+    onChange,
+}: {
+    value: Date | undefined
+    onChange: (date: Date | undefined) => void
+}) {
+    const [open, setOpen] = useState(false)
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <button
+                    type="button"
+                    className={cn(
+                        "h-8 min-w-[130px] w-full border rounded-md px-2 text-sm bg-background flex items-center gap-2 text-left",
+                        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                        !value && "text-muted-foreground",
+                    )}
+                >
+                    <CalendarIcon className="size-3.5 shrink-0" />
+                    {value ? format(value, "dd.MM.yyyy") : "Sanani tanlang"}
+                </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                    mode="single"
+                    selected={value}
+                    onSelect={(date) => {
+                        onChange(date)
+                        setOpen(false)
+                    }}
+                    initialFocus
+                />
+            </PopoverContent>
+        </Popover>
+    )
 }
 
 function NewRollingPlanForm() {
@@ -52,16 +105,11 @@ function NewRollingPlanForm() {
     const { invalidateByExactMatch } = useRevalidate()
     const { post, isPending } = useRequest()
 
-    // General fields
     const [machineId, setMachineId] = useState("")
     const [planNumber, setPlanNumber] = useState("")
-
-    // Ready strips filters
     const [thickness, setThickness] = useState("")
     const [width, setWidth] = useState("")
     const [localSearch, setLocalSearch] = useState("")
-
-    // Selected strips with their input values
     const [selectedStrips, setSelectedStrips] = useState<SelectedStrip[]>([])
 
     const { machineOptions } = useMachinesQuery()
@@ -78,28 +126,22 @@ function NewRollingPlanForm() {
 
     const filteredStrips = readyStripOptions.filter((s) => {
         if (!localSearch) return true
-        const q = localSearch.toLowerCase()
-        return s.product_name?.toLowerCase().includes(q)
+        return s.product_name?.toLowerCase().includes(localSearch.toLowerCase())
     })
 
     const isSelected = (strip: ReadyStrip) =>
-        selectedStrips.some((s) => s.product_id === strip.product_id)
+        selectedStrips.some((s) => s.id === strip.id)
 
     const toggleStrip = (strip: ReadyStrip) => {
         if (isSelected(strip)) {
-            setSelectedStrips((prev) =>
-                prev.filter((s) => s.product_id !== strip.product_id),
-            )
+            setSelectedStrips((prev) => prev.filter((s) => s.id !== strip.id))
         } else {
             setSelectedStrips((prev) => [
                 ...prev,
                 {
                     ...strip,
-                    total_pcs: "",
-                    total_weight: "",
-                    selected_weight_ton: "",
-                    end_date: "",
-                    calculated_meters: "",
+                    vibor_th: "",
+                    end_date: undefined,
                     pipe_length_mm: "",
                 },
             ])
@@ -107,17 +149,18 @@ function NewRollingPlanForm() {
     }
 
     const updateStrip = (
-        productId: number,
-        field: keyof Omit<SelectedStrip, keyof ReadyStrip>,
-        value: string,
+        id: number,
+        field: "vibor_th" | "end_date" | "pipe_length_mm",
+        value: string | Date | undefined,
     ) => {
         setSelectedStrips((prev) =>
-            prev.map((s) =>
-                s.product_id === productId ? { ...s, [field]: value } : s,
-            ),
+            prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)),
         )
     }
 
+    const hasViborError = selectedStrips.some(
+        (s) => s.vibor_th !== "" && Number(s.vibor_th) > s.total_wes,
+    )
     const canSubmit = !!machineId && !!planNumber && selectedStrips.length > 0
 
     const handleSubmit = () => {
@@ -127,13 +170,14 @@ function NewRollingPlanForm() {
                 machine: Number(machineId),
                 plan_number: planNumber,
                 items: selectedStrips.map((s) => ({
-                    ready_strip: s.product_id,
+                    ready_strip: s.id,
                     status: "on_warehouse",
-                    total_pcs: Number(s.total_pcs) || 0,
-                    total_weight: Number(s.total_weight) || 0,
-                    selected_weight_ton: Number(s.selected_weight_ton) || 0,
-                    end_date: s.end_date || null,
-                    calculated_meters: Number(s.calculated_meters) || 0,
+                    total_pcs: s.quantity,
+                    total_weight: s.total_wes,
+                    selected_weight_ton: Number(s.vibor_th) || 0,
+                    end_date:
+                        s.end_date ? format(s.end_date, "yyyy-MM-dd") : null,
+                    calculated_meters: Number(calcKolvMetar(s)) || 0,
                     pipe_length_mm: Number(s.pipe_length_mm) || 0,
                 })),
             },
@@ -147,13 +191,11 @@ function NewRollingPlanForm() {
         )
     }
 
-    const fmt = (n: number) => (n % 1 === 0 ? n : n.toFixed(2))
-
     return (
         <div className="flex flex-col gap-5">
             <CardTitle>New Rolling Plan</CardTitle>
 
-            {/* ── General Info ── */}
+            {/* General */}
             <div className="flex flex-col gap-3">
                 <p className="text-sm font-semibold">General</p>
                 <div className="flex items-end gap-4 flex-wrap">
@@ -174,7 +216,6 @@ function NewRollingPlanForm() {
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-muted-foreground">
                             Plan Number
@@ -190,21 +231,15 @@ function NewRollingPlanForm() {
                 </div>
             </div>
 
-            {/* ── Ready Strips Section ── */}
+            {/* Ready Strips */}
             <div className="flex flex-col gap-3">
                 <p className="text-sm font-semibold">Ready Strips</p>
-
                 <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-muted-foreground">
                             Thickness
                         </label>
-                        <Select
-                            value={thickness}
-                            onValueChange={(val) => {
-                                setThickness(val)
-                            }}
-                        >
+                        <Select value={thickness} onValueChange={setThickness}>
                             <SelectTrigger className="w-[130px]">
                                 <SelectValue placeholder="All" />
                             </SelectTrigger>
@@ -220,17 +255,11 @@ function NewRollingPlanForm() {
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-muted-foreground">
                             Width
                         </label>
-                        <Select
-                            value={width}
-                            onValueChange={(val) => {
-                                setWidth(val)
-                            }}
-                        >
+                        <Select value={width} onValueChange={setWidth}>
                             <SelectTrigger className="w-[130px]">
                                 <SelectValue placeholder="All" />
                             </SelectTrigger>
@@ -246,20 +275,15 @@ function NewRollingPlanForm() {
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className="w-px h-8 bg-border mx-1" />
-
-                    <div className="flex items-center gap-4 text-sm">
-                        <div className="flex flex-col gap-0.5">
-                            <span className="text-xs text-muted-foreground">
-                                Selected
-                            </span>
-                            <span className="font-semibold">
-                                {selectedStrips.length}
-                            </span>
-                        </div>
+                    <div className="flex flex-col gap-0.5">
+                        <span className="text-xs text-muted-foreground">
+                            Selected
+                        </span>
+                        <span className="text-sm font-semibold">
+                            {selectedStrips.length}
+                        </span>
                     </div>
-
                     <div className="ml-auto">
                         <LocalFilterInput onChange={setLocalSearch} />
                     </div>
@@ -275,6 +299,7 @@ function NewRollingPlanForm() {
                                         "Product",
                                         "Strip Cut Width (mm)",
                                         "Quantity",
+                                        "Total WES",
                                         "Created At",
                                     ].map((h) => (
                                         <th
@@ -290,7 +315,7 @@ function NewRollingPlanForm() {
                                 {filteredStrips.length === 0 && (
                                     <tr>
                                         <td
-                                            colSpan={5}
+                                            colSpan={6}
                                             className="text-center py-8 text-sm text-muted-foreground"
                                         >
                                             No data
@@ -301,7 +326,7 @@ function NewRollingPlanForm() {
                                     const checked = isSelected(strip)
                                     return (
                                         <tr
-                                            key={strip.product_id}
+                                            key={strip.id}
                                             className={`border-b last:border-0 cursor-pointer transition-colors hover:bg-muted/40 ${checked ? "bg-primary/5" : ""}`}
                                             onClick={() => toggleStrip(strip)}
                                         >
@@ -314,13 +339,18 @@ function NewRollingPlanForm() {
                                                 <Checkbox checked={checked} />
                                             </td>
                                             <td className="px-3 py-2 font-medium">
-                                                {strip.product_name}
+                                                {strip.product_name} (
+                                                {strip.strip_cut_width_mm} ×{" "}
+                                                {strip.quantity})
                                             </td>
                                             <td className="px-3 py-2">
                                                 {strip.strip_cut_width_mm}
                                             </td>
                                             <td className="px-3 py-2">
                                                 {strip.quantity}
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                {strip.total_wes}
                                             </td>
                                             <td className="px-3 py-2 text-muted-foreground">
                                                 {new Date(
@@ -336,7 +366,7 @@ function NewRollingPlanForm() {
                 </div>
             </div>
 
-            {/* ── Selected Strips Input Table ── */}
+            {/* Item Details */}
             {selectedStrips.length > 0 && (
                 <div className="flex flex-col gap-3">
                     <p className="text-sm font-semibold">
@@ -345,22 +375,20 @@ function NewRollingPlanForm() {
                             Fill in details for each selected strip
                         </span>
                     </p>
-
                     <div className="border rounded-lg overflow-hidden">
-                        <div className="overflow-x-auto overflow-y-auto max-h-[300px]">
+                        <div className="overflow-x-auto overflow-y-auto max-h-[320px]">
                             <table className="w-full text-sm border-collapse">
                                 <thead className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10">
                                     <tr className="border-b">
                                         {[
                                             "#",
-                                            "Product",
-                                            "Strip Cut Width",
-                                            "Total Pcs",
-                                            "Total Weight",
-                                            "Selected Weight (ton)",
-                                            "End Date",
-                                            "Calculated Meters",
-                                            "Pipe Length (mm)",
+                                            "Mahsulot",
+                                            "Miqdor",
+                                            "Total WES",
+                                            "Vibor TH",
+                                            "Sana",
+                                            "Kol-v Metar",
+                                            "Dlina Truba mm",
                                         ].map((h) => (
                                             <th
                                                 key={h}
@@ -372,123 +400,135 @@ function NewRollingPlanForm() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {selectedStrips.map((strip, idx) => (
-                                        <tr
-                                            key={strip.product_id}
-                                            className="border-b last:border-0 hover:bg-muted/20"
-                                        >
-                                            <td className="px-3 py-2 text-xs text-muted-foreground">
-                                                {idx + 1}
-                                            </td>
-                                            <td className="px-3 py-2 max-w-[180px]">
-                                                <span
-                                                    className="block truncate font-medium"
-                                                    title={strip.product_name}
-                                                >
-                                                    {strip.product_name}
-                                                </span>
-                                            </td>
-                                            <td className="px-3 py-2">
-                                                <span className="inline-flex items-center justify-center bg-muted/50 rounded px-2 py-0.5 font-mono text-xs font-semibold">
-                                                    {strip.strip_cut_width_mm}
-                                                </span>
-                                            </td>
-                                            {(
-                                                [
-                                                    ["total_pcs", "number"],
-                                                    ["total_weight", "number"],
-                                                    [
-                                                        "selected_weight_ton",
-                                                        "number",
-                                                    ],
-                                                    ["end_date", "date"],
-                                                    [
-                                                        "calculated_meters",
-                                                        "number",
-                                                    ],
-                                                    [
-                                                        "pipe_length_mm",
-                                                        "number",
-                                                    ],
-                                                ] as const
-                                            ).map(([field, type]) => (
-                                                <td
-                                                    key={field}
-                                                    className="px-3 py-2"
-                                                >
-                                                    <input
-                                                        type={type}
-                                                        value={strip[field]}
-                                                        onChange={(e) =>
+                                    {selectedStrips.map((strip, idx) => {
+                                        const viborNum =
+                                            Number(strip.vibor_th) || 0
+                                        const isOverMax =
+                                            strip.vibor_th !== "" &&
+                                            viborNum > strip.total_wes
+
+                                        return (
+                                            <tr
+                                                key={strip.id}
+                                                className="border-b last:border-0 hover:bg-muted/20"
+                                            >
+                                                <td className="px-3 py-2 text-xs text-muted-foreground">
+                                                    {idx + 1}
+                                                </td>
+                                                <td className="px-3 py-2 max-w-[200px]">
+                                                    <span
+                                                        className="block truncate font-medium"
+                                                        title={
+                                                            strip.product_name
+                                                        }
+                                                    >
+                                                        {strip.product_name} (
+                                                        {
+                                                            strip.strip_cut_width_mm
+                                                        }{" "}
+                                                        × {strip.quantity})
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-2">
+                                                    <span className="inline-flex items-center justify-center bg-muted/50 rounded px-2 py-0.5 font-mono text-xs font-semibold">
+                                                        {strip.quantity}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-2">
+                                                    <span className="inline-flex items-center justify-center bg-muted/50 rounded px-2 py-0.5 font-mono text-xs font-semibold">
+                                                        {strip.total_wes}
+                                                    </span>
+                                                </td>
+
+                                                {/* Vibor TH */}
+                                                <td className="px-3 py-2">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <input
+                                                            type="number"
+                                                            value={
+                                                                strip.vibor_th
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateStrip(
+                                                                    strip.id,
+                                                                    "vibor_th",
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                            min={0}
+                                                            max={
+                                                                strip.total_wes
+                                                            }
+                                                            className={cn(
+                                                                "w-full h-8 min-w-[100px] border rounded-md px-2 text-sm bg-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                                                                isOverMax &&
+                                                                    "border-destructive focus-visible:ring-destructive",
+                                                            )}
+                                                            placeholder="0"
+                                                        />
+                                                        {isOverMax && (
+                                                            <span className="text-[10px] text-destructive">
+                                                                Max:{" "}
+                                                                {
+                                                                    strip.total_wes
+                                                                }
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
+
+                                                {/* Sana */}
+                                                <td className="px-3 py-2">
+                                                    <DatePickerCell
+                                                        value={strip.end_date}
+                                                        onChange={(date) =>
                                                             updateStrip(
-                                                                strip.product_id,
-                                                                field,
-                                                                e.target.value,
+                                                                strip.id,
+                                                                "end_date",
+                                                                date,
                                                             )
-                                                        }
-                                                        className="w-full h-8 min-w-[110px] border rounded-md px-2 text-sm bg-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                                        placeholder={
-                                                            type === "date" ?
-                                                                "YYYY-MM-DD"
-                                                            :   "0"
-                                                        }
-                                                        min={
-                                                            type === "number" ?
-                                                                0
-                                                            :   undefined
                                                         }
                                                     />
                                                 </td>
-                                            ))}
-                                        </tr>
-                                    ))}
+
+                                                {/* Kol-v Metar */}
+                                                <td className="px-3 py-2">
+                                                    <span className="inline-flex items-center justify-center bg-primary/5 border border-primary/20 rounded px-2 py-0.5 font-mono text-xs font-semibold min-w-[80px]">
+                                                        {calcKolvMetar(strip)}
+                                                    </span>
+                                                </td>
+
+                                                {/* Dlina Truba mm */}
+                                                <td className="px-3 py-2">
+                                                    <input
+                                                        type="number"
+                                                        value={
+                                                            strip.pipe_length_mm
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateStrip(
+                                                                strip.id,
+                                                                "pipe_length_mm",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        min={0}
+                                                        className="w-full h-8 min-w-[110px] border rounded-md px-2 text-sm bg-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                                        placeholder="0"
+                                                    />
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
                                 </tbody>
-                                <tfoot className="sticky bottom-0 border-t-2 bg-muted/70 backdrop-blur-sm z-10">
-                                    <tr>
-                                        <td
-                                            colSpan={3}
-                                            className="px-3 py-2.5 text-xs font-semibold text-muted-foreground text-right"
-                                        >
-                                            Total:
-                                        </td>
-                                        <td className="px-3 py-2.5">
-                                            <div className="w-full h-8 border-2 rounded-md px-2 text-sm flex items-center font-bold bg-primary/5 border-primary/20">
-                                                {fmt(
-                                                    selectedStrips.reduce(
-                                                        (s, r) =>
-                                                            s +
-                                                            (Number(
-                                                                r.total_pcs,
-                                                            ) || 0),
-                                                        0,
-                                                    ),
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-3 py-2.5">
-                                            <div className="w-full h-8 border-2 rounded-md px-2 text-sm flex items-center font-bold bg-primary/5 border-primary/20">
-                                                {fmt(
-                                                    selectedStrips.reduce(
-                                                        (s, r) =>
-                                                            s +
-                                                            (Number(
-                                                                r.total_weight,
-                                                            ) || 0),
-                                                        0,
-                                                    ),
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td colSpan={4} />
-                                    </tr>
-                                </tfoot>
                             </table>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* ── Actions ── */}
+            {/* Actions */}
             <div className="flex items-center justify-between">
                 {!canSubmit && (
                     <p className="text-xs text-muted-foreground">
@@ -503,7 +543,7 @@ function NewRollingPlanForm() {
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        disabled={!canSubmit || isPending}
+                        disabled={!canSubmit || isPending || hasViborError}
                         className="h-9 px-6 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
                     >
                         {isPending ? "Creating..." : "Create"}

@@ -4,7 +4,7 @@ import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
 import { useRollingPlanStore } from "../-hooks/use-rolling-plan-store"
 import type { RollingPlanDetail, RollingPlanItem } from "../-types"
-import RollingPlanStatusBadge from "./status-badge"
+// import RollingPlanStatusBadge from "./status-badge"
 
 export default function RollingPlanDetailModal() {
     return (
@@ -39,7 +39,7 @@ function RollingPlanDetailContent() {
         <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between">
                 <CardTitle>Rolling Plan #{data.id}</CardTitle>
-                <RollingPlanStatusBadge status={data.status} />
+                {/* <RollingPlanStatusBadge status={data.status} /> */}
             </div>
 
             <Section title="General">

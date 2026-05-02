@@ -47,12 +47,12 @@ export const getRollingPlanCols = (
             ),
         },
         {
-            accessorKey: "machine_name",
+            accessorKey: "machine",
             header: "Machine",
             cell: ({ row: { original } }) => (
                 <ClickableCell plan={original}>
                     <span className="text-sm">
-                        {fmt(original.machine_name)}
+                        {fmt(original.machine_name ?? original.machine)}
                     </span>
                 </ClickableCell>
             ),
@@ -103,14 +103,23 @@ export const getRollingPlanCols = (
             ),
         },
         {
-            accessorKey: "status",
+            id: "status",
             header: "Status",
-            cell: ({ row: { original } }) => (
-                <RollingPlanStatusBadge
-                    status={original.status}
-                    onClick={(e) => onStatusClick(original, e.currentTarget)}
-                />
-            ),
+            cell: ({ row: { original } }) => {
+                const status = original.status ?? original.items?.[0]?.status
+                if (!status)
+                    return (
+                        <span className="text-muted-foreground text-sm">—</span>
+                    )
+                return (
+                    <RollingPlanStatusBadge
+                        status={status}
+                        onClick={(e) =>
+                            onStatusClick(original, e.currentTarget)
+                        }
+                    />
+                )
+            },
         },
         {
             accessorKey: "created_at",

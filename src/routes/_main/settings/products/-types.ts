@@ -1,7 +1,7 @@
 export type Category = {
     id: number
     name: string
-    type: "truba" | "profil"
+    type: "truba" | "profil" | "list"
 }
 
 export type SubCategory = {

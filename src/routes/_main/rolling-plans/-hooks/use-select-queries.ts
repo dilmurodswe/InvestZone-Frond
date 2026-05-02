@@ -1,6 +1,7 @@
 import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
 import { getArray } from "@/lib/utils/get-array"
+import type { PaginatedResponse } from "@/types/common"
 import type { Machine, ReadyStrip } from "../-types"
 
 export const useMachinesQuery = () => {
@@ -12,7 +13,10 @@ export const useMachinesQuery = () => {
 }
 
 export const useReadyStripsQuery = (params?: Record<string, string>) => {
-    const res = useGet<ReadyStrip[]>(API.MANUFACTURES.READY_STRIPS, { params })
-    const readyStripOptions = getArray<ReadyStrip>(res.data)
+    const res = useGet<PaginatedResponse<ReadyStrip>>(
+        API.MANUFACTURES.READY_STRIPS,
+        { params },
+    )
+    const readyStripOptions = getArray<ReadyStrip>(res.data?.results)
     return { ...res, readyStripOptions }
 }

@@ -11,13 +11,21 @@ export default function RollingPlanStatusBadge({
     status,
     onClick,
 }: StatusBadgeProps) {
-    const config = ROLLING_PLAN_STATUS_CONFIG[status]
-    if (!config)
+    const config = status ? ROLLING_PLAN_STATUS_CONFIG[status] : null
+
+    if (!config) {
         return (
-            <span className="text-xs text-muted-foreground">
-                {status ?? "—"}
-            </span>
+            <button
+                type="button"
+                onClick={onClick}
+                className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold whitespace-nowrap bg-muted text-muted-foreground"
+            >
+                {status ?? "Unknown"}
+                {onClick && <ChevronDown className="size-4" />}
+            </button>
         )
+    }
+
     return (
         <button
             type="button"

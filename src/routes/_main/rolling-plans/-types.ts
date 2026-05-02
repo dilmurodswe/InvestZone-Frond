@@ -1,10 +1,12 @@
 export type RollingPlanStatus = "on_warehouse" | "in_cutting"
 
 export type ReadyStrip = {
+    id: number
     product_id: number
     product_name: string
     strip_cut_width_mm: number
     quantity: number
+    total_wes: number
     created_at: string
 }
 
@@ -24,11 +26,12 @@ export type RollingPlanItem = {
 
 export type RollingPlan = {
     id: number
-    machine: number
+    machine: number | string
     machine_name?: string
     plan_number: string
-    status: RollingPlanStatus
+    status?: RollingPlanStatus
     items: RollingPlanItem[]
+    date?: string
     created_at: string
     updated_at: string
 }

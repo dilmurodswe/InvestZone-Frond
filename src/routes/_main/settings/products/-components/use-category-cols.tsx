@@ -9,6 +9,7 @@ import type { Category } from "../-types"
 const typeLabels: Record<string, string> = {
     truba: "Truba",
     profil: "Profil",
+    list: "List",
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
