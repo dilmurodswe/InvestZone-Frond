@@ -23,5 +23,4 @@ export type Product = {
     description?: string
     extra_fields?: Record<string, string>
     outer_dimension?: string
-    diameter?: number
 }

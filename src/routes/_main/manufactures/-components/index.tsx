@@ -63,6 +63,7 @@ export default function Index() {
 
                 {!!manufactureList.length && (
                     <CustomTable
+                        disableNumeration
                         columns={cols}
                         data={manufactureList}
                         count={count}

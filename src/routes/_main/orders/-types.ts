@@ -39,26 +39,36 @@ export type OrderForm = {
     items: OrderItemForm[]
 }
 
-export type ReadyProduct = {
+export type ReadyProductItem = {
     id: number
-    status: string
-    stock: number
     product: {
         id: number
         name: string
         code: number
         articul: string
-        price: number
+        price: string
     }
-    raw_item_detail: {
-        id: number
-        reference_number: string | null
-        price: number | null
-        wagon: string | null
-        ton: number | null
-        weight: number
-    }
+    strip_width_theoretical: number
+    strip_cut_width_mm: number
+    quantity_in_cut: number
+    total_amount: number
+    weight_from_cut: number
+}
+
+export type ReadyProduct = {
+    id: number
+    width: number
+    thickness: number
+    count_raw: number
+    total_netto: number
+    total_sum: string
+    total_cut_weight: number
+    left_over: null | number
+    status: string
+    raw_item_details: unknown[]
+    detail_items: ReadyProductItem[]
     created_at: string
+    updated_at: string
 }
 
 export type Client = {

@@ -61,10 +61,14 @@ function OrderAddEdit() {
         name: `${c.currency} (${c.current_rate})`,
     }))
 
-    const productOptions = readyProductList.map((rp) => ({
-        id: rp.id,
-        name: `${rp.product.name} — ${rp.product.price.toLocaleString()}`,
-    }))
+    const productOptions = readyProductList.flatMap((rp) =>
+        rp.detail_items
+            .filter((item) => item.product != null)
+            .map((item) => ({
+                id: item.product.id,
+                name: `${item.product.name} — ${Number(item.product.price).toLocaleString()}`,
+            })),
+    )
 
     const form = useForm<OrderForm>({
         defaultValues: {

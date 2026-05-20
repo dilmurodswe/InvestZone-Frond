@@ -36,6 +36,17 @@ export const getManufactureCols = (
 
     return [
         {
+            id: "id",
+            header: "ID",
+            cell: ({ row: { original } }) => (
+                <ClickableCell manufacture={original}>
+                    <span className="text-sm text-muted-foreground">
+                        {original.id}
+                    </span>
+                </ClickableCell>
+            ),
+        },
+        {
             id: "products",
             header: "Products",
             cell: ({ row: { original } }) => {

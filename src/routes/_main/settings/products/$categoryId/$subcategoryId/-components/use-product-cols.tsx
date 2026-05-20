@@ -132,6 +132,7 @@ export const useProductCols = (
         `extra/categories/${categoryId}`,
     )
     const isTruba = categoryData?.type === "truba"
+    console.log(isTruba)
 
     const extraKeys = useMemo(() => {
         const keys = new Set<string>()
@@ -171,18 +172,6 @@ export const useProductCols = (
                 value={original.outer_dimension ?? null}
                 onClick={() => handleRowClick(original)}
                 maxWidth={160}
-            />
-        ),
-    }
-
-    const diameterCol: ColumnDef<Product> = {
-        id: "diameter",
-        header: "Diameter",
-        cell: ({ row: { original } }: CellContext<Product, unknown>) => (
-            <TruncatedCell
-                value={original.diameter ?? null}
-                onClick={() => handleRowClick(original)}
-                maxWidth={100}
             />
         ),
     }
@@ -256,8 +245,6 @@ export const useProductCols = (
         },
         // Наружный размер, мм — always visible
         outerDimensionCol,
-        // diameter — only for truba
-        ...(isTruba ? [diameterCol] : []),
         ...extraCols,
         {
             id: "description",

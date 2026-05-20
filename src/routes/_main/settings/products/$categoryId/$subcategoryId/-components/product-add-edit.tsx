@@ -49,12 +49,11 @@ type ExtraField = { key: string; value: string }
 
 type Form = Omit<
     Product,
-    "id" | "extra_fields" | "description" | "diameter" | "outer_dimension"
+    "id" | "extra_fields" | "description" | "outer_dimension"
 > & {
     description: string
     extra_fields: ExtraField[]
     outer_dimension: string
-    diameter: string
 }
 
 // ─── Tiptap Toolbar ────────────────────────────────────────────────────────────
@@ -287,6 +286,7 @@ function ProductAddEdit() {
         `extra/categories/${categoryId}`,
     )
     const isTruba = categoryData?.type === "truba"
+    console.log(isTruba)
 
     const { data: extraFieldSuggestions } = useGet<
         { key: string; value: string }[]
@@ -314,7 +314,6 @@ function ProductAddEdit() {
             description: "",
             extra_fields: [],
             outer_dimension: "",
-            diameter: "",
         },
         values:
             product ?
@@ -330,10 +329,6 @@ function ProductAddEdit() {
                     description: product.description ?? "",
                     extra_fields: extraFieldsDefault,
                     outer_dimension: product.outer_dimension ?? "",
-                    diameter:
-                        product.diameter != null ?
-                            String(product.diameter)
-                        :   "",
                 }
             :   undefined,
     })
@@ -369,11 +364,6 @@ function ProductAddEdit() {
             description: vals.description,
             extra_fields,
             outer_dimension: vals.outer_dimension || null,
-        }
-
-        // diameter only for truba
-        if (isTruba) {
-            payload.diameter = vals.diameter ? Number(vals.diameter) : null
         }
 
         if (product) {
@@ -425,17 +415,6 @@ function ProductAddEdit() {
                 name="outer_dimension"
                 label="Наружный размер, мм"
             />
-
-            {/* diameter — only for truba */}
-            {isTruba && (
-                <UncontrolledInput
-                    methods={form}
-                    name="diameter"
-                    label="Diameter"
-                    type="number"
-                    step="any"
-                />
-            )}
 
             {/* Description */}
             <div className="flex flex-col gap-1.5">
