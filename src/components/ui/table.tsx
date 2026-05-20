@@ -57,7 +57,7 @@ function Table({
                 style={{
                     maxHeight:
                         maxHeight ||
-                        `calc(100svh - ${navbarHeight}px - ${paginationHeight}px - 5rem)`,
+                        `calc(100svh - ${navbarHeight}px - ${paginationHeight}px - 14rem)`,
                 }}
             >
                 <table

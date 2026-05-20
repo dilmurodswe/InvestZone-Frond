@@ -402,18 +402,21 @@ function ProductAddEdit() {
                 name="price"
                 label="Price"
                 type="number"
+                step="any"
             />
             <UncontrolledInput
                 methods={form}
                 name="factually_price"
                 label="Factually Price"
                 type="number"
+                step="any"
             />
             <UncontrolledInput
                 methods={form}
                 name="theoretically_price"
                 label="Theoretically Price"
                 type="number"
+                step="any"
             />
 
             {/* Наружный размер, мм — always visible */}
@@ -430,6 +433,7 @@ function ProductAddEdit() {
                     name="diameter"
                     label="Diameter"
                     type="number"
+                    step="any"
                 />
             )}
 

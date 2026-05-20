@@ -64,11 +64,13 @@ function CalculateResults({
     onSubmit,
     isPending,
     selectedRawIds,
+    totalNetto,
 }: {
     data: CalculateResponse
-    onSubmit: (rows: ProductRow[]) => void
+    onSubmit: (rows: ProductRow[], otxod: string) => void
     isPending: boolean
     selectedRawIds: number[]
+    totalNetto: number
 }) {
     const [rows, setRows] = useState<ProductRow[]>(
         data.results.map((r) => ({
@@ -78,6 +80,7 @@ function CalculateResults({
             weightFromCut: null,
         })),
     )
+    const [otxod, setOtxod] = useState<string>("")
 
     // data.results o'zgarganda rows ni reset qilish
     const [prevData, setPrevData] = useState(data)
@@ -173,6 +176,7 @@ function CalculateResults({
     const weightFromCutSum = rows.reduce((sum, row) => {
         return sum + (row.weightFromCut ?? 0)
     }, 0)
+    const leftOver = totalNetto - weightFromCutSum - (parseFloat(otxod) || 0)
 
     const fmt = (n: number) => (n % 1 === 0 ? n : n.toFixed(2))
 
@@ -332,9 +336,29 @@ function CalculateResults({
                         <tfoot className="sticky bottom-0 border-t-2 bg-muted/70 backdrop-blur-sm z-10">
                             <tr>
                                 <td
-                                    colSpan={6}
-                                    className="px-3 py-2.5 text-xs font-semibold text-muted-foreground text-right whitespace-nowrap"
+                                    colSpan={5}
+                                    className="px-3 py-2.5 text-right whitespace-nowrap border font-semibold text-muted-foreground"
                                 >
+                                    <div className="flex items-center gap-2 justify-end">
+                                        <input
+                                            type="number"
+                                            value={otxod}
+                                            onChange={(e) =>
+                                                setOtxod(e.target.value)
+                                            }
+                                            className="w-24 hidden h-8 border rounded-md px-2 text-sm bg-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                            placeholder="0"
+                                            min={0}
+                                        />
+                                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                            Otxod:{" "}
+                                            <span className="font-semibold text-foreground">
+                                                {fmt(leftOver)}
+                                            </span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td className="px-3 py-2.5 text-xs font-semibold text-muted-foreground text-right ">
                                     Total Sum:
                                 </td>
                                 <td className="px-3 py-2.5">
@@ -361,7 +385,7 @@ function CalculateResults({
             <div className="flex items-center justify-end">
                 <button
                     type="button"
-                    onClick={() => onSubmit(rows)}
+                    onClick={() => onSubmit(rows, otxod)}
                     disabled={isPending}
                     className="h-9 px-6 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
                 >
@@ -472,7 +496,7 @@ function NewManufactureForm() {
         setCalculateParams(params)
     }
 
-    const handleSubmit = (rows: ProductRow[]) => {
+    const handleSubmit = (rows: ProductRow[], otxod: string) => {
         post(
             API.MANUFACTURES.INDEX,
             {
@@ -503,6 +527,13 @@ function NewManufactureForm() {
                 total_cut_weight: rows.reduce((sum, row) => {
                     return sum + (row.weightFromCut ?? 0) // o'zgardi
                 }, 0),
+                left_over:
+                    totalNetto -
+                    rows.reduce(
+                        (sum, row) => sum + (row.weightFromCut ?? 0),
+                        0,
+                    ) -
+                    (parseFloat(otxod) || 0),
             },
             {
                 onSuccess: () => {
@@ -907,6 +938,7 @@ function NewManufactureForm() {
                             onSubmit={handleSubmit}
                             isPending={isPending}
                             selectedRawIds={selectedRawIds}
+                            totalNetto={totalNetto}
                         />
                     :   null}
                 </div>

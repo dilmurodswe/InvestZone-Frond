@@ -19,6 +19,14 @@ interface IPagination {
     size?: number
 }
 
+// utils.ts da shu optionlar bo'lishi kerak (agar yo'q bo'lsa qo'shing):
+// export const rowsPerPageOptions = [
+//     { id: 10, label: "10" },
+//     { id: 20, label: "20" },
+//     { id: 50, label: "50" },
+//     { id: 100, label: "100" },
+// ]
+
 export function Pagination<TData>({
     paginationClassName,
     count,
@@ -43,7 +51,6 @@ export function Pagination<TData>({
 
     const setPagination = useCallback(
         ({ page, size }: IPagination) => {
-            // Use RequestAnimationFrame to prevent UI blocking
             requestAnimationFrame(() => {
                 navigate({
                     // @ts-expect-error sfsd
@@ -53,7 +60,6 @@ export function Pagination<TData>({
                         [pageSizeKey]:
                             size === undefined ? pageSizeValue : size,
                     },
-                    // Add replace option to prevent adding to history stack
                     replace: true,
                 })
             })
@@ -85,7 +91,6 @@ export function Pagination<TData>({
         [pageCount, setPagination],
     )
 
-    //
     useEffect(() => {
         if (!!data && !data.length && deferredPage > 1 && !isLoading) {
             setPagination({
@@ -105,9 +110,9 @@ export function Pagination<TData>({
             <main
                 className={cn(
                     "flex items-center md:justify-between gap-y-3 gap-x-8 w-full flex-wrap sm:flex-nowrap",
-                    // !!prev || !!next ? "justify-center" : "",
                 )}
             >
+                {/* Eski alohida size selector — saqlab qolindi (disableSetPageSize=false bo'lsa ishlaydi) */}
                 {(count || 0) > rowsPerPageOptions[0].id &&
                     !disableSetPageSize && (
                         <BaseSelect
@@ -194,45 +199,41 @@ export function Pagination<TData>({
                                 </Button>
                             </div>
                         </main>
+
+                        {/* "to page" va page size selector yonma-yon */}
                         <aside className="flex items-center gap-4">
+                            {/* Page size selector — har doim ko'rinadi */}
+                            <BaseSelect
+                                options={rowsPerPageOptions}
+                                value={rowsPerPageOptions.find(
+                                    (o) => o.id === pageSizeValue,
+                                )}
+                                onChange={(opt) => {
+                                    setPagination({
+                                        page: 1, // size o'zgarganda 1-sahifaga qayt
+                                        size: opt?.id,
+                                    })
+                                }}
+                                className="min-w-20"
+                                placeholder=""
+                                isClearable={false}
+                            />
+
+                            {/* Jump to page */}
                             <Input
                                 onKeyDown={handleJumpOnKeyDown}
                                 ref={jumpInputRef}
                                 type="number"
-                                className="w-14"
+                                className="w-14 hidden"
+                                min={1}
+                                max={pageCount}
                             />
-                            <Button onClick={handleJump}>to page</Button>
+                            <Button className="hidden" onClick={handleJump}>
+                                to page
+                            </Button>
                         </aside>
                     </>
                 )}
-
-                {/* {(!pageCount && (!!prev || !!next) && (
-                    <div className="flex items-center space-x-2">
-                        <Button
-                            variant="outline"
-                            size={"icon"}
-                            onClick={() => {
-                                setParams({ currentPage: String(+current - 1) })
-                            }}
-                            disabled={!prev}
-                        >
-                            <span className="sr-only">Go to previous page</span>
-                            <ChevronLeft />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size={"icon"}
-                            onClick={() => {
-                                setParams({ currentPage: String(+current + 1) })
-                            }}
-                            disabled={!next}
-                        >
-                            <span className="sr-only">Go to next page</span>
-                            <ChevronRight />
-                        </Button>
-                    </div>
-                )) ||
-                    ""} */}
             </main>
         </footer>
     )

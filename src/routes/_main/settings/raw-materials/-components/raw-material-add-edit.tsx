@@ -381,12 +381,14 @@ function RawMaterialAddEdit() {
                 name="width"
                 label="Ширина"
                 type="number"
+                step="any"
             />
             <UncontrolledInput
                 methods={form}
                 name="thickness"
                 label="Толщина"
                 type="number"
+                step="any"
             />
 
             {/* Description – rich text */}
