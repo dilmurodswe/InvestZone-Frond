@@ -46,6 +46,7 @@ export type Manufacture = {
     detail_items: DetailItem[]
     created_at: string
     updated_at: string
+    left_over: number
 }
 
 export type ManufactureDetail = Manufacture

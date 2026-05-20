@@ -14,11 +14,11 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import {
     useCategoriesSelectQuery,
-    useProductsSelectQuery,
     useRawItemDetailsSelectQuery,
     useSubCategoriesSelectQuery,
     useThicknessesQuery,
@@ -410,10 +410,15 @@ function NewManufactureForm() {
     const [localSearch, setLocalSearch] = useState("")
     const [selectedRawIds, setSelectedRawIds] = useState<number[]>([])
     const [productThickness, setProductThickness] = useState("")
+
     // Product filters
     const [categoryId, setCategoryId] = useState("")
     const [subCategoryId, setSubCategoryId] = useState("")
     const [selectedProductIds, setSelectedProductIds] = useState<number[]>([])
+
+    // Product pagination
+    const [productPage, setProductPage] = useState(1)
+    const [productPageSize, setProductPageSize] = useState(10)
 
     const [calculateParams, setCalculateParams] = useState<Record<
         string,
@@ -436,10 +441,24 @@ function NewManufactureForm() {
     const { subCategoryOptions } = useSubCategoriesSelectQuery(
         categoryId ? Number(categoryId) : undefined,
     )
-    const { productOptions } = useProductsSelectQuery(
-        subCategoryId ? Number(subCategoryId) : undefined,
-        productThickness || undefined,
-    )
+
+    // Products with pagination
+    const productParams: Record<string, unknown> = {
+        page: productPage,
+        page_size: productPageSize,
+    }
+    if (subCategoryId) productParams.sub_category = subCategoryId
+    if (productThickness) productParams.thickness = productThickness
+
+    const { data: productsData, isFetching: isProductsFetching } = useGet<{
+        count: number
+        results: { id: number; name: string; code?: string; articul?: string }[]
+    }>(API.EXTRA.PRODUCTS.INDEX, { params: productParams })
+
+    const productOptions = productsData?.results ?? []
+    const productCount = productsData?.count ?? 0
+    const productPageCount =
+        productCount ? Math.ceil(productCount / productPageSize) : 0
 
     const { data: calcResponse, isFetching: isCalculating } =
         useGet<CalculateResponse>(API.MANUFACTURES.CALCULATE_AMOUNT, {
@@ -475,16 +494,17 @@ function NewManufactureForm() {
         setCategoryId(val)
         setSubCategoryId("")
         setSelectedProductIds([])
+        setProductPage(1)
     }
 
     const handleThicknessChange = (val: string) => {
         setThickness(val)
-        setCalculateParams(null) // eski natijani tozalash
+        setCalculateParams(null)
     }
 
     const handleWidthChange = (val: string) => {
         setWidth(val)
-        setCalculateParams(null) // eski natijani tozalash
+        setCalculateParams(null)
     }
 
     const handleNext = () => {
@@ -514,9 +534,8 @@ function NewManufactureForm() {
                     total_amount:
                         (parseFloat(row.input1) || 0) *
                         (parseFloat(row.input2) || 0),
-                    weight_from_cut: row.weightFromCut ?? 0, // o'zgardi
+                    weight_from_cut: row.weightFromCut ?? 0,
                 })),
-
                 total_sum: rows.reduce((sum, row) => {
                     return (
                         sum +
@@ -525,15 +544,16 @@ function NewManufactureForm() {
                     )
                 }, 0),
                 total_cut_weight: rows.reduce((sum, row) => {
-                    return sum + (row.weightFromCut ?? 0) // o'zgardi
+                    return sum + (row.weightFromCut ?? 0)
                 }, 0),
-                left_over:
+                left_over: (
                     totalNetto -
                     rows.reduce(
                         (sum, row) => sum + (row.weightFromCut ?? 0),
                         0,
                     ) -
-                    (parseFloat(otxod) || 0),
+                    (parseFloat(otxod) || 0)
+                ).toFixed(2),
             },
             {
                 onSuccess: () => {
@@ -768,6 +788,7 @@ function NewManufactureForm() {
                             onValueChange={(val) => {
                                 setSubCategoryId(val)
                                 setSelectedProductIds([])
+                                setProductPage(1)
                             }}
                             disabled={!categoryId}
                         >
@@ -783,6 +804,7 @@ function NewManufactureForm() {
                             </SelectContent>
                         </Select>
                     </div>
+
                     <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-muted-foreground">
                             Thickness
@@ -792,6 +814,7 @@ function NewManufactureForm() {
                             onValueChange={(val) => {
                                 setProductThickness(val)
                                 setSelectedProductIds([])
+                                setProductPage(1)
                             }}
                         >
                             <SelectTrigger className="w-[130px]">
@@ -835,63 +858,135 @@ function NewManufactureForm() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {productOptions.length === 0 && (
+                                {isProductsFetching && (
                                     <tr>
                                         <td
                                             colSpan={4}
                                             className="text-center py-8 text-sm text-muted-foreground"
                                         >
-                                            No data
+                                            Loading...
                                         </td>
                                     </tr>
                                 )}
-                                {productOptions.map((p) => {
-                                    const checked = selectedProductIds.includes(
-                                        p.id,
-                                    )
-                                    return (
-                                        <tr
-                                            key={p.id}
-                                            className={`border-b last:border-0 cursor-pointer transition-colors hover:bg-muted/40 ${checked ? "bg-primary/5" : ""}`}
-                                            onClick={() => toggleProduct(p.id)}
-                                        >
+                                {!isProductsFetching &&
+                                    productOptions.length === 0 && (
+                                        <tr>
                                             <td
-                                                className="px-3 py-2"
-                                                onClick={(e) =>
-                                                    e.stopPropagation()
-                                                }
+                                                colSpan={4}
+                                                className="text-center py-8 text-sm text-muted-foreground"
                                             >
-                                                <Checkbox checked={checked} />
-                                            </td>
-                                            <td className="px-3 py-2 font-medium">
-                                                {p.name}
-                                            </td>
-                                            <td className="px-3 py-2">
-                                                {(
-                                                    p as typeof p & {
-                                                        code?: string
-                                                    }
-                                                ).code ?? "—"}
-                                            </td>
-                                            <td className="px-3 py-2">
-                                                {(
-                                                    p as typeof p & {
-                                                        articul?: string
-                                                    }
-                                                ).articul ?? "—"}
+                                                No data
                                             </td>
                                         </tr>
-                                    )
-                                })}
+                                    )}
+                                {!isProductsFetching &&
+                                    productOptions.map((p) => {
+                                        const checked =
+                                            selectedProductIds.includes(p.id)
+                                        return (
+                                            <tr
+                                                key={p.id}
+                                                className={`border-b last:border-0 cursor-pointer transition-colors hover:bg-muted/40 ${checked ? "bg-primary/5" : ""}`}
+                                                onClick={() =>
+                                                    toggleProduct(p.id)
+                                                }
+                                            >
+                                                <td
+                                                    className="px-3 py-2"
+                                                    onClick={(e) =>
+                                                        e.stopPropagation()
+                                                    }
+                                                >
+                                                    <Checkbox
+                                                        checked={checked}
+                                                    />
+                                                </td>
+                                                <td className="px-3 py-2 font-medium">
+                                                    {p.name}
+                                                </td>
+                                                <td className="px-3 py-2">
+                                                    {p.code ?? "—"}
+                                                </td>
+                                                <td className="px-3 py-2">
+                                                    {p.articul ?? "—"}
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination */}
+                    {productPageCount > 1 && (
+                        <div className="flex items-center justify-between px-3 py-2 border-t bg-muted/20">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-xs text-muted-foreground">
+                                    Rows:
+                                </span>
+                                <select
+                                    value={productPageSize}
+                                    onChange={(e) => {
+                                        setProductPageSize(
+                                            Number(e.target.value),
+                                        )
+                                        setProductPage(1)
+                                    }}
+                                    className="h-7 border rounded px-1 text-xs bg-background"
+                                >
+                                    {[10, 20, 50, 100].map((s) => (
+                                        <option key={s} value={s}>
+                                            {s}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">
+                                    {productPage} / {productPageCount} ·{" "}
+                                    {productCount} total
+                                </span>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() =>
+                                            setProductPage((p) =>
+                                                Math.max(1, p - 1),
+                                            )
+                                        }
+                                        disabled={
+                                            productPage <= 1 ||
+                                            isProductsFetching
+                                        }
+                                        className="h-7 w-7 rounded border flex items-center justify-center disabled:opacity-40 hover:bg-muted transition-colors"
+                                    >
+                                        <ChevronLeft className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            setProductPage((p) =>
+                                                Math.min(
+                                                    productPageCount,
+                                                    p + 1,
+                                                ),
+                                            )
+                                        }
+                                        disabled={
+                                            productPage >= productPageCount ||
+                                            isProductsFetching
+                                        }
+                                        className="h-7 w-7 rounded border flex items-center justify-center disabled:opacity-40 hover:bg-muted transition-colors"
+                                    >
+                                        <ChevronRight className="h-3.5 w-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
             {/* ── Next button ── */}
             <div className="flex items-center justify-between">
-                {/* Validation hint */}
                 {!canNext && (
                     <p className="text-xs text-muted-foreground">
                         {!thickness || !width ?

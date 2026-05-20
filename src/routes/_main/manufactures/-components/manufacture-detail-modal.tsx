@@ -54,7 +54,7 @@ function ManufactureDetailContent() {
                             value={new Date(data.created_at).toLocaleString()}
                         />
                     </div>
-                    <div className="grid grid-cols-4 divide-x">
+                    <div className="grid grid-cols-5 divide-x">
                         <Cell
                             label="Count Raw Material"
                             value={data.count_raw}
@@ -63,8 +63,9 @@ function ManufactureDetailContent() {
                         <Cell label="Total Sum" value={data.total_sum} />
                         <Cell
                             label="Total Cut Weight"
-                            value={data.total_cut_weight}
+                            value={data.total_cut_weight.toFixed(2)}
                         />
+                        <Cell label="Otxod" value={data.left_over} />
                     </div>
                 </div>
             </Section>
