@@ -4,7 +4,8 @@ import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
 import { useRollingPlanStore } from "../-hooks/use-rolling-plan-store"
 import type { RollingPlanDetail, RollingPlanItem } from "../-types"
-// import RollingPlanStatusBadge from "./status-badge"
+import RollingPlanStatusBadge from "./status-badge"
+import { ROLLING_PLAN_STATUS_CONFIG } from "./status-config"
 
 export default function RollingPlanDetailModal() {
     return (
@@ -24,6 +25,13 @@ function RollingPlanDetailContent() {
 
     const { data, isLoading } = useGet<RollingPlanDetail>(
         API.ROLLING_PLANS.ID.replace("{id}", String(rollingPlan?.id ?? "")),
+        {
+            deps: [rollingPlan?.id], // ID o'zgarganda qayta fetch
+            options: {
+                enabled: !!rollingPlan?.id,
+                staleTime: 0,
+            },
+        },
     )
 
     if (!rollingPlan) return null
@@ -35,44 +43,70 @@ function RollingPlanDetailContent() {
         )
     if (!data) return null
 
+    const totalSelectedWeight = data.items?.reduce(
+        (s, i) => s + (i.selected_weight_ton ?? 0),
+        0,
+    )
+    const latestEndDate = (
+        data.items?.map((i) => i.end_date).filter(Boolean) as string[]
+    )
+        ?.sort()
+        .at(-1)
+    const latestPlanDate = (
+        data.items?.map((i) => i.plan_date).filter(Boolean) as string[]
+    )
+        ?.sort()
+        .at(-1)
+
+    const planStatus = data.status ?? data.items?.[0]?.status
+
     return (
         <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between">
-                <CardTitle>Rolling Plan #{data.id}</CardTitle>
-                {/* <RollingPlanStatusBadge status={data.status} /> */}
+                <CardTitle>Rolling Plan #{data.plan_number}</CardTitle>
+                {planStatus && <RollingPlanStatusBadge status={planStatus} />}
             </div>
 
             <Section title="General">
                 <div className="flex flex-col divide-y">
                     <div className="grid grid-cols-3 divide-x">
                         <Cell label="Plan Number" value={data.plan_number} />
+                        <Cell label="Machine" value={data.machine?.name} />
                         <Cell
-                            label="Machine"
-                            value={data.machine_name ?? data.machine}
-                        />
-                        <Cell
-                            label="Created at"
-                            value={new Date(data.created_at).toLocaleString()}
+                            label="Date"
+                            value={
+                                data.date ?
+                                    new Date(data.date).toLocaleString()
+                                :   undefined
+                            }
                         />
                     </div>
-                    <div className="grid grid-cols-3 divide-x">
+                    <div className="grid grid-cols-4 divide-x">
                         <Cell
                             label="Items Count"
                             value={data.items?.length ?? 0}
                         />
                         <Cell
-                            label="Total Pcs"
-                            value={data.items?.reduce(
-                                (s, i) => s + (i.total_pcs ?? 0),
-                                0,
-                            )}
+                            label="Total Selected Weight (t)"
+                            value={totalSelectedWeight}
                         />
                         <Cell
-                            label="Total Weight"
-                            value={data.items?.reduce(
-                                (s, i) => s + (i.total_weight ?? 0),
-                                0,
-                            )}
+                            label="Plan Date"
+                            value={
+                                latestPlanDate ?
+                                    new Date(
+                                        latestPlanDate,
+                                    ).toLocaleDateString()
+                                :   undefined
+                            }
+                        />
+                        <Cell
+                            label="End Date"
+                            value={
+                                latestEndDate ?
+                                    new Date(latestEndDate).toLocaleDateString()
+                                :   undefined
+                            }
                         />
                     </div>
                 </div>
@@ -87,14 +121,14 @@ function RollingPlanDetailContent() {
                                     {[
                                         "#",
                                         "Product",
+                                        "Thickness",
                                         "Strip Cut Width",
                                         "Status",
                                         "Total Pcs",
                                         "Total Weight",
-                                        "Selected Weight (ton)",
-                                        "Calculated Meters",
+                                        "Sel. Weight (t)",
+                                        "Calc. Meters",
                                         "Pipe Length (mm)",
-                                        "End Date",
                                     ].map((h) => (
                                         <th
                                             key={h}
@@ -107,62 +141,78 @@ function RollingPlanDetailContent() {
                             </thead>
                             <tbody>
                                 {data.items.map(
-                                    (item: RollingPlanItem, idx: number) => (
-                                        <tr
-                                            key={item.id}
-                                            className="border-b last:border-0 hover:bg-muted/30"
-                                        >
-                                            <td className="px-4 py-2 text-muted-foreground">
-                                                {idx + 1}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {item.product_name ?? "—"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {item.strip_cut_width_mm ?? "—"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                <span
-                                                    className="px-2 py-0.5 rounded text-xs font-semibold"
-                                                    style={{
-                                                        backgroundColor:
-                                                            (
-                                                                item.status ===
-                                                                "in_cutting"
-                                                            ) ?
-                                                                "#3C86E7"
-                                                            :   "#FD9334",
-                                                        color: "#fff",
-                                                    }}
-                                                >
-                                                    {(
-                                                        item.status ===
-                                                        "in_cutting"
-                                                    ) ?
-                                                        "In Cutting"
-                                                    :   "On Warehouse"}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {item.total_pcs}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {item.total_weight}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {item.selected_weight_ton}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {item.calculated_meters}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {item.pipe_length_mm}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {item.end_date}
-                                            </td>
-                                        </tr>
-                                    ),
+                                    (item: RollingPlanItem, idx: number) => {
+                                        const statusConfig =
+                                            item.status ?
+                                                ROLLING_PLAN_STATUS_CONFIG[
+                                                    item.status
+                                                ]
+                                            :   null
+                                        return (
+                                            <tr
+                                                key={item.id}
+                                                className="border-b last:border-0 hover:bg-muted/30"
+                                            >
+                                                <td className="px-4 py-2 text-muted-foreground">
+                                                    {idx + 1}
+                                                </td>
+                                                <td className="px-4 py-2 max-w-[200px]">
+                                                    <span
+                                                        className="block truncate"
+                                                        title={
+                                                            item.product
+                                                                ?.name ??
+                                                            item.product_name
+                                                        }
+                                                    >
+                                                        {item.product?.name ??
+                                                            item.product_name ??
+                                                            "—"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {item.product?.thickness ??
+                                                        "—"}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {item.strip_cut_width_mm ??
+                                                        "—"}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {statusConfig ?
+                                                        <span
+                                                            className="px-2 py-0.5 rounded text-xs font-semibold"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    statusConfig.bg,
+                                                                color: statusConfig.color,
+                                                            }}
+                                                        >
+                                                            {statusConfig.label}
+                                                        </span>
+                                                    :   <span className="text-muted-foreground">
+                                                            —
+                                                        </span>
+                                                    }
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {item.total_pcs}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {item.total_weight}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {item.selected_weight_ton}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {item.calculated_meters}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {item.pipe_length_mm}
+                                                </td>
+                                            </tr>
+                                        )
+                                    },
                                 )}
                             </tbody>
                         </table>

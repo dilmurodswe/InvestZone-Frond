@@ -4,8 +4,10 @@ export const ROLLING_PLAN_STATUS_CONFIG: Record<
     RollingPlanStatus,
     { label: string; bg: string; color: string }
 > = {
-    on_warehouse: { label: "On Warehouse", bg: "#FD9334", color: "#fff" },
-    in_cutting: { label: "In Cutting", bg: "#3C86E7", color: "#fff" },
+    plan: { label: "Plan", bg: "#94A3B8", color: "#fff" },
+    submitted: { label: "Submitted", bg: "#A78BFA", color: "#fff" },
+    in_progress: { label: "In Progress", bg: "#3C86E7", color: "#fff" },
+    completed: { label: "Completed", bg: "#22C55E", color: "#fff" },
 }
 
 export const ALL_ROLLING_PLAN_STATUSES = Object.keys(

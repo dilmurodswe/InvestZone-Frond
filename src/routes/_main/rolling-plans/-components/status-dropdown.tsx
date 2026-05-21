@@ -40,7 +40,7 @@ export default function RollingPlanStatusDropdown({
         patch(
             API.ROLLING_PLANS.ID.replace("{id}", String(rollingPlan.id)),
             {
-                machine: rollingPlan.machine,
+                machine: rollingPlan.machine?.id,
                 items: rollingPlan.items.map((item) => ({
                     ready_strip: item.ready_strip,
                     status,
@@ -56,6 +56,8 @@ export default function RollingPlanStatusDropdown({
         )
     }
 
+    const currentStatus = rollingPlan.status ?? rollingPlan.items?.[0]?.status
+
     return (
         <div
             ref={ref}
@@ -66,11 +68,11 @@ export default function RollingPlanStatusDropdown({
                 zIndex: 9999,
                 minWidth: 160,
             }}
-            className="bg-white rounded-xl shadow-lg border flex flex-col overflow-y-auto max-h-[200px]"
+            className="bg-white rounded-xl shadow-lg border flex flex-col overflow-y-auto max-h-[240px]"
         >
             {ALL_ROLLING_PLAN_STATUSES.map((status) => {
                 const config = ROLLING_PLAN_STATUS_CONFIG[status]
-                const isActive = rollingPlan.status === status
+                const isActive = currentStatus === status
                 return (
                     <button
                         key={status}

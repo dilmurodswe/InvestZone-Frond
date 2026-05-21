@@ -171,11 +171,11 @@ function NewRollingPlanForm() {
                 plan_number: planNumber,
                 items: selectedStrips.map((s) => ({
                     ready_strip: s.id,
-                    status: "on_warehouse",
+                    status: "plan",
                     total_pcs: s.quantity,
                     total_weight: s.total_wes,
                     selected_weight_ton: Number(s.vibor_th) || 0,
-                    end_date:
+                    plan_date:
                         s.end_date ? format(s.end_date, "yyyy-MM-dd") : null,
                     calculated_meters: Number(calcKolvMetar(s)) || 0,
                     pipe_length_mm: Number(s.pipe_length_mm) || 0,

@@ -1,3 +1,12 @@
+// index.tsx  — faqat o'zgargan qismlar ko'rsatilgan
+// 1) Import qo'shish:
+//    import RollingPlanFactModal from "./rolling-plan-fact-modal"
+//
+// 2) JSX ichida <RollingPlanDeleteModal /> dan keyin:
+//    <RollingPlanFactModal />
+//
+// To'liq ko'rinishi:
+
 import { CustomTable } from "@/components/custom/custom-table"
 import FilterInput from "@/components/filter/filter-input"
 import FilterSelect from "@/components/filter/filter-select"
@@ -14,6 +23,7 @@ import type { RollingPlan } from "../-types"
 import NewRollingPlanModal from "./new-rolling-plan-modal"
 import RollingPlanDeleteModal from "./rolling-plan-delete-modal"
 import RollingPlanDetailModal from "./rolling-plan-detail-modal"
+import RollingPlanFactModal from "./rolling-plan-fact-modal" // ← YANGI
 import RollingPlanStatusDropdown from "./status-dropdown"
 import { getRollingPlanCols } from "./use-rolling-plan-cols"
 
@@ -33,29 +43,28 @@ export default function Index() {
     const cols = getRollingPlanCols(handleStatusClick)
 
     const statusOptions = [
-        { id: "on_warehouse", name: "On Warehouse" },
-        { id: "in_cutting", name: "In Cutting" },
+        { id: "on_warehouse", name: "На складе" },
+        { id: "in_cutting", name: "В резке" },
     ]
 
     return (
         <>
-            <Navbar links={[{ label: "Rolling Plans" }]} />
+            <Navbar links={[{ label: "Планы прокатки" }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <div className="flex flex-wrap gap-x-2 gap-y-4">
                         <FilterInput />
                         <FilterSelect
                             filterKey="status"
-                            placeholder="Status"
+                            placeholder="Статус"
                             options={statusOptions}
                         />
                     </div>
                     <Button onClick={() => newModal.openModal()}>
                         <Plus className="w-4 h-4" />
-                        New
+                        Новый
                     </Button>
                 </Group>
-
                 {!!rollingPlanList.length && (
                     <CustomTable
                         columns={cols}
@@ -64,7 +73,6 @@ export default function Index() {
                         isLoading={isFetching}
                     />
                 )}
-
                 {!rollingPlanList.length && !isFetching && (
                     <NoData>
                         <Button
@@ -73,15 +81,14 @@ export default function Index() {
                             className="text-primary"
                         >
                             <Plus className="w-4 h-4" />
-                            New Rolling Plan
+                            Новый план прокатки
                         </Button>
                     </NoData>
                 )}
-
                 <RollingPlanDetailModal />
                 <NewRollingPlanModal />
                 <RollingPlanDeleteModal />
-
+                <RollingPlanFactModal /> {/* ← YANGI */}
                 {statusDropdown && (
                     <RollingPlanStatusDropdown
                         rollingPlan={statusDropdown.plan}
