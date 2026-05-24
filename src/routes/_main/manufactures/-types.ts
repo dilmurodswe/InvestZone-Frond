@@ -23,6 +23,7 @@ export type DetailItem = {
     product: {
         id: number
         name: string
+        outer_dimension: string
         code: number | null
         articul: string | null
         price: number | null

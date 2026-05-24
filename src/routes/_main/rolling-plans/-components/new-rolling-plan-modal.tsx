@@ -216,7 +216,7 @@ function NewRollingPlanForm() {
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="flex flex-col gap-1">
+                    <div className="flex-col gap-1 hidden">
                         <label className="text-xs font-medium text-muted-foreground">
                             Plan Number
                         </label>

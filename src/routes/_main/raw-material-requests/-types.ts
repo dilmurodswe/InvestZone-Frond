@@ -28,6 +28,7 @@ export type RawMaterialRequest = {
     specification_amount?: number
     shipped_amount?: number
     difference_usd?: number
+    present?: number
 }
 
 export type RequestDetailRow = {

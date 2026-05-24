@@ -108,11 +108,11 @@ const FIELDS: {
 }[] = [
     { key: "brutto", label: "Brutto", isNumber: true },
     { key: "netto", label: "Netto", isNumber: true },
-    { key: "inner_size", label: "Inner size", isNumber: true },
-    { key: "outer_size", label: "Outer size", isNumber: true },
+    // { key: "inner_size", label: "Inner size", isNumber: true },
+    // { key: "outer_size", label: "Outer size", isNumber: true },
     { key: "plank", label: "Plank" },
     { key: "reference_number", label: "Reference number" },
-    { key: "wagon", label: "Wagon", isNumber: true },
+    { key: "wagon", label: "Wagon" },
 ]
 
 const toPayload = (r: ItemRow) => ({

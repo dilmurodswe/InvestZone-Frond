@@ -251,8 +251,8 @@ function DetailContent({
         const shippedAmount = shippedQty * price
         const difference = lineTotal - shippedAmount
         const present =
-            lineTotal !== 0 ?
-                ((shippedAmount / lineTotal) * 100).toFixed(2)
+            difference !== 0 ?
+                ((difference / lineTotal) * 100).toFixed(2)
             :   "0.00"
 
         return { price, lineTotal, shippedAmount, difference, present }
@@ -337,7 +337,10 @@ function DetailContent({
         { label: "Shipped quantity", value: request.shipped_quantity },
         { label: "Specification amount", value: request.specification_amount },
         { label: "Shipped amount", value: request.shipped_amount },
-        { label: "Difference (USD)", value: request.difference_usd },
+        {
+            label: "Difference (USD)",
+            value: request.difference_usd + "$ - " + request.present + "%",
+        },
     ]
 
     const handleItemModalClose = useCallback(() => {
