@@ -17,7 +17,7 @@ export function Money({
 }) {
     const value = formatNumber(isAbsolute ? Math.abs(Number(val) || 0) : val, {
         prefix: "$",
-        decimalScale: 2,
+        decimalScale: 3,
         ...props,
     })
     // const num = Number(val)

@@ -1,5 +1,6 @@
 import Modal from "@/components/custom/modal"
 import { Badge } from "@/components/ui/badge"
+import { formatDecimal } from "@/lib/utils/format-number"
 import { useSupplierStore } from "../-hooks/use-supplier-store"
 
 export default function SupplierDetailModal() {
@@ -56,7 +57,7 @@ function SupplierDetail() {
                         label="Balance"
                         value={
                             supplier.balance != null ?
-                                supplier.balance.toLocaleString()
+                                formatDecimal(supplier.balance)
                             :   null
                         }
                     />

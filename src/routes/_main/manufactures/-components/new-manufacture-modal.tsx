@@ -2,6 +2,7 @@ import Modal from "@/components/custom/modal"
 import LocalFilterInput from "@/components/filter/local-search-input"
 import { CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { formatDecimal } from "@/lib/utils/format-number"
 import {
     Select,
     SelectContent,
@@ -178,7 +179,7 @@ function CalculateResults({
     }, 0)
     const leftOver = totalNetto - weightFromCutSum - (parseFloat(otxod) || 0)
 
-    const fmt = (n: number) => (n % 1 === 0 ? n : n.toFixed(2))
+    const fmt = (n: number) => (n % 1 === 0 ? n : n.toFixed(3))
 
     return (
         <div className="flex flex-col gap-4">
@@ -273,7 +274,7 @@ function CalculateResults({
                                         </td>
                                         <td className="px-3 py-2 whitespace-nowrap">
                                             <span className="inline-flex items-center justify-center bg-muted/50 rounded px-2 py-0.5 font-mono text-xs font-semibold">
-                                                {row.amount?.toFixed(2)}
+                                                {row.amount?.toFixed(3)}
                                             </span>
                                         </td>
                                         <td className="px-3 py-2">
@@ -553,7 +554,7 @@ function NewManufactureForm() {
                         0,
                     ) -
                     (parseFloat(otxod) || 0)
-                ).toFixed(2),
+                ).toFixed(3),
             },
             {
                 onSuccess: () => {
@@ -656,7 +657,7 @@ function NewManufactureForm() {
                                 Total Netto
                             </span>
                             <span className="font-semibold">
-                                {totalNetto.toLocaleString()}
+                                {formatDecimal(totalNetto)}
                             </span>
                         </div>
                     </div>

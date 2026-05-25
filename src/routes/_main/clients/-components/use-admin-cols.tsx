@@ -188,7 +188,7 @@ export const useClientCols = (): ColumnDef<Client>[] => {
                     onClick={() => handleRowClick(original)}
                 >
                     {original.balance != null ?
-                        `${original.balance.toFixed(2)}`
+                        `${original.balance.toFixed(3)}`
                     :   "—"}
                 </span>
             ),

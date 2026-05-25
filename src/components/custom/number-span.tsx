@@ -17,7 +17,10 @@ export function NumberSpan({
 }) {
     const value = formatNumber(
         isAbsolute ? Math.abs(Number(val) || 0) : val,
-        props,
+        {
+            decimalScale: 3,
+            ...props,
+        },
     )
     const num = Number(val)
 

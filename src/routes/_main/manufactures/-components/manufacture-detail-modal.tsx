@@ -63,7 +63,7 @@ function ManufactureDetailContent() {
                         <Cell label="Total Sum" value={data.total_sum} />
                         <Cell
                             label="Total Cut Weight"
-                            value={data.total_cut_weight.toFixed(2)}
+                            value={data.total_cut_weight.toFixed(3)}
                         />
                         <Cell label="Otxod" value={data.left_over} />
                     </div>

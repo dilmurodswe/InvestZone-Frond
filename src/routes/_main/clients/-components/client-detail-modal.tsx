@@ -1,5 +1,6 @@
 import Modal from "@/components/custom/modal"
 import { Badge } from "@/components/ui/badge"
+import { formatDecimal } from "@/lib/utils/format-number"
 import { useClientStore } from "../-hooks/use-client-store"
 
 export default function ClientDetailModal() {
@@ -54,7 +55,7 @@ function ClientDetail() {
                         label="Balance"
                         value={
                             client.balance != null ?
-                                client.balance.toLocaleString()
+                                formatDecimal(client.balance)
                             :   null
                         }
                     />

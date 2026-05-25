@@ -3,6 +3,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { API } from "@/lib/constants/api-endpoints"
 import { getArray } from "@/lib/utils/get-array"
+import { formatDecimal } from "@/lib/utils/format-number"
 import { File, FileText, Loader2, Sheet, Trash2, Upload, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -252,8 +253,8 @@ function DetailContent({
         const difference = lineTotal - shippedAmount
         const present =
             lineTotal !== 0 ?
-                ((shippedAmount / lineTotal) * 100).toFixed(2)
-            :   "0.00"
+                ((shippedAmount / lineTotal) * 100).toFixed(3)
+            :   "0.000"
 
         return { price, lineTotal, shippedAmount, difference, present }
     }
@@ -594,14 +595,14 @@ function DetailContent({
                                                 {/* Line total — computed, read-only */}
                                                 <td className="px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
                                                     {edit.price ?
-                                                        derived.lineTotal.toLocaleString()
+                                                        formatDecimal(derived.lineTotal)
                                                     :   "—"}
                                                 </td>
 
                                                 {/* Shipped amount — computed, read-only */}
                                                 <td className="px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
                                                     {edit.price ?
-                                                        derived.shippedAmount.toLocaleString()
+                                                        formatDecimal(derived.shippedAmount)
                                                     :   "—"}
                                                 </td>
 
@@ -626,7 +627,7 @@ function DetailContent({
                                                             ) ?
                                                                 "+"
                                                             :   ""}
-                                                            {derived.difference.toLocaleString()}
+                                                            {formatDecimal(derived.difference)}
                                                         </span>
                                                     :   "—"}
                                                 </td>

@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import type { ReadyStrip } from "../-types"
+import { formatDecimal } from "@/lib/utils/format-number"
 
 export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
     {
@@ -26,7 +27,7 @@ export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
         header: "Quantity",
         cell: ({ row: { original } }) => (
             <span className="text-sm font-medium">
-                {original.quantity.toLocaleString()}
+                {formatDecimal(original.quantity)}
             </span>
         ),
     },

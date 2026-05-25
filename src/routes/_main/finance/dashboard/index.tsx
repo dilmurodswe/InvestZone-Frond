@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/popover"
 import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
+import { formatDecimal } from "@/lib/utils/format-number"
 import { createFileRoute } from "@tanstack/react-router"
 import { endOfMonth, format, startOfMonth } from "date-fns"
 import {
@@ -141,7 +142,7 @@ function DualCurrencyChart({
     }
 
     const makeTooltip = (currency: string) => (v: number) => [
-        v.toLocaleString(),
+        formatDecimal(v),
         `${label} ${currency}`,
     ]
 
@@ -284,7 +285,7 @@ function RouteComponent() {
                                         Expense USD
                                     </p>
                                     <p className="text-xl font-bold text-red-500">
-                                        ${totalExpenseUSD.toLocaleString()}
+                                        ${formatDecimal(totalExpenseUSD)}
                                     </p>
                                 </div>
                             </CardContent>
@@ -299,7 +300,7 @@ function RouteComponent() {
                                         Expense UZS
                                     </p>
                                     <p className="text-xl font-bold text-red-400">
-                                        {totalExpenseUZS.toLocaleString()}
+                                        {formatDecimal(totalExpenseUZS)}
                                     </p>
                                 </div>
                             </CardContent>
@@ -314,7 +315,7 @@ function RouteComponent() {
                                         Income USD
                                     </p>
                                     <p className="text-xl font-bold text-green-500">
-                                        ${totalIncomeUSD.toLocaleString()}
+                                        ${formatDecimal(totalIncomeUSD)}
                                     </p>
                                 </div>
                             </CardContent>
@@ -329,7 +330,7 @@ function RouteComponent() {
                                         Income UZS
                                     </p>
                                     <p className="text-xl font-bold text-green-400">
-                                        {totalIncomeUZS.toLocaleString()}
+                                        {formatDecimal(totalIncomeUZS)}
                                     </p>
                                 </div>
                             </CardContent>
@@ -421,7 +422,7 @@ function RouteComponent() {
                                                             style={{ color }}
                                                         >
                                                             Total:{" "}
-                                                            {val.total.toLocaleString()}
+                                                            {formatDecimal(val.total)}
                                                         </span>
                                                     </div>
 
@@ -480,7 +481,7 @@ function RouteComponent() {
                                                                         formatter={(
                                                                             value: number,
                                                                         ) =>
-                                                                            value.toLocaleString()
+                                                                            formatDecimal(value)
                                                                         }
                                                                     />
                                                                 </PieChart>
@@ -518,7 +519,7 @@ function RouteComponent() {
                                                                             </span>
                                                                             <span className="text-xs text-muted-foreground">
                                                                                 (
-                                                                                {item.value.toLocaleString()}
+                                                                                {formatDecimal(item.value)}
 
                                                                                 )
                                                                             </span>

@@ -1,8 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import type { ReadyProduct } from "../-types"
+import { formatDecimal } from "@/lib/utils/format-number"
 
-const fmt = (val: number | null | undefined) =>
-    val != null ? val.toLocaleString() : "—"
+const fmt = (val: number | null | undefined) => formatDecimal(val)
 
 export const getReadyProductCols = (
     onRowClick: (row: ReadyProduct) => void,

@@ -24,6 +24,14 @@ export function formatNumber(
 
     return numericFormatter(numStr, {
         thousandSeparator: " ",
+        decimalScale: 3,
+        fixedDecimalScale: false,
         ...props,
     })
+}
+
+// Helper function for consistent 3-decimal formatting
+export function formatDecimal(val: number | null | undefined): string {
+    if (val == null) return "—"
+    return formatNumber(val, { decimalScale: 3 })
 }

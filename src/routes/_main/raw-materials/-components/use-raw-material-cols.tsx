@@ -1,8 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import type { RawMaterial } from "../-types"
+import { formatDecimal } from "@/lib/utils/format-number"
 
-const fmt = (val: number | null | undefined) =>
-    val != null ? val.toLocaleString() : "—"
+const fmt = (val: number | null | undefined) => formatDecimal(val)
 
 const fmtStr = (val: string | null | undefined) => (val?.trim() ? val : "—")
 
@@ -101,7 +101,7 @@ export const getRawMaterialCols = (): ColumnDef<RawMaterial>[] => [
         cell: ({ row: { original } }) => (
             <span className="text-sm">
                 {original.price != null ?
-                    `$${original.price.toLocaleString()}`
+                    `$${formatDecimal(original.price)}`
                 :   "—"}
             </span>
         ),

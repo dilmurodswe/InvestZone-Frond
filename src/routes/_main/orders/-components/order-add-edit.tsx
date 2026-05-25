@@ -8,6 +8,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { formatDecimal } from "@/lib/utils/format-number"
 import { PlusIcon, Trash2 } from "lucide-react"
 import { useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -66,7 +67,7 @@ function OrderAddEdit() {
             .filter((item) => item.product != null)
             .map((item) => ({
                 id: item.product.id,
-                name: `${item.product.name} — ${Number(item.product.price).toLocaleString()}`,
+                name: `${item.product.name} — ${formatDecimal(Number(item.product.price))}`,
             })),
     )
 

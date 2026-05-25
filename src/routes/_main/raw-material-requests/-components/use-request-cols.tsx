@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import type { RawMaterialRequest } from "../-types"
+import { formatDecimal } from "@/lib/utils/format-number"
 import StatusBadge from "./status-badge"
 // eslint-disable-next-line react-x/no-unnecessary-use-prefix
 export const useRequestCols = (
@@ -103,7 +104,7 @@ export const useRequestCols = (
                         onClick={() => onRowClick(original)}
                     >
                         {isPositive ? "+" : ""}
-                        {val.toLocaleString()} $
+                        {formatDecimal(val)} $
                     </button>
                 )
             },

@@ -58,7 +58,7 @@ function calcKolvMetar(strip: SelectedStrip): string {
     const denom = strip.strip_cut_width_mm * strip.quantity * 0.00785
     if (!denom) return "0"
     const result = x / denom
-    return result % 1 === 0 ? String(result) : result.toFixed(4)
+    return result % 1 === 0 ? String(result) : result.toFixed(3)
 }
 
 // Inline date picker cell using Calendar + Popover
