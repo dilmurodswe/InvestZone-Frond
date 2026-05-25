@@ -161,7 +161,7 @@ function NewRollingPlanForm() {
     const hasViborError = selectedStrips.some(
         (s) => s.vibor_th !== "" && Number(s.vibor_th) > s.total_wes,
     )
-    const canSubmit = !!machineId && !!planNumber && selectedStrips.length > 0
+    const canSubmit = !!machineId && selectedStrips.length > 0
 
     const handleSubmit = () => {
         post(
@@ -534,8 +534,6 @@ function NewRollingPlanForm() {
                     <p className="text-xs text-muted-foreground">
                         {!machineId ?
                             "Select a machine"
-                        : !planNumber ?
-                            "Enter plan number"
                         :   "Select at least one ready strip"}
                     </p>
                 )}
