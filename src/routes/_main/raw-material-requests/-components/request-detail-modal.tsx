@@ -338,7 +338,10 @@ function DetailContent({
         { label: "Shipped quantity", value: request.shipped_quantity },
         { label: "Specification amount", value: request.specification_amount },
         { label: "Shipped amount", value: request.shipped_amount },
-        { label: "Difference (USD)", value: request.difference_usd },
+        {
+            label: "Difference (USD)",
+            value: request.difference_usd + "$ - " + request.present + "%",
+        },
     ]
 
     const handleItemModalClose = useCallback(() => {
@@ -595,14 +598,14 @@ function DetailContent({
                                                 {/* Line total — computed, read-only */}
                                                 <td className="px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
                                                     {edit.price ?
-                                                        formatDecimal(derived.lineTotal)
+                                                        derived.lineTotal.toLocaleString()
                                                     :   "—"}
                                                 </td>
 
                                                 {/* Shipped amount — computed, read-only */}
                                                 <td className="px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
                                                     {edit.price ?
-                                                        formatDecimal(derived.shippedAmount)
+                                                        derived.shippedAmount.toLocaleString()
                                                     :   "—"}
                                                 </td>
 
@@ -627,7 +630,7 @@ function DetailContent({
                                                             ) ?
                                                                 "+"
                                                             :   ""}
-                                                            {formatDecimal(derived.difference)}
+                                                            {derived.difference.toLocaleString()}
                                                         </span>
                                                     :   "—"}
                                                 </td>

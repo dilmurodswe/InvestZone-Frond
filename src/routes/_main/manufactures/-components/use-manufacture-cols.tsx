@@ -51,7 +51,7 @@ export const getManufactureCols = (
             header: "Products",
             cell: ({ row: { original } }) => {
                 const names = original.detail_items
-                    .map((d) => d.product.name)
+                    .map((d) => d.product.outer_dimension)
                     .join(", ")
                 return (
                     <ClickableCell manufacture={original}>

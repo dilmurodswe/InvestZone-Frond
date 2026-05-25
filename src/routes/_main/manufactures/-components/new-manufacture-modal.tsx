@@ -676,10 +676,8 @@ function NewManufactureForm() {
                                     {[
                                         "Contract #",
                                         "Status",
-                                        "Brutto",
                                         "Netto",
-                                        "Inner",
-                                        "Outer",
+
                                         "Plank",
                                         "Wagon",
                                     ].map((h) => (
@@ -727,18 +725,11 @@ function NewManufactureForm() {
                                             <td className="px-3 py-2">
                                                 {r.status ?? "—"}
                                             </td>
-                                            <td className="px-3 py-2">
-                                                {r.brutto ?? "—"}
-                                            </td>
+
                                             <td className="px-3 py-2">
                                                 {r.netto ?? "—"}
                                             </td>
-                                            <td className="px-3 py-2">
-                                                {r.inner_size ?? "—"}
-                                            </td>
-                                            <td className="px-3 py-2">
-                                                {r.outer_size ?? "—"}
-                                            </td>
+
                                             <td className="px-3 py-2">
                                                 {r.plank ?? "—"}
                                             </td>
@@ -759,7 +750,7 @@ function NewManufactureForm() {
                 <p className="text-sm font-semibold">Products</p>
 
                 <div className="flex items-end gap-3">
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 hidden">
                         <label className="text-xs font-medium text-muted-foreground">
                             Category
                         </label>
@@ -780,7 +771,7 @@ function NewManufactureForm() {
                         </Select>
                     </div>
 
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 hidden">
                         <label className="text-xs font-medium text-muted-foreground">
                             Sub Category
                         </label>

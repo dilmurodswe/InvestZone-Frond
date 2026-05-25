@@ -82,8 +82,7 @@ function ManufactureDetailContent() {
                                         "Status",
                                         "Brutto",
                                         "Netto",
-                                        "Inner",
-                                        "Outer",
+
                                         "Plank",
                                         "Wagon",
                                     ].map((h) => (
@@ -115,12 +114,7 @@ function ManufactureDetailContent() {
                                             <td className="px-4 py-2">
                                                 {raw.netto ?? "—"}
                                             </td>
-                                            <td className="px-4 py-2">
-                                                {raw.inner_size ?? "—"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {raw.outer_size ?? "—"}
-                                            </td>
+
                                             <td className="px-4 py-2">
                                                 {raw.plank ?? "—"}
                                             </td>
