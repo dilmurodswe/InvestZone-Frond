@@ -1,1 +1,1 @@
-export const BASE_URL = "https://investzone.dilmurodbek.uz/api/v1/"
+export const BASE_URL = import.meta.env.VITE_DEFAULT_URL ?? "https://investzone.dilmurodbek.uz/api/v1/"
