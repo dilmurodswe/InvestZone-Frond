@@ -2,7 +2,6 @@ import Modal from "@/components/custom/modal"
 import LocalFilterInput from "@/components/filter/local-search-input"
 import { CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { formatDecimal } from "@/lib/utils/format-number"
 import {
     Select,
     SelectContent,
@@ -15,7 +14,8 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { formatDecimal } from "@/lib/utils/format-number"
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import {
@@ -456,6 +456,8 @@ function NewManufactureForm() {
         results: { id: number; name: string; code?: string; articul?: string }[]
     }>(API.EXTRA.PRODUCTS.INDEX, { params: productParams })
 
+    // ── Product section ──
+    const [isProductsExpanded, setIsProductsExpanded] = useState(false)
     const productOptions = productsData?.results ?? []
     const productCount = productsData?.count ?? 0
     const productPageCount =
@@ -825,6 +827,17 @@ function NewManufactureForm() {
                         </Select>
                     </div>
 
+                    <button
+                        type="button"
+                        onClick={() => setIsProductsExpanded((p) => !p)}
+                        className="h-9 px-2.5 rounded-md border text-xs hover:bg-muted transition-colors flex items-center gap-1 self-end"
+                    >
+                        {isProductsExpanded ?
+                            <ChevronDown className="w-3.5 h-3.5" />
+                        :   <ChevronUp className="w-3.5 h-3.5" />}
+                        {isProductsExpanded ? "Collapse" : "Expand"}
+                    </button>
+
                     <div className="ml-auto text-sm text-muted-foreground">
                         Selected:{" "}
                         <span className="font-semibold text-foreground">
@@ -834,7 +847,13 @@ function NewManufactureForm() {
                 </div>
 
                 <div className="border rounded-lg overflow-hidden">
-                    <div className="overflow-y-auto max-h-[200px]">
+                    <div
+                        className={`overflow-y-auto transition-all duration-200 ${
+                            isProductsExpanded ?
+                                "max-h-[calc(100vh-320px)]"
+                            :   "max-h-[200px]"
+                        }`}
+                    >
                         <table className="w-full text-sm border-collapse">
                             <thead className="sticky top-0 bg-muted/60 backdrop-blur-sm z-10">
                                 <tr className="border-b">

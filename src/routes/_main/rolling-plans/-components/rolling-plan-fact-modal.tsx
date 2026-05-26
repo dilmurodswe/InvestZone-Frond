@@ -21,11 +21,9 @@ import type { RollingPlanDetail } from "../-types"
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Pack = {
-    id: number // local only (для key)
-    serverId?: number // from backend
-    pack_number: string
+    id: number
+    serverId?: number
     weight_tn: string
-    quantity: string
 }
 
 type Production = {
@@ -229,32 +227,11 @@ function RollingPlanFactContent() {
     const [status, setStatus] = useState("")
     const [totalMeters, setTotalMeters] = useState("")
     const [packs, setPacks] = useState<Pack[]>([
-        { id: packIdCounter++, pack_number: "", weight_tn: "", quantity: "" },
+        { id: packIdCounter++, weight_tn: "" },
     ])
     const [nonStandard, setNonStandard] = useState("")
     const [defective, setDefective] = useState("")
     const [scrapMetal, setScrapMetal] = useState("")
-
-    // Populate form when existing production loads
-    // useEffect(() => {
-    //     if (existing && !editMode) {
-    //         setSmena(existing.smena)
-    //         setStatus(existing.status)
-    //         setTotalMeters(existing.total_meters)
-    //         setNonStandard(existing.non_standard_tn)
-    //         setDefective(existing.defective_tn)
-    //         setScrapMetal(existing.scrap_metal_tn)
-    //         setPacks(
-    //             existing.packs.map((p) => ({
-    //                 id: packIdCounter++,
-    //                 serverId: p.id,
-    //                 pack_number: p.pack_number,
-    //                 weight_tn: p.weight_tn,
-    //                 quantity: p.quantity,
-    //             })),
-    //         )
-    //     }
-    // }, [existing])
 
     const editModeRef = useRef(false)
     useEffect(() => {
@@ -273,9 +250,7 @@ function RollingPlanFactContent() {
                 existing.packs.map((p) => ({
                     id: packIdCounter++,
                     serverId: p.id,
-                    pack_number: p.pack_number,
                     weight_tn: p.weight_tn,
-                    quantity: p.quantity,
                 })),
             )
         }
@@ -292,6 +267,26 @@ function RollingPlanFactContent() {
             )
     }, [detail])
 
+    // Шт в Пачке from product extra_fields
+    const shtVPachke: number = useMemo(() => {
+        const raw = detail?.items?.[0]?.product?.extra_fields?.["Шт в Пачке"]
+        return typeof raw === "number" ? raw : (
+                parseFloat(String(raw ?? "0")) || 0
+            )
+    }, [detail])
+
+    // pipe_length in meters (API gives mm)
+    const pipeLengthM: number = useMemo(() => {
+        const raw = detail?.items?.[0]?.pipe_length_mm
+        return typeof raw === "number" ? raw / 1000 : 0
+    }, [detail])
+
+    // quantity per pack = Шт в Пачке * pipe_length_m (result in meters)
+    const quantityPerPack: string = useMemo(() => {
+        if (!shtVPachke || !pipeLengthM) return "0.000"
+        return fmt3(shtVPachke * pipeLengthM)
+    }, [shtVPachke, pipeLengthM])
+
     const totalTon: number = useMemo(
         () => packs.reduce((sum, p) => sum + parseNum(p.weight_tn), 0),
         [packs],
@@ -304,7 +299,7 @@ function RollingPlanFactContent() {
 
     const vigrishPercent: number = useMemo(() => {
         if (!teoriyaKg) return 0
-        return (totalTon * 1000) / teoriyaKg - 1
+        return totalTon / teoriyaKg - 1
     }, [totalTon, teoriyaKg])
 
     const wasteSum: number = useMemo(
@@ -367,26 +362,14 @@ function RollingPlanFactContent() {
     // ── Pack helpers ──────────────────────────────────────────────────────────
 
     const addPack = () =>
-        setPacks((prev) => [
-            ...prev,
-            {
-                id: packIdCounter++,
-                pack_number: "",
-                weight_tn: "",
-                quantity: "",
-            },
-        ])
+        setPacks((prev) => [...prev, { id: packIdCounter++, weight_tn: "" }])
 
     const removePack = (id: number) =>
         setPacks((prev) => prev.filter((p) => p.id !== id))
 
-    const updatePack = (
-        id: number,
-        field: keyof Omit<Pack, "id" | "serverId">,
-        value: string,
-    ) =>
+    const updatePack = (id: number, value: string) =>
         setPacks((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)),
+            prev.map((p) => (p.id === id ? { ...p, weight_tn: value } : p)),
         )
 
     // ── Submit helpers ────────────────────────────────────────────────────────
@@ -407,11 +390,11 @@ function RollingPlanFactContent() {
         scrap_metal_tn: fmt3(parseNum(scrapMetal)),
         waste_percent: fmt3(wastePercent),
         packs: packs
-            .filter((p) => p.pack_number || p.weight_tn || p.quantity)
-            .map((p) => ({
-                pack_number: p.pack_number,
+            .filter((p) => p.weight_tn)
+            .map((p, idx) => ({
+                pack_number: `Пачка ${idx + 1}`,
                 weight_tn: fmt3(parseNum(p.weight_tn)),
-                quantity: fmt3(parseNum(p.quantity)),
+                quantity: quantityPerPack,
             })),
     })
 
@@ -477,7 +460,6 @@ function RollingPlanFactContent() {
             <div className="flex items-center justify-between">
                 <CardTitle>План-факт #{detail.plan_number}</CardTitle>
 
-                {/* Edit / Delete actions (only when existing) */}
                 {existing && (
                     <div className="flex items-center gap-2">
                         {deleteConfirm ?
@@ -586,7 +568,7 @@ function RollingPlanFactContent() {
                                     "Смена",
                                     "Статус",
                                     "Общий (тн)",
-                                    "Общий (мм)",
+                                    "Общий (м)", // ← м instead of мм
                                     "Теория (кг)",
                                     "Выгрыш (%)",
                                 ].map((h) => (
@@ -661,13 +643,13 @@ function RollingPlanFactContent() {
                                     }
                                 />
 
-                                {/* Общий (мм) */}
+                                {/* Общий (м) */}
                                 {isViewMode ?
                                     <RoCell value={existing.total_meters} />
                                 :   <InputCell
                                         value={totalMeters}
                                         onChange={setTotalMeters}
-                                        placeholder="0"
+                                        placeholder="0.000"
                                     />
                                 }
 
@@ -695,7 +677,7 @@ function RollingPlanFactContent() {
                                         }
                                     />
                                 :   <CalcBadge
-                                        value={`${fmt3(vigrishPercent * 100)}%`}
+                                        value={`${fmt3(vigrishPercent)}%`}
                                         color={
                                             vigrishPercent >= 0 ? "green" : (
                                                 "red"
@@ -718,14 +700,18 @@ function RollingPlanFactContent() {
                                 <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground w-10">
                                     №
                                 </th>
-                                {["Пачка №", "Вес (тн)", "Кол-во"].map((h) => (
-                                    <th
-                                        key={h}
-                                        className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap"
-                                    >
-                                        {h}
-                                    </th>
-                                ))}
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                    Пачка №
+                                </th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                    Вес (тн)
+                                </th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                    Кол-во (м)
+                                </th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                    Шт в Пачке
+                                </th>
                                 {!isViewMode && <th className="w-10" />}
                             </tr>
                         </thead>
@@ -742,6 +728,7 @@ function RollingPlanFactContent() {
                                         <RoCell value={p.pack_number} />
                                         <RoCell value={p.weight_tn} />
                                         <RoCell value={p.quantity} />
+                                        <RoCell value={shtVPachke || "—"} />
                                     </tr>
                                 ))
                             :   packs.map((pack, idx) => (
@@ -752,41 +739,26 @@ function RollingPlanFactContent() {
                                         <td className="px-3 py-2 text-xs text-muted-foreground">
                                             {idx + 1}
                                         </td>
-                                        <InputCell
-                                            value={pack.pack_number}
-                                            onChange={(v) =>
-                                                updatePack(
-                                                    pack.id,
-                                                    "pack_number",
-                                                    v,
-                                                )
-                                            }
-                                            placeholder="Пачка №"
-                                            type="text"
-                                        />
+                                        {/* Пачка № — read-only, auto-generated */}
+                                        <td className="px-3 py-2.5 text-sm text-muted-foreground">
+                                            Пачка {idx + 1}
+                                        </td>
+                                        {/* Вес (тн) — manual input */}
                                         <InputCell
                                             value={pack.weight_tn}
                                             onChange={(v) =>
-                                                updatePack(
-                                                    pack.id,
-                                                    "weight_tn",
-                                                    v,
-                                                )
+                                                updatePack(pack.id, v)
                                             }
                                             placeholder="0.000"
                                         />
-                                        <InputCell
-                                            value={pack.quantity}
-                                            onChange={(v) =>
-                                                updatePack(
-                                                    pack.id,
-                                                    "quantity",
-                                                    v,
-                                                )
-                                            }
-                                            placeholder="1 пач - 24шт"
-                                            type="text"
-                                        />
+                                        {/* Кол-во (м) — auto calculated, read-only */}
+                                        <td className="px-3 py-2.5 text-sm font-mono text-muted-foreground">
+                                            {quantityPerPack}
+                                        </td>
+                                        {/* Шт в Пачке — from product, read-only */}
+                                        <td className="px-3 py-2.5 text-sm font-mono text-muted-foreground">
+                                            {shtVPachke || "—"}
+                                        </td>
                                         <td className="px-2 py-2">
                                             {packs.length > 1 && (
                                                 <button
