@@ -17,8 +17,8 @@ import {
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { useFileUpload } from "../-hooks/use-file-upload"
-import { useRawMaterialsSelectQuery } from "../-hooks/use-raw-materials-select-query"
 import { useSuppliersSelectQuery } from "../-hooks/use-suppliers-select-query"
+import PaginatedRawMaterialSelect from "./paginated-raw-material-select"
 
 export default function NewRequestModal() {
     return (
@@ -114,7 +114,6 @@ function NewRequestForm() {
     const { closeModal } = useModal("new-request")
     const { invalidateByPatternMatch } = useRevalidate()
     const { post, isPending } = useRequest()
-    const { rawMaterialOptions } = useRawMaterialsSelectQuery()
     const { supplierOptions } = useSuppliersSelectQuery()
     const { uploadFile, isUploading } = useFileUpload()
 
@@ -227,24 +226,12 @@ function NewRequestForm() {
                         key={row.id}
                         className="grid grid-cols-[1fr_80px_auto] gap-2 items-center"
                     >
-                        <select
-                            className="border rounded px-3 py-2 text-sm bg-background"
+                        <PaginatedRawMaterialSelect
                             value={row.raw_material}
-                            onChange={(e) =>
-                                updateRow(
-                                    row.id,
-                                    "raw_material",
-                                    e.target.value,
-                                )
+                            onChange={(value) =>
+                                updateRow(row.id, "raw_material", value)
                             }
-                        >
-                            <option value="">Select</option>
-                            {rawMaterialOptions.map((rm) => (
-                                <option key={rm.id} value={rm.id}>
-                                    {rm.name}
-                                </option>
-                            ))}
-                        </select>
+                        />
                         <input
                             type="number"
                             placeholder="Tonn"
