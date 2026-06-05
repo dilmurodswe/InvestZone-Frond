@@ -25,6 +25,7 @@ type Pack = {
     serverId?: number
     weight_tn: string
     quantity_m: string
+    sht_v_pachke: string
 }
 
 type Production = {
@@ -228,7 +229,12 @@ function RollingPlanFactContent() {
     const [status, setStatus] = useState("")
     const [totalMeters, setTotalMeters] = useState("")
     const [packs, setPacks] = useState<Pack[]>([
-        { id: packIdCounter++, weight_tn: "", quantity_m: "" },
+        {
+            id: packIdCounter++,
+            weight_tn: "",
+            quantity_m: "",
+            sht_v_pachke: "",
+        },
     ])
     const [nonStandard, setNonStandard] = useState("")
     const [defective, setDefective] = useState("")
@@ -253,6 +259,7 @@ function RollingPlanFactContent() {
                     serverId: p.id,
                     weight_tn: p.weight_tn,
                     quantity_m: p.quantity,
+                    sht_v_pachke: "", // Backend dan kelmasa default product dan olinadi
                 })),
             )
         }
@@ -366,7 +373,12 @@ function RollingPlanFactContent() {
     const addPack = () =>
         setPacks((prev) => [
             ...prev,
-            { id: packIdCounter++, weight_tn: "", quantity_m: quantityPerPack },
+            {
+                id: packIdCounter++,
+                weight_tn: "",
+                quantity_m: quantityPerPack,
+                sht_v_pachke: String(shtVPachke),
+            },
         ])
 
     const removePack = (id: number) =>
@@ -381,6 +393,27 @@ function RollingPlanFactContent() {
         setPacks((prev) =>
             prev.map((p) => (p.id === id ? { ...p, quantity_m: value } : p)),
         )
+
+    const updatePackShtVPachke = (id: number, value: string) => {
+        setPacks((prev) =>
+            prev.map((p) => {
+                if (p.id === id) {
+                    // Agar sht_v_pachke o'zgarsa, quantity_m ni avtomatik hisoblash
+                    const newSht = parseFloat(value) || 0
+                    const newQuantity =
+                        newSht && pipeLengthM ?
+                            fmt3(newSht * pipeLengthM)
+                        :   p.quantity_m
+                    return {
+                        ...p,
+                        sht_v_pachke: value,
+                        quantity_m: newQuantity,
+                    }
+                }
+                return p
+            }),
+        )
+    }
 
     // ── Submit helpers ────────────────────────────────────────────────────────
 
@@ -772,10 +805,17 @@ function RollingPlanFactContent() {
                                             }
                                             placeholder={quantityPerPack}
                                         />
-                                        {/* Шт в Пачке — from product, read-only */}
-                                        <td className="px-3 py-2.5 text-sm font-mono text-muted-foreground">
-                                            {shtVPachke || "—"}
-                                        </td>
+                                        {/* Шт в Пачке — editable, affects quantity_m */}
+                                        <InputCell
+                                            value={
+                                                pack.sht_v_pachke ||
+                                                String(shtVPachke)
+                                            }
+                                            onChange={(v) =>
+                                                updatePackShtVPachke(pack.id, v)
+                                            }
+                                            placeholder={String(shtVPachke)}
+                                        />
                                         <td className="px-2 py-2">
                                             {packs.length > 1 && (
                                                 <button
