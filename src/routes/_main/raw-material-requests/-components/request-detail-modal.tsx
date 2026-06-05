@@ -250,12 +250,18 @@ function DetailContent({
         const lineTotal = quantity * price
         const shippedAmount = shippedQty * price
         const difference = lineTotal - shippedAmount
-        const present =
-            lineTotal !== 0 ?
-                ((shippedAmount / lineTotal) * 100).toFixed(3)
-            :   "0.000"
+        const presentRaw =
+            lineTotal !== 0 ? (shippedAmount / lineTotal) * 100 : 0
+        const present = (100 - presentRaw).toFixed(3)
 
-        return { price, lineTotal, shippedAmount, difference, present }
+        return {
+            price,
+            lineTotal,
+            shippedAmount,
+            difference,
+            present,
+            presentNumber: 100 - presentRaw,
+        }
     }
 
     const handleRowBlur = useCallback(
@@ -635,9 +641,28 @@ function DetailContent({
                                                 </td>
 
                                                 {/* Present (%) — computed, read-only */}
-                                                <td className="px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
+                                                <td className="px-3 py-2 text-sm whitespace-nowrap">
                                                     {edit.price ?
-                                                        `${derived.present}%`
+                                                        <span
+                                                            className="font-semibold"
+                                                            style={{
+                                                                color:
+                                                                    (
+                                                                        derived.presentNumber >=
+                                                                        0
+                                                                    ) ?
+                                                                        "#16C647"
+                                                                    :   "#E73C50",
+                                                            }}
+                                                        >
+                                                            {(
+                                                                derived.presentNumber >=
+                                                                0
+                                                            ) ?
+                                                                "+"
+                                                            :   ""}
+                                                            {derived.present}%
+                                                        </span>
                                                     :   "—"}
                                                 </td>
                                             </tr>
