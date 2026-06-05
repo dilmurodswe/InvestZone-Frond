@@ -176,6 +176,18 @@ export const useProductCols = (
         ),
     }
 
+    const thicknessCol: ColumnDef<Product> = {
+        id: "thickness",
+        header: "Толщина",
+        cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+            <TruncatedCell
+                value={original.thickness ?? null}
+                onClick={() => handleRowClick(original)}
+                maxWidth={100}
+            />
+        ),
+    }
+
     return [
         {
             accessorKey: "name",
@@ -245,6 +257,7 @@ export const useProductCols = (
         },
         // Наружный размер, мм — always visible
         outerDimensionCol,
+        thicknessCol,
         ...extraCols,
         {
             id: "description",

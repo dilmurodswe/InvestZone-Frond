@@ -1,6 +1,6 @@
+import { formatDecimal } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { ReadyStrip } from "../-types"
-import { formatDecimal } from "@/lib/utils/format-number"
 
 export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
     {
@@ -20,6 +20,15 @@ export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
         header: "Strip cut width (mm)",
         cell: ({ row: { original } }) => (
             <span className="text-sm">{original.strip_cut_width_mm} mm</span>
+        ),
+    },
+    {
+        accessorKey: "total_wes",
+        header: "Total Wes",
+        cell: ({ row: { original } }) => (
+            <span className="text-sm font-medium">
+                {formatDecimal(original.total_wes)}
+            </span>
         ),
     },
     {

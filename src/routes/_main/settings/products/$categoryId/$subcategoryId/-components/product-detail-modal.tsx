@@ -29,6 +29,11 @@ function ProductDetail() {
                 <DetailRow label="Code" value={product.code} />
                 <DetailRow label="SKU" value={product.articul} />
                 <DetailRow label="Price" value={product.price} />
+                <DetailRow
+                    label="Outer Dimension"
+                    value={product.outer_dimension}
+                />
+                <DetailRow label="Толщина" value={product.thickness} />
             </div>
 
             {/* Extra fields */}

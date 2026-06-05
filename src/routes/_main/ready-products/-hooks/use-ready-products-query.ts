@@ -9,7 +9,7 @@ export const useReadyProductsQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<PaginatedResponse<ReadyProduct>>(
         API.MANUFACTURES.READY_PRODUCTS,
-        { params },
+        { params: { page_size: 20, ...params } },
     )
     const readyProductList = getArray<ReadyProduct>(res.data?.results)
     const count = res.data?.count ?? 0

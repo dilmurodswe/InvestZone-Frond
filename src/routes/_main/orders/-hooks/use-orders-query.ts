@@ -7,7 +7,7 @@ import type { Order } from "../-types"
 export const useOrdersQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<{ count: number; results: Order[] }>(API.ORDERS.INDEX, {
-        params,
+        params: { page_size: 20, ...params },
     })
     const orderList = getArray<Order>(res.data?.results)
     return { ...res, orderList }

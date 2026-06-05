@@ -11,6 +11,7 @@ export const useProductsQuery = () => {
 
     const res = useGet<PaginatedResponse<Product>>(API.EXTRA.PRODUCTS.INDEX, {
         params: {
+            page_size: 20,
             ...params,
             category: categoryId,
             sub_category: subcategoryId,

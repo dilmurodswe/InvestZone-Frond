@@ -9,7 +9,7 @@ export const useExpensesQuery = () => {
     const res = useGet<{ count: number; results: Expense[] }>(
         API.FINANCE.EXPENSE.INDEX,
         {
-            params,
+            params: { page_size: 20, ...params },
         },
     )
     const expenseList = getArray<Expense>(res.data?.results)

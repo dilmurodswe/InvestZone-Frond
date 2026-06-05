@@ -7,7 +7,7 @@ import type { Currency } from "../-types"
 export const useCurrenciesQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<Currency[]>(API.SETTINGS.MACHINE.INDEX, {
-        params,
+        params: { page_size: 20, ...params },
     })
     const currencyList = getArray<Currency>(res.data)
 

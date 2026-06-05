@@ -8,7 +8,7 @@ import type { Supplier } from "../-types"
 export const useSuppliersQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<PaginatedResponse<Supplier>>(API.SUPPLIER.USERS.INDEX, {
-        params,
+        params: { page_size: 20, ...params },
     })
     const supplierList = getArray(res.data?.results)
 

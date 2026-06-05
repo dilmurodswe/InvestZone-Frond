@@ -9,7 +9,7 @@ export const useIncomesQuery = () => {
     const res = useGet<{ count: number; results: Income[] }>(
         API.FINANCE.INCOME.INDEX,
         {
-            params,
+            params: { page_size: 20, ...params },
         },
     )
     const incomeList = getArray<Income>(res.data?.results)

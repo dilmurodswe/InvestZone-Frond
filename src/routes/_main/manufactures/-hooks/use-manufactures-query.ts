@@ -8,7 +8,7 @@ import type { Manufacture } from "../-types"
 export const useManufacturesQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<PaginatedResponse<Manufacture>>(API.MANUFACTURES.INDEX, {
-        params,
+        params: { page_size: 20, ...params },
     })
     const manufactureList = getArray<Manufacture>(res.data?.results)
     const count = res.data?.count ?? 0

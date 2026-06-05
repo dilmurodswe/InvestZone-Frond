@@ -49,11 +49,12 @@ type ExtraField = { key: string; value: string }
 
 type Form = Omit<
     Product,
-    "id" | "extra_fields" | "description" | "outer_dimension"
+    "id" | "extra_fields" | "description" | "outer_dimension" | "thickness"
 > & {
     description: string
     extra_fields: ExtraField[]
     outer_dimension: string
+    thickness: number
 }
 
 // ─── Tiptap Toolbar ────────────────────────────────────────────────────────────
@@ -314,6 +315,7 @@ function ProductAddEdit() {
             description: "",
             extra_fields: [],
             outer_dimension: "",
+            thickness: 0,
         },
         values:
             product ?
@@ -329,6 +331,7 @@ function ProductAddEdit() {
                     description: product.description ?? "",
                     extra_fields: extraFieldsDefault,
                     outer_dimension: product.outer_dimension ?? "",
+                    thickness: product.thickness ?? 0,
                 }
             :   undefined,
     })
@@ -364,6 +367,7 @@ function ProductAddEdit() {
             description: vals.description,
             extra_fields,
             outer_dimension: vals.outer_dimension || null,
+            thickness: vals.thickness || null,
         }
 
         if (product) {
@@ -414,6 +418,15 @@ function ProductAddEdit() {
                 methods={form}
                 name="outer_dimension"
                 label="Наружный размер, мм"
+            />
+
+            {/* Thickness */}
+            <UncontrolledInput
+                methods={form}
+                name="thickness"
+                label="Толщина"
+                type="number"
+                step="any"
             />
 
             {/* Description */}

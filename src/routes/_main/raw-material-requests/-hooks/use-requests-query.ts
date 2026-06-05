@@ -10,7 +10,7 @@ export const useRequestsQuery = () => {
     const res = useGet<PaginatedResponse<RawMaterialRequest>>(
         API.RAW_MATERIAL_ITEMS.INDEX,
         {
-            params,
+            params: { page_size: 20, ...params },
         },
     )
     const requestList = getArray<RawMaterialRequest>(res.data?.results)

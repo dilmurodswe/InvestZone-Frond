@@ -8,7 +8,7 @@ import type { Admin } from "../-types"
 export const useAdminsQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<PaginatedResponse<Admin>>(API.ADMIN.USERS.INDEX, {
-        params,
+        params: { page_size: 20, ...params },
     })
     const adminList = getArray(res.data?.results)
 

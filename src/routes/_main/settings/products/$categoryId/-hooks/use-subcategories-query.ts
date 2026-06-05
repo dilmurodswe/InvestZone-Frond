@@ -12,7 +12,7 @@ export const useSubCategoriesQuery = () => {
     const res = useGet<PaginatedResponse<SubCategory>>(
         API.EXTRA.SUBCATEGORIES.INDEX,
         {
-            params: { ...params, category: categoryId },
+            params: { page_size: 20, ...params, category: categoryId },
         },
     )
     const subCategoryList = getArray(res.data?.results)

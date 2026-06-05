@@ -10,7 +10,7 @@ export const useRollingPlansQuery = () => {
     const res = useGet<PaginatedResponse<RollingPlan>>(
         API.ROLLING_PLANS.INDEX,
         {
-            params,
+            params: { page_size: 20, ...params },
         },
     )
     const rollingPlanList = getArray<RollingPlan>(res.data?.results)

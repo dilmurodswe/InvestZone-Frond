@@ -24,6 +24,7 @@ type Pack = {
     id: number
     serverId?: number
     weight_tn: string
+    quantity_m: string
 }
 
 type Production = {
@@ -227,7 +228,7 @@ function RollingPlanFactContent() {
     const [status, setStatus] = useState("")
     const [totalMeters, setTotalMeters] = useState("")
     const [packs, setPacks] = useState<Pack[]>([
-        { id: packIdCounter++, weight_tn: "" },
+        { id: packIdCounter++, weight_tn: "", quantity_m: "" },
     ])
     const [nonStandard, setNonStandard] = useState("")
     const [defective, setDefective] = useState("")
@@ -251,6 +252,7 @@ function RollingPlanFactContent() {
                     id: packIdCounter++,
                     serverId: p.id,
                     weight_tn: p.weight_tn,
+                    quantity_m: p.quantity,
                 })),
             )
         }
@@ -362,14 +364,22 @@ function RollingPlanFactContent() {
     // ── Pack helpers ──────────────────────────────────────────────────────────
 
     const addPack = () =>
-        setPacks((prev) => [...prev, { id: packIdCounter++, weight_tn: "" }])
+        setPacks((prev) => [
+            ...prev,
+            { id: packIdCounter++, weight_tn: "", quantity_m: quantityPerPack },
+        ])
 
     const removePack = (id: number) =>
         setPacks((prev) => prev.filter((p) => p.id !== id))
 
-    const updatePack = (id: number, value: string) =>
+    const updatePackWeight = (id: number, value: string) =>
         setPacks((prev) =>
             prev.map((p) => (p.id === id ? { ...p, weight_tn: value } : p)),
+        )
+
+    const updatePackQuantity = (id: number, value: string) =>
+        setPacks((prev) =>
+            prev.map((p) => (p.id === id ? { ...p, quantity_m: value } : p)),
         )
 
     // ── Submit helpers ────────────────────────────────────────────────────────
@@ -394,7 +404,7 @@ function RollingPlanFactContent() {
             .map((p, idx) => ({
                 pack_number: `Пачка ${idx + 1}`,
                 weight_tn: fmt3(parseNum(p.weight_tn)),
-                quantity: quantityPerPack,
+                quantity: p.quantity_m || quantityPerPack,
             })),
     })
 
@@ -747,14 +757,21 @@ function RollingPlanFactContent() {
                                         <InputCell
                                             value={pack.weight_tn}
                                             onChange={(v) =>
-                                                updatePack(pack.id, v)
+                                                updatePackWeight(pack.id, v)
                                             }
                                             placeholder="0.000"
                                         />
-                                        {/* Кол-во (м) — auto calculated, read-only */}
-                                        <td className="px-3 py-2.5 text-sm font-mono text-muted-foreground">
-                                            {quantityPerPack}
-                                        </td>
+                                        {/* Кол-во (м) — auto calculated with manual override */}
+                                        <InputCell
+                                            value={
+                                                pack.quantity_m ||
+                                                quantityPerPack
+                                            }
+                                            onChange={(v) =>
+                                                updatePackQuantity(pack.id, v)
+                                            }
+                                            placeholder={quantityPerPack}
+                                        />
                                         {/* Шт в Пачке — from product, read-only */}
                                         <td className="px-3 py-2.5 text-sm font-mono text-muted-foreground">
                                             {shtVPachke || "—"}

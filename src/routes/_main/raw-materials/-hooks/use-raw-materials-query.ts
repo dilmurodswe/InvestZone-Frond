@@ -9,7 +9,7 @@ export const useRawMaterialsQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<PaginatedResponse<RawMaterial>>(
         API.RAW_MATERIALS.INDEX,
-        { params },
+        { params: { page_size: 20, ...params } },
     )
     const rawMaterialList = getArray<RawMaterial>(res.data?.results)
     const count = res.data?.count ?? 0

@@ -9,7 +9,7 @@ export const useReadyStripsQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<PaginatedResponse<ReadyStrip>>(
         API.MANUFACTURES.READY_STRIPS,
-        { params },
+        { params: { page_size: 20, ...params } },
     )
     const readyStripList = getArray<ReadyStrip>(res.data?.results)
     const count = res.data?.count ?? 0

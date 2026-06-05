@@ -7,7 +7,7 @@ import type { Category } from "../-types"
 export const useCategoriesQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<Category[]>(API.EXTRA.CATEGORIES.INDEX, {
-        params,
+        params: { page_size: 20, ...params },
     })
     const categoryList = getArray<Category>(res.data)
 

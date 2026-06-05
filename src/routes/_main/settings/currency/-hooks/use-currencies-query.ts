@@ -9,7 +9,7 @@ export const useCurrenciesQuery = () => {
     const res = useGet<{ count: number; results: Currency[] }>(
         API.SETTINGS.CURRENCY.INDEX,
         {
-            params,
+            params: { page_size: 20, ...params },
         },
     )
     const currencyList = getArray<Currency>(res.data?.results)

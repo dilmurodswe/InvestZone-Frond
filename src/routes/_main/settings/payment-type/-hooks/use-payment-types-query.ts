@@ -9,7 +9,7 @@ export const usePaymentTypesQuery = () => {
     const res = useGet<{ count: number; results: PaymentType[] }>(
         API.SETTINGS.PAYMENT_TYPE.INDEX,
         {
-            params,
+            params: { page_size: 20, ...params },
         },
     )
     const paymentTypeList = getArray<PaymentType>(res.data?.results)

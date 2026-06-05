@@ -8,7 +8,7 @@ import type { Client } from "../-types"
 export const useClientsQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<PaginatedResponse<Client>>(API.CLIENT.USERS.INDEX, {
-        params,
+        params: { page_size: 20, ...params },
     })
     const clientList = getArray(res.data?.results)
 
