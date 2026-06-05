@@ -347,8 +347,8 @@ function DetailContent({
         { label: "Specification amount", value: request.specification_amount },
         { label: "Shipped amount", value: request.shipped_amount },
         {
-            label: "Difference (USD)",
-            value: request.difference_usd + "$ - " + request.present + "%",
+            label: "Difference (USD) / Present (%)",
+            value: request.difference_usd + "$ / " + request.present + "%",
         },
     ]
 
