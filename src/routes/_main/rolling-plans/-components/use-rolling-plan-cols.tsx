@@ -99,6 +99,26 @@ export const getRollingPlanCols = (
             },
         },
         {
+            id: "pipe_length_mm",
+            header: "Dlina Truba mm",
+            cell: ({ row: { original } }) => {
+                const lengths = [
+                    ...new Set(
+                        original.items
+                            ?.map((i) => i.pipe_length_mm)
+                            .filter(Boolean),
+                    ),
+                ]
+                return (
+                    <ClickableCell plan={original}>
+                        <span className="text-sm">
+                            {lengths.length ? lengths.join(", ") : "—"}
+                        </span>
+                    </ClickableCell>
+                )
+            },
+        },
+        {
             id: "selected_weight_ton",
             header: "Выбор (т)",
             cell: ({ row: { original } }) => {
