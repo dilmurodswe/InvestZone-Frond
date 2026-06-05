@@ -271,7 +271,7 @@ function DetailContent({
         (id: number, item: DetailRow) => {
             const edit = rowEdits[id]
             if (!edit) return
-            const { price } = getDerivedValues(item, edit)
+            const { price, presentNumber } = getDerivedValues(item, edit)
             patch(
                 API.RAW_MATERIAL_REQUESTS.REQUEST_ITEMS_ID.INDEX.replace(
                     "{id}",
@@ -279,6 +279,7 @@ function DetailContent({
                 ),
                 {
                     price: price || null,
+                    present: presentNumber,
                 },
                 {},
             )
@@ -339,6 +340,19 @@ function DetailContent({
         )
     }
 
+    // Calculate correct present percentage
+    const calculatePresent = () => {
+        const specAmount = request.specification_amount || 0
+        const shippedAmount = request.shipped_amount || 0
+
+        if (specAmount === 0) return "0.000"
+
+        const presentRaw = (shippedAmount / specAmount) * 100
+        // Agar shipped 0 bo'lsa, 0 qaytarish, aks holda 100 dan ayirish
+        const present = presentRaw === 0 ? 0 : 100 - presentRaw
+        return present.toFixed(3)
+    }
+
     // Header fields are now read-only (GET only, no patch)
     const headerFields = [
         { label: "Tolerants (%)", value: request.tolerant },
@@ -348,7 +362,7 @@ function DetailContent({
         { label: "Shipped amount", value: request.shipped_amount },
         {
             label: "Difference (USD) / Present (%)",
-            value: request.difference_usd + "$ / " + request.present + "%",
+            value: request.difference_usd + "$ / " + calculatePresent() + "%",
         },
     ]
 
