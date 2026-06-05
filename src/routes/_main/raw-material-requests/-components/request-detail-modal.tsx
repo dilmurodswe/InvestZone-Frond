@@ -252,7 +252,10 @@ function DetailContent({
         const difference = lineTotal - shippedAmount
         const presentRaw =
             lineTotal !== 0 ? (shippedAmount / lineTotal) * 100 : 0
-        const present = (100 - presentRaw).toFixed(3)
+
+        // Agar shipped 0 bo'lsa, 100 dan ayirmasdan 0 qoldiramiz
+        const presentNumber = presentRaw === 0 ? 0 : 100 - presentRaw
+        const present = presentNumber.toFixed(3)
 
         return {
             price,
@@ -260,7 +263,7 @@ function DetailContent({
             shippedAmount,
             difference,
             present,
-            presentNumber: 100 - presentRaw,
+            presentNumber,
         }
     }
 
