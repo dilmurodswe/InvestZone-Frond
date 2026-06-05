@@ -128,7 +128,7 @@ function RollingPlanDetailContent() {
                                         "Total Weight",
                                         "Sel. Weight (t)",
                                         "Calc. Meters",
-                                        "Pipe Length (mm)",
+                                        "Dlina Truba mm",
                                     ].map((h) => (
                                         <th
                                             key={h}
