@@ -133,106 +133,105 @@ export function Pagination<TData>({
                     )}
 
                 {!!pageCount && pageCount > 1 && (
-                    <>
-                        <main className="flex items-center gap-4">
-                            <p className="font-medium whitespace-nowrap">
-                                {deferredPage} / {pageCount}
-                            </p>
-                            <div className="flex items-center space-x-2">
-                                <Button
-                                    variant="outline"
-                                    size={"icon"}
-                                    onClick={() => {
-                                        setPagination({ page: undefined })
-                                    }}
-                                    disabled={deferredPage < 2}
-                                >
-                                    <span className="sr-only">
-                                        Go to first page
-                                    </span>
-                                    <ChevronsLeft />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size={"icon"}
-                                    onClick={() => {
-                                        setPagination({
-                                            page: deferredPage - 1,
-                                        })
-                                    }}
-                                    disabled={deferredPage < 2}
-                                >
-                                    <span className="sr-only">
-                                        Go to previous page
-                                    </span>
-                                    <ChevronLeft />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size={"icon"}
-                                    onClick={() => {
-                                        setPagination({
-                                            page: deferredPage + 1,
-                                        })
-                                    }}
-                                    disabled={deferredPage >= pageCount}
-                                >
-                                    <span className="sr-only">
-                                        Go to next page
-                                    </span>
-                                    <ChevronRight />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size={"icon"}
-                                    onClick={() => {
-                                        setPagination({
-                                            page: pageCount,
-                                        })
-                                    }}
-                                    disabled={deferredPage >= pageCount}
-                                >
-                                    <span className="sr-only">
-                                        Go to last page
-                                    </span>
-                                    <ChevronsRight />
-                                </Button>
-                            </div>
-                        </main>
-
-                        {/* "to page" va page size selector yonma-yon */}
-                        <aside className="flex items-center gap-4">
-                            {/* Page size selector — har doim ko'rinadi */}
-                            <BaseSelect
-                                options={rowsPerPageOptions}
-                                value={rowsPerPageOptions.find(
-                                    (o) => o.id === pageSizeValue,
-                                )}
-                                onChange={(opt) => {
+                    <main className="flex items-center gap-4">
+                        <p className="font-medium whitespace-nowrap">
+                            {deferredPage} / {pageCount}
+                        </p>
+                        <div className="flex items-center space-x-2">
+                            <Button
+                                variant="outline"
+                                size={"icon"}
+                                onClick={() => {
+                                    setPagination({ page: undefined })
+                                }}
+                                disabled={deferredPage < 2}
+                            >
+                                <span className="sr-only">
+                                    Go to first page
+                                </span>
+                                <ChevronsLeft />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size={"icon"}
+                                onClick={() => {
                                     setPagination({
-                                        page: 1, // size o'zgarganda 1-sahifaga qayt
-                                        size: opt?.id,
+                                        page: deferredPage - 1,
                                     })
                                 }}
-                                className="min-w-20"
-                                placeholder=""
-                                isClearable={false}
-                            />
-
-                            {/* Jump to page */}
-                            <Input
-                                onKeyDown={handleJumpOnKeyDown}
-                                ref={jumpInputRef}
-                                type="number"
-                                className="w-14 hidden"
-                                min={1}
-                                max={pageCount}
-                            />
-                            <Button className="hidden" onClick={handleJump}>
-                                to page
+                                disabled={deferredPage < 2}
+                            >
+                                <span className="sr-only">
+                                    Go to previous page
+                                </span>
+                                <ChevronLeft />
                             </Button>
-                        </aside>
-                    </>
+                            <Button
+                                variant="outline"
+                                size={"icon"}
+                                onClick={() => {
+                                    setPagination({
+                                        page: deferredPage + 1,
+                                    })
+                                }}
+                                disabled={deferredPage >= pageCount}
+                            >
+                                <span className="sr-only">Go to next page</span>
+                                <ChevronRight />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size={"icon"}
+                                onClick={() => {
+                                    setPagination({
+                                        page: pageCount,
+                                    })
+                                }}
+                                disabled={deferredPage >= pageCount}
+                            >
+                                <span className="sr-only">Go to last page</span>
+                                <ChevronsRight />
+                            </Button>
+                        </div>
+                    </main>
+                )}
+
+                {/* Page size selector — har doim ko'rinadi */}
+                {!!count && (
+                    <aside className="flex items-center gap-4 ml-auto">
+                        <BaseSelect
+                            options={rowsPerPageOptions}
+                            value={rowsPerPageOptions.find(
+                                (o) => o.id === pageSizeValue,
+                            )}
+                            onChange={(opt) => {
+                                setPagination({
+                                    page: 1, // size o'zgarganda 1-sahifaga qayt
+                                    size: opt?.id,
+                                })
+                            }}
+                            className="min-w-20"
+                            placeholder=""
+                            isClearable={false}
+                        />
+
+                        {/* Jump to page */}
+                        {!!pageCount && pageCount > 1 && (
+                            <>
+                                <Input
+                                    onKeyDown={handleJumpOnKeyDown}
+                                    ref={jumpInputRef}
+                                    type="number"
+                                    className="w-14 hidden"
+                                    min={1}
+                                    max={pageCount}
+                                />
+                                <Button className="hidden" onClick={handleJump}>
+                                    to page
+                                </Button>
+                            </>
+                        )}
+                    </aside>
                 )}
             </main>
         </footer>
