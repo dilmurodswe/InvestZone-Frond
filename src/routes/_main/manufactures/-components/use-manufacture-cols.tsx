@@ -1,5 +1,6 @@
 import { useModal } from "@/hooks/use-modal"
 import type { ColumnDef } from "@tanstack/react-table"
+import { CheckCircle2, Clock } from "lucide-react"
 import { useManufactureStore } from "../-hooks/use-manufacture-store"
 import type { Manufacture } from "../-types"
 import { ManufactureActions } from "./manufacture-actions"
@@ -114,6 +115,24 @@ export const getManufactureCols = (
                     <span className="text-sm text-muted-foreground">
                         {new Date(original.created_at).toLocaleDateString()}
                     </span>
+                </ClickableCell>
+            ),
+        },
+        {
+            id: "is_plan_fact",
+            header: "План-факт",
+            cell: ({ row: { original } }) => (
+                <ClickableCell manufacture={original}>
+                    {original.is_plan_fact ?
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-700 text-xs font-medium">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Есть
+                        </span>
+                    :   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                            <Clock className="w-3.5 h-3.5" />
+                            Нет
+                        </span>
+                    }
                 </ClickableCell>
             ),
         },

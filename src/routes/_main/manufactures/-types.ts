@@ -48,6 +48,7 @@ export type Manufacture = {
     created_at: string
     updated_at: string
     left_over: number
+    is_plan_fact: boolean
 }
 
 export type ManufactureDetail = Manufacture

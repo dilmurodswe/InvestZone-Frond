@@ -1,5 +1,5 @@
 import { useModal } from "@/hooks/use-modal"
-import { MoreHorizontal, Trash2 } from "lucide-react"
+import { ClipboardList, MoreHorizontal, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useManufactureStore } from "../-hooks/use-manufacture-store"
 import type { Manufacture } from "../-types"
@@ -15,6 +15,7 @@ export function ManufactureActions({
     const ref = useRef<HTMLDivElement>(null)
     const { setManufacture } = useManufactureStore()
     const deleteModal = useModal("delete-manufacture")
+    const factModal = useModal("manufacture-plan-fact")
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -56,6 +57,18 @@ export function ManufactureActions({
                     }}
                     className="bg-white rounded-xl shadow-lg border flex flex-col overflow-hidden"
                 >
+                    <button
+                        style={{ width: 180, height: 40, padding: "0 12px" }}
+                        className="flex items-center gap-2 text-sm text-primary hover:bg-muted"
+                        onClick={() => {
+                            setManufacture(manufacture)
+                            factModal.openModal()
+                            setOpen(false)
+                        }}
+                    >
+                        <ClipboardList className="w-4 h-4 text-primary" />
+                        План-факт
+                    </button>
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
                         className="flex items-center gap-2 text-sm text-red-500 hover:bg-muted"

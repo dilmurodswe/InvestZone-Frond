@@ -13,6 +13,7 @@ import { useManufacturesQuery } from "../-hooks/use-manufactures-query"
 import type { Manufacture } from "../-types"
 import ManufactureDeleteModal from "./manufacture-delete-modal"
 import ManufactureDetailModal from "./manufacture-detail-modal"
+import ManufacturePlanFactModal from "./manufacture-plan-fact-modal"
 import NewManufactureModal from "./new-manufacture-modal"
 import ManufactureStatusDropdown from "./status-dropdown"
 import { getManufactureCols } from "./use-manufacture-cols"
@@ -87,6 +88,7 @@ export default function Index() {
                 <ManufactureDetailModal />
                 <NewManufactureModal />
                 <ManufactureDeleteModal />
+                <ManufacturePlanFactModal />
 
                 {statusDropdown && (
                     <ManufactureStatusDropdown
