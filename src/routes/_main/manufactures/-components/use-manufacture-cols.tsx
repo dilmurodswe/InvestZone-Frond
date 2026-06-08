@@ -153,23 +153,29 @@ export const getManufactureCols = (
                                     method: "POST",
                                     headers: {
                                         Authorization: `Bearer ${token}`,
-                                        "Content-Type": "application/json",
                                     },
                                 },
                             )
 
-                            const data = await response.json()
-
                             if (response.ok) {
-                                alert("Label printed successfully!")
+                                const blob = await response.blob()
+                                const url = window.URL.createObjectURL(blob)
+                                const iframe = document.createElement("iframe")
+                                iframe.style.display = "none"
+                                iframe.src = url
+                                document.body.appendChild(iframe)
+                                iframe.onload = () => {
+                                    iframe.contentWindow?.print()
+                                    setTimeout(() => {
+                                        window.URL.revokeObjectURL(url)
+                                        document.body.removeChild(iframe)
+                                    }, 1000)
+                                }
                             } else {
-                                alert(
-                                    `Print failed: ${data.detail || "Unknown error"}`,
-                                )
+                                console.error("Print failed:", response.status)
                             }
                         } catch (error) {
                             console.error("Print error:", error)
-                            alert("Failed to send print request")
                         }
                     }}
                     className="inline-flex items-center justify-center h-8 px-3 rounded-md border text-sm hover:bg-muted transition-colors"
