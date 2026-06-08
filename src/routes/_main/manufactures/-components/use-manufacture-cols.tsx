@@ -1,4 +1,5 @@
 import { useModal } from "@/hooks/use-modal"
+import { BASE_URL } from "@/lib/constants/base-url"
 import { COOKIES } from "@/lib/constants/cookies"
 import type { ColumnDef } from "@tanstack/react-table"
 import Cookies from "js-cookie"
@@ -146,11 +147,8 @@ export const getManufactureCols = (
                     onClick={async () => {
                         try {
                             const token = Cookies.get(COOKIES.ACCESS_TOKEN)
-                            const baseURL =
-                                import.meta.env.VITE_API_BASE_URL ||
-                                "https://investzone.dilmurodbek.uz"
                             const response = await fetch(
-                                `${baseURL}/api/v1/manufactures/${original.id}/print-label/`,
+                                `${BASE_URL}manufactures/${original.id}/print-label/`,
                                 {
                                     method: "POST",
                                     headers: {
