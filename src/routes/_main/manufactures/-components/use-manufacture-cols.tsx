@@ -160,17 +160,13 @@ export const getManufactureCols = (
                             if (response.ok) {
                                 const blob = await response.blob()
                                 const url = window.URL.createObjectURL(blob)
-                                const iframe = document.createElement("iframe")
-                                iframe.style.display = "none"
-                                iframe.src = url
-                                document.body.appendChild(iframe)
-                                iframe.onload = () => {
-                                    iframe.contentWindow?.print()
-                                    setTimeout(() => {
-                                        window.URL.revokeObjectURL(url)
-                                        document.body.removeChild(iframe)
-                                    }, 1000)
-                                }
+                                const a = document.createElement("a")
+                                a.href = url
+                                a.download = `label_${original.id}.txt`
+                                document.body.appendChild(a)
+                                a.click()
+                                window.URL.revokeObjectURL(url)
+                                document.body.removeChild(a)
                             } else {
                                 console.error("Print failed:", response.status)
                             }
