@@ -1,5 +1,7 @@
 import { useModal } from "@/hooks/use-modal"
+import { COOKIES } from "@/lib/constants/cookies"
 import type { ColumnDef } from "@tanstack/react-table"
+import Cookies from "js-cookie"
 import { CheckCircle2, Clock } from "lucide-react"
 import { useManufactureStore } from "../-hooks/use-manufacture-store"
 import type { Manufacture } from "../-types"
@@ -134,6 +136,50 @@ export const getManufactureCols = (
                         </span>
                     }
                 </ClickableCell>
+            ),
+        },
+        {
+            id: "print_label",
+            header: "Печать",
+            cell: ({ row: { original } }) => (
+                <button
+                    onClick={async () => {
+                        try {
+                            const token = Cookies.get(COOKIES.ACCESS_TOKEN)
+                            const baseURL =
+                                import.meta.env.VITE_API_BASE_URL ||
+                                "https://investzone.dilmurodbek.uz"
+                            const response = await fetch(
+                                `${baseURL}/api/v1/manufactures/${original.id}/print-label/`,
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        Authorization: `Bearer ${token}`,
+                                    },
+                                },
+                            )
+
+                            if (response.ok) {
+                                const blob = await response.blob()
+                                const url = window.URL.createObjectURL(blob)
+                                const a = document.createElement("a")
+                                a.href = url
+                                a.download = `label_${original.id}.pdf`
+                                document.body.appendChild(a)
+                                a.click()
+                                window.URL.revokeObjectURL(url)
+                                document.body.removeChild(a)
+                            } else {
+                                console.error("Print failed:", response.status)
+                            }
+                        } catch (error) {
+                            console.error("Print error:", error)
+                        }
+                    }}
+                    className="inline-flex items-center justify-center h-8 px-3 rounded-md border text-sm hover:bg-muted transition-colors"
+                >
+                    Печать
+                </button>
             ),
         },
         {
