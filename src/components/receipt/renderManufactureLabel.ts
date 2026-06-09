@@ -1,6 +1,6 @@
 /**
  * Render manufacture label to canvas (thermal printer 72mm = 576px)
- * Preserves exact data from backend PDF label
+ * Improved design with centered header and larger fonts
  */
 
 import type { ManufactureLabelData } from "./types"
@@ -18,7 +18,7 @@ export function renderManufactureLabel(
     canvas.width = width
 
     // Initial height estimate (will adjust at end)
-    const tempHeight = 1000
+    const tempHeight = 1400
     canvas.height = tempHeight
 
     // Fill white background
@@ -27,20 +27,21 @@ export function renderManufactureLabel(
 
     // Text styling
     ctx.fillStyle = "#000000"
-    ctx.textAlign = "left"
     ctx.textBaseline = "top"
 
-    let y = 20 // Start position
+    let y = 30 // Start position with more top padding
 
-    // Header - bold and larger
-    ctx.font = "bold 32px Arial, sans-serif"
-    ctx.fillText("INVEST ZONE", 20, y)
-    y += 50
+    // Header - centered, bold and much larger
+    ctx.font = "bold 56px Arial, sans-serif"
+    ctx.textAlign = "center"
+    ctx.fillText("INVEST ZONE", width / 2, y)
+    y += 80 // More space after header
 
-    // Body - normal size (20px ~ 8pt for thermal)
-    ctx.font = "20px Arial, sans-serif"
-    const lineHeight = 28
-    const leftMargin = 20
+    // Body - larger font size for better readability
+    ctx.font = "32px Arial, sans-serif"
+    ctx.textAlign = "left"
+    const lineHeight = 45 // Increased line height
+    const leftMargin = 30 // More left margin
 
     // Render all fields exactly as backend does
     const lines: string[] = [
@@ -53,38 +54,72 @@ export function renderManufactureLabel(
         `Plavka: ${data.plavka || "-"}`,
         `Ves shtripsa: ${data.vesShripsa}`,
         `Data rezki: ${data.dataRezki}`,
+        "", // Empty line for spacing
         "Gotovaya produkciya:",
         `${data.gotovayaProduktsiya}`,
+        "", // Empty line for spacing
         `Marka stali: ${data.markaStali}`,
         data.tolshchina != null ?
             `Tolshchina: ${data.tolshchina}mm`
         :   "Tolshchina: -",
     ]
 
-    // Truncate long product names to fit width
+    // Render lines with word wrap for long product names
     lines.forEach((line, idx) => {
+        if (line === "") {
+            // Empty line - just add spacing
+            y += lineHeight * 0.5
+            return
+        }
+
         let textToRender = line
-        const maxWidth = width - 40 // margins
+        const maxWidth = width - leftMargin * 2 // margins on both sides
 
         // Check if text exceeds width
         const metrics = ctx.measureText(textToRender)
-        if (metrics.width > maxWidth && idx === 8) {
-            // Product line - truncate
-            while (
-                ctx.measureText(textToRender + "...").width > maxWidth &&
-                textToRender.length > 10
-            ) {
-                textToRender = textToRender.slice(0, -1)
+        if (metrics.width > maxWidth) {
+            if (idx === 9) {
+                // Product line - wrap to multiple lines if needed
+                const words = textToRender.split(", ")
+                let currentLine = ""
+
+                words.forEach((word) => {
+                    const testLine =
+                        currentLine + (currentLine ? ", " : "") + word
+                    const testMetrics = ctx.measureText(testLine)
+
+                    if (testMetrics.width > maxWidth && currentLine) {
+                        ctx.fillText(currentLine, leftMargin, y)
+                        y += lineHeight
+                        currentLine = word
+                    } else {
+                        currentLine = testLine
+                    }
+                })
+
+                if (currentLine) {
+                    ctx.fillText(currentLine, leftMargin, y)
+                    y += lineHeight
+                }
+                return
+            } else {
+                // Other lines - truncate with ellipsis
+                while (
+                    ctx.measureText(textToRender + "...").width > maxWidth &&
+                    textToRender.length > 10
+                ) {
+                    textToRender = textToRender.slice(0, -1)
+                }
+                textToRender += "..."
             }
-            textToRender += "..."
         }
 
         ctx.fillText(textToRender, leftMargin, y)
         y += lineHeight
     })
 
-    // Add some bottom padding
-    y += 20
+    // Add bottom padding
+    y += 40
 
     // Adjust canvas height to actual content
     const finalHeight = y
