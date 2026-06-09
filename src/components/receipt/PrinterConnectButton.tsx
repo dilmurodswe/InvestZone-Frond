@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react"
-import { getPrinters, getSavedPrinter, savePrinter } from "./qzPrint"
+import { getSavedPrinter, listQzPrinters, setSavedPrinter } from "./qzPrint"
 
 interface Props {
     onConnected?: (printerName: string) => void
@@ -24,7 +24,7 @@ export function PrinterConnectButton({ onConnected, className }: Props) {
         setError(null)
 
         try {
-            const availablePrinters = await getPrinters()
+            const availablePrinters = await listQzPrinters()
             setPrinters(availablePrinters)
         } catch (err) {
             setError(err instanceof Error ? err.message : "Printer topilmadi")
@@ -34,7 +34,7 @@ export function PrinterConnectButton({ onConnected, className }: Props) {
     }
 
     const handleSelect = (printerName: string) => {
-        savePrinter(printerName)
+        setSavedPrinter(printerName)
         setIsOpen(false)
         onConnected?.(printerName)
     }

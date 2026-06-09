@@ -5,14 +5,9 @@
  */
 
 import { useEffect, useRef, useState } from "react"
-import { isQZAvailable, printCanvas } from "./qzPrint"
+import { isQzAvailable, printCanvasViaQz } from "./qzPrint"
 import { renderManufactureLabel } from "./renderManufactureLabel"
 import type { ManufactureLabelData } from "./types"
-import {
-    isSerialConnected,
-    isWebSerialAvailable,
-    printCanvasSerial,
-} from "./webSerialPrint"
 
 interface Props {
     data: ManufactureLabelData
@@ -37,25 +32,12 @@ export function ManufactureLabelPrinter({ data, onFinish }: Props) {
                 canvasRef.current = canvas
                 setHasCanvas(true)
 
-                // 2. Try QZ Tray first
-                setStatus("QZ Tray tekshirilmoqda...")
-                let qzAvailable = false
-                try {
-                    qzAvailable = await isQZAvailable()
-                    setStatus(
-                        `QZ Tray: ${qzAvailable ? "Topildi" : "Topilmadi"}`,
-                    )
-                } catch (qzError) {
-                    console.error("QZ check error:", qzError)
-                    setStatus(
-                        `QZ Tray xato: ${qzError instanceof Error ? qzError.message : "Unknown"}`,
-                    )
-                }
-
+                // 2. Try QZ Tray
+                const qzAvailable = isQzAvailable()
                 if (qzAvailable) {
                     try {
                         setStatus("QZ Tray orqali chop qilinmoqda...")
-                        await printCanvas(canvas)
+                        await printCanvasViaQz(canvas, 72)
                         setStatus("Muvaffaqiyatli chop qilindi!")
                         setTimeout(() => onFinish?.(), 500)
                         return
@@ -63,23 +45,6 @@ export function ManufactureLabelPrinter({ data, onFinish }: Props) {
                         console.error("QZ print error:", printError)
                         setStatus(
                             `QZ chop xato: ${printError instanceof Error ? printError.message : "Unknown"}`,
-                        )
-                        // Continue to fallback
-                    }
-                }
-
-                // 3. Try Web Serial
-                if (isWebSerialAvailable() && isSerialConnected()) {
-                    try {
-                        setStatus("Serial port orqali chop qilinmoqda...")
-                        await printCanvasSerial(canvas)
-                        setStatus("Muvaffaqiyatli chop qilindi!")
-                        setTimeout(() => onFinish?.(), 500)
-                        return
-                    } catch (serialError) {
-                        console.error("Serial print error:", serialError)
-                        setStatus(
-                            `Serial xato: ${serialError instanceof Error ? serialError.message : "Unknown"}`,
                         )
                         // Continue to fallback
                     }
