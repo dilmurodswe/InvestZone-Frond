@@ -430,13 +430,9 @@ function NewManufactureForm() {
     const { thicknessOptions } = useThicknessesQuery()
     const { widthOptions } = useWidthsQuery()
 
-    const rawParams: Record<string, string> = {}
-    if (thickness) rawParams.thickness = thickness
-    if (width) rawParams.width = width
-
-    const { rawItemDetailOptions } = useRawItemDetailsSelectQuery(
-        Object.keys(rawParams).length ? rawParams : undefined,
-    )
+    // Fetch all raw materials without thickness/width filters
+    // Only use thickness/width for local frontend filtering
+    const { rawItemDetailOptions } = useRawItemDetailsSelectQuery(undefined)
 
     const { categoryOptions } = useCategoriesSelectQuery()
     const { subCategoryOptions } = useSubCategoriesSelectQuery(
@@ -574,13 +570,24 @@ function NewManufactureForm() {
     const totalNetto = selectedRaws.reduce((sum, r) => sum + (r.netto ?? 0), 0)
 
     const filteredRawItems = rawItemDetailOptions.filter((r) => {
-        if (!localSearch) return true
-        const q = localSearch.toLowerCase()
-        return (
-            r.reference_number?.toLowerCase().includes(q) ||
-            r.plank?.toLowerCase().includes(q) ||
-            r.status?.toLowerCase().includes(q)
-        )
+        // Filter by thickness
+        if (thickness && r.raw_material?.thickness !== Number(thickness)) {
+            return false
+        }
+        // Filter by width
+        if (width && r.raw_material?.width !== Number(width)) {
+            return false
+        }
+        // Filter by local search
+        if (localSearch) {
+            const q = localSearch.toLowerCase()
+            return (
+                r.reference_number?.toLowerCase().includes(q) ||
+                r.plank?.toLowerCase().includes(q) ||
+                r.status?.toLowerCase().includes(q)
+            )
+        }
+        return true
     })
 
     const canNext =

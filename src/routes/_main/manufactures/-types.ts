@@ -17,6 +17,15 @@ export type RawItemDetail = {
     wagon: number | null
     created_at: string
     updated_at: string
+    raw_material?: {
+        id: number
+        name: string
+        thickness: number
+        width: number
+        standard: string | null
+        mark: string | null
+        sku: string | null
+    }
 }
 export type DetailItem = {
     id: number
