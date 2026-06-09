@@ -38,21 +38,51 @@ export function ManufactureLabelPrinter({ data, onFinish }: Props) {
                 setHasCanvas(true)
 
                 // 2. Try QZ Tray first
-                if (await isQZAvailable()) {
-                    setStatus("QZ Tray orqali chop qilinmoqda...")
-                    await printCanvas(canvas)
-                    setStatus("Muvaffaqiyatli chop qilindi!")
-                    setTimeout(() => onFinish?.(), 500)
-                    return
+                setStatus("QZ Tray tekshirilmoqda...")
+                let qzAvailable = false
+                try {
+                    qzAvailable = await isQZAvailable()
+                    setStatus(
+                        `QZ Tray: ${qzAvailable ? "Topildi" : "Topilmadi"}`,
+                    )
+                } catch (qzError) {
+                    console.error("QZ check error:", qzError)
+                    setStatus(
+                        `QZ Tray xato: ${qzError instanceof Error ? qzError.message : "Unknown"}`,
+                    )
+                }
+
+                if (qzAvailable) {
+                    try {
+                        setStatus("QZ Tray orqali chop qilinmoqda...")
+                        await printCanvas(canvas)
+                        setStatus("Muvaffaqiyatli chop qilindi!")
+                        setTimeout(() => onFinish?.(), 500)
+                        return
+                    } catch (printError) {
+                        console.error("QZ print error:", printError)
+                        setStatus(
+                            `QZ chop xato: ${printError instanceof Error ? printError.message : "Unknown"}`,
+                        )
+                        // Continue to fallback
+                    }
                 }
 
                 // 3. Try Web Serial
                 if (isWebSerialAvailable() && isSerialConnected()) {
-                    setStatus("Serial port orqali chop qilinmoqda...")
-                    await printCanvasSerial(canvas)
-                    setStatus("Muvaffaqiyatli chop qilindi!")
-                    setTimeout(() => onFinish?.(), 500)
-                    return
+                    try {
+                        setStatus("Serial port orqali chop qilinmoqda...")
+                        await printCanvasSerial(canvas)
+                        setStatus("Muvaffaqiyatli chop qilindi!")
+                        setTimeout(() => onFinish?.(), 500)
+                        return
+                    } catch (serialError) {
+                        console.error("Serial print error:", serialError)
+                        setStatus(
+                            `Serial xato: ${serialError instanceof Error ? serialError.message : "Unknown"}`,
+                        )
+                        // Continue to fallback
+                    }
                 }
 
                 // 4. Fallback: browser print dialog
@@ -84,9 +114,11 @@ export function ManufactureLabelPrinter({ data, onFinish }: Props) {
             </html>
           `)
                     printWindow.document.close()
+                    setStatus("Print dialog ochildi")
+                } else {
+                    setStatus("Brauzer print bloklanadi (popup blocker)")
                 }
 
-                setStatus("Print dialog ochildi")
                 setTimeout(() => onFinish?.(), 2000)
             } catch (error) {
                 console.error("Print error:", error)
