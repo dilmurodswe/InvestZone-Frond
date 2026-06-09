@@ -5,6 +5,7 @@ import {
 import { BASE_URL } from "@/lib/constants/base-url"
 import { COOKIES } from "@/lib/constants/cookies"
 import Cookies from "js-cookie"
+import { Printer } from "lucide-react"
 import { useState } from "react"
 import type { Manufacture } from "../-types"
 
@@ -56,9 +57,11 @@ export function ManufacturePrintButton({
             <button
                 onClick={handlePrint}
                 disabled={loading}
-                className="inline-flex items-center justify-center h-8 px-3 rounded-md border text-sm hover:bg-muted transition-colors disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Печать этикетки"
             >
-                {loading ? "Yuklanmoqda..." : "Печать"}
+                <Printer className="w-4 h-4" />
+                {loading ? "..." : "Печать"}
             </button>
             {labelData && (
                 <ManufactureLabelPrinter

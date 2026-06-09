@@ -25,44 +25,31 @@ export function renderRollingLabel(
     ctx.fillStyle = "#FFFFFF"
     ctx.fillRect(0, 0, width, tempHeight)
 
-    let y = 20 // Start position
+    let y = 15 // Start position
 
     // Red top border
     ctx.fillStyle = "#DC2626"
-    ctx.fillRect(0, 0, width, 8)
-    y += 15
+    ctx.fillRect(0, 0, width, 6)
+    y += 20
 
-    // MADE IN UZBEKISTAN - top right
-    ctx.font = "12px Arial, sans-serif"
-    ctx.fillStyle = "#666666"
-    ctx.textAlign = "right"
-    ctx.fillText("MADE IN", width - 20, y)
-    ctx.fillText("UZBEKISTAN", width - 20, y + 15)
-    y += 35
-
-    // INVEST ZONE header with red accent
-    ctx.font = "bold 48px Arial, sans-serif"
+    // INVEST ZONE header
+    ctx.font = "bold 40px Arial, sans-serif"
     ctx.fillStyle = "#000000"
     ctx.textAlign = "left"
     const leftMargin = 20
     ctx.fillText("INVEST ZONE", leftMargin, y)
-    y += 55
+    y += 50
 
     // Red underline under INVEST ZONE
     ctx.fillStyle = "#DC2626"
-    ctx.fillRect(leftMargin, y - 5, 180, 3)
-
-    // Subtitle
-    ctx.font = "14px Arial, sans-serif"
-    ctx.fillStyle = "#666666"
-    ctx.fillText("TRUBNYJ METALLURGICHESKIJ ZAVOD", leftMargin, y + 5)
-    y += 35
+    ctx.fillRect(leftMargin, y - 10, width - leftMargin * 2, 2)
+    y += 15
 
     // Main content with labels and values
     ctx.fillStyle = "#000000"
-    const lineHeight = 50
-    const labelFont = "bold 24px Arial, sans-serif"
-    const valueFont = "28px Arial, sans-serif"
+    const lineHeight = 40
+    const labelFont = "bold 20px Arial, sans-serif"
+    const valueFont = "24px Arial, sans-serif"
     const valueX = width - leftMargin
 
     // Helper function to draw label-value pair
@@ -80,7 +67,7 @@ export function renderRollingLabel(
     // Red separator line
     ctx.fillStyle = "#DC2626"
     ctx.fillRect(leftMargin, y, width - leftMargin * 2, 2)
-    y += 25
+    y += 20
 
     ctx.fillStyle = "#000000"
 
@@ -89,14 +76,14 @@ export function renderRollingLabel(
     drawField("TUBE SIZE, MM", data.tubeSize)
     drawField("RAZMER TRUBY, MM", data.tubeSize)
     drawField("STANDARD", data.standard)
-    drawField("STANDART HTД", data.standard)
+    drawField("STANDART НТД", data.standard)
     drawField("STEEL GRADE", data.steelGrade)
     drawField("MARKA STALI", data.steelGrade)
 
-    y += 10
+    y += 5
     ctx.fillStyle = "#DC2626"
     ctx.fillRect(leftMargin, y, width - leftMargin * 2, 2)
-    y += 25
+    y += 20
     ctx.fillStyle = "#000000"
 
     drawField("BATCH NO.", data.batchNumber)
@@ -104,54 +91,54 @@ export function renderRollingLabel(
     drawField("LENGTH, M", `${(data.length / 1000).toFixed(1)}`)
     drawField("DLINA, M", `${(data.length / 1000).toFixed(1)}`)
 
-    y += 10
+    y += 5
     ctx.fillStyle = "#DC2626"
     ctx.fillRect(leftMargin, y, width - leftMargin * 2, 2)
-    y += 25
+    y += 20
     ctx.fillStyle = "#000000"
 
     // Packs section
-    ctx.font = "bold 26px Arial, sans-serif"
+    ctx.font = "bold 22px Arial, sans-serif"
     ctx.textAlign = "left"
     ctx.fillText("PACHKALAR:", leftMargin, y)
-    y += 45
+    y += 35
 
     data.packs.forEach((pack, idx) => {
-        ctx.font = "bold 24px Arial, sans-serif"
-        ctx.fillText(`${idx + 1}. ${pack.packNumber}`, leftMargin + 10, y)
-        y += 40
+        ctx.font = "bold 20px Arial, sans-serif"
+        ctx.fillText(`${idx + 1}. ${pack.packNumber}`, leftMargin, y)
+        y += 35
 
-        drawField("  Ves:", `${pack.weightTn}t`)
-        drawField("  Soni:", `${pack.quantity}`)
+        drawField("Ves:", `${pack.weightTn}t`)
+        drawField("Soni:", `${pack.quantity}`)
 
         if (idx < data.packs.length - 1) {
-            y += 15
+            y += 10
         }
     })
 
-    y += 20
+    y += 15
 
     // Bottom section
     ctx.fillStyle = "#DC2626"
     ctx.fillRect(leftMargin, y, width - leftMargin * 2, 2)
-    y += 25
+    y += 20
     ctx.fillStyle = "#000000"
 
     drawField("Master:", data.master)
     drawField("Smena:", data.smena)
 
-    y += 30
+    y += 20
 
     // QR code placeholder area
-    const qrSize = 100
+    const qrSize = 80
     const qrX = (width - qrSize) / 2
     ctx.strokeStyle = "#000000"
     ctx.lineWidth = 2
     ctx.strokeRect(qrX, y, qrSize, qrSize)
-    ctx.font = "12px Arial, sans-serif"
+    ctx.font = "10px Arial, sans-serif"
     ctx.textAlign = "center"
-    ctx.fillText("QR CODE", width / 2, y + qrSize + 15)
-    y += qrSize + 30
+    ctx.fillText("QR CODE", width / 2, y + qrSize + 12)
+    y += qrSize + 20
 
     // Add bottom padding
     y += 40
