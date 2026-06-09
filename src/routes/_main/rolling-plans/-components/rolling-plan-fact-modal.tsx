@@ -1,4 +1,6 @@
 import Modal from "@/components/custom/modal"
+import { RollingLabelPrinter } from "@/components/receipt/RollingLabelPrinter"
+import type { RollingLabelData } from "@/components/receipt/types"
 import { CardTitle } from "@/components/ui/card"
 import {
     Select,
@@ -12,7 +14,10 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
-import { Check, Pencil, Plus, Trash2, X } from "lucide-react"
+import { BASE_URL } from "@/lib/constants/base-url"
+import { COOKIES } from "@/lib/constants/cookies"
+import Cookies from "js-cookie"
+import { Check, Pencil, Plus, Printer, Trash2, X } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useRollingPlanStore } from "../-hooks/use-rolling-plan-store"
@@ -240,6 +245,10 @@ function RollingPlanFactContent() {
     const [defective, setDefective] = useState("")
     const [scrapMetal, setScrapMetal] = useState("")
 
+    // Print state
+    const [labelData, setLabelData] = useState<RollingLabelData | null>(null)
+    const [printLoading, setPrintLoading] = useState<number | null>(null)
+
     const editModeRef = useRef(false)
     useEffect(() => {
         editModeRef.current = editMode
@@ -413,6 +422,39 @@ function RollingPlanFactContent() {
                 return p
             }),
         )
+    }
+
+    // ── Print helpers ─────────────────────────────────────────────────────────
+
+    const handlePrintPack = async (packId: number) => {
+        setPrintLoading(packId)
+        try {
+            const token = Cookies.get(COOKIES.ACCESS_TOKEN)
+            const response = await fetch(
+                `${BASE_URL}rolling-productions/print-pack-label/`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ pack_id: packId }),
+                },
+            )
+
+            if (response.ok) {
+                const data = await response.json()
+                setLabelData(data)
+            } else {
+                const error = await response.json()
+                toast.error(error.error || "Label ma'lumotlari yuklanmadi")
+            }
+        } catch (error) {
+            console.error("Print error:", error)
+            toast.error("Xatolik yuz berdi")
+        } finally {
+            setPrintLoading(null)
+        }
     }
 
     // ── Submit helpers ────────────────────────────────────────────────────────
@@ -755,6 +797,11 @@ function RollingPlanFactContent() {
                                 <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
                                     Шт в Пачке
                                 </th>
+                                {isViewMode && (
+                                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground w-20">
+                                        Печать
+                                    </th>
+                                )}
                                 {!isViewMode && <th className="w-10" />}
                             </tr>
                         </thead>
@@ -772,6 +819,21 @@ function RollingPlanFactContent() {
                                         <RoCell value={p.weight_tn} />
                                         <RoCell value={p.quantity} />
                                         <RoCell value={shtVPachke || "—"} />
+                                        <td className="px-3 py-2.5">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    handlePrintPack(p.id)
+                                                }
+                                                disabled={printLoading === p.id}
+                                                className="flex items-center gap-1.5 px-2 py-1 rounded text-xs bg-primary/10 hover:bg-primary/20 text-primary disabled:opacity-50 transition-colors"
+                                            >
+                                                <Printer className="w-3.5 h-3.5" />
+                                                {printLoading === p.id ?
+                                                    "..."
+                                                :   "Печать"}
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))
                             :   packs.map((pack, idx) => (
@@ -944,6 +1006,14 @@ function RollingPlanFactContent() {
                         </button>
                     </div>
                 </div>
+            )}
+
+            {/* ── Label Printer ────────────────────────────────────────────── */}
+            {labelData && (
+                <RollingLabelPrinter
+                    data={labelData}
+                    onFinish={() => setLabelData(null)}
+                />
             )}
         </div>
     )

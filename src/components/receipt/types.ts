@@ -30,4 +30,19 @@ export interface ManufactureLabelData {
     tolshchina?: number | null
 }
 
+// Rolling/Prokatka label data
+export interface RollingLabelData {
+    packNumber: string
+    tubeSize: string // e.g. "76x3.5"
+    batchNumber: string
+    length: number // in mm
+    weightTn: number
+    quantity: number
+    steelGrade: string // Marka stali
+    standard: string // e.g. "ГОСТ 10704-91"
+    productionDate: string
+    master: string
+    smena: string
+}
+
 export type PrintLanguage = "escpos" | "tspl"
