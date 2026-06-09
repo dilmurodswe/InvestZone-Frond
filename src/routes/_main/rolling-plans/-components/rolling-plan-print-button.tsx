@@ -58,10 +58,10 @@ export function RollingPlanPrintButton({
             <button
                 onClick={handlePrint}
                 disabled={loading}
-                className="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center gap-1 h-7 px-2.5 rounded-md bg-primary hover:bg-primary/90 text-white text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
                 title="Печать этикетки"
             >
-                <Printer className="w-4 h-4" />
+                <Printer className="w-3.5 h-3.5" />
                 {loading ? "..." : "Печать"}
             </button>
             {labelData && (
