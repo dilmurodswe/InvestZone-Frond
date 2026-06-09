@@ -4,6 +4,7 @@ import { CheckCircle2, Clock } from "lucide-react"
 import { useRollingPlanStore } from "../-hooks/use-rolling-plan-store"
 import type { RollingPlan } from "../-types"
 import { RollingPlanActions } from "./rolling-plan-actions"
+import { RollingPlanPrintButton } from "./rolling-plan-print-button"
 import RollingPlanStatusBadge from "./status-badge"
 
 const fmt = (val: string | number | null | undefined) =>
@@ -206,6 +207,13 @@ export const getRollingPlanCols = (
                             Нет
                         </span>
             },
+        },
+        {
+            id: "print",
+            header: "",
+            cell: ({ row: { original } }) => (
+                <RollingPlanPrintButton rollingPlan={original} />
+            ),
         },
         {
             id: "actions",

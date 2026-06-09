@@ -30,19 +30,25 @@ export interface ManufactureLabelData {
     tolshchina?: number | null
 }
 
-// Rolling/Prokatka label data
-export interface RollingLabelData {
+// Rolling/Prokatka label data - single pack (old format, kept for compatibility)
+export interface RollingPackData {
     packNumber: string
+    weightTn: number
+    quantity: number
+}
+
+// Rolling/Prokatka label data - plan with multiple packs
+export interface RollingLabelData {
+    planNumber: string // Plan №
     tubeSize: string // e.g. "76x3.5"
     batchNumber: string
     length: number // in mm
-    weightTn: number
-    quantity: number
     steelGrade: string // Marka stali
     standard: string // e.g. "ГОСТ 10704-91"
     productionDate: string
     master: string
     smena: string
+    packs: RollingPackData[] // Multiple packs
 }
 
 export type PrintLanguage = "escpos" | "tspl"

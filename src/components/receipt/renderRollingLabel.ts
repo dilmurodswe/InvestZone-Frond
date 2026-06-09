@@ -45,12 +45,10 @@ export function renderRollingLabel(
 
     // Render all fields
     const lines: string[] = [
-        `Pachka #: ${data.packNumber}`,
+        `Plan #: ${data.planNumber}`,
         `Razmer: ${data.tubeSize}`,
         `Partiya: ${data.batchNumber}`,
         `Dlina: ${data.length}mm`,
-        `Ves: ${data.weightTn}t`,
-        `Soni: ${data.quantity}`,
         "", // Empty line for spacing
         `Marka stali: ${data.steelGrade}`,
         `Standart: ${data.standard}`,
@@ -58,7 +56,19 @@ export function renderRollingLabel(
         `Data: ${data.productionDate}`,
         `Master: ${data.master}`,
         `Smena: ${data.smena}`,
+        "", // Empty line for spacing
+        "PACHKALAR:", // Packs header
     ]
+
+    // Add each pack
+    data.packs.forEach((pack, idx) => {
+        lines.push(`${idx + 1}. ${pack.packNumber}`)
+        lines.push(`   Ves: ${pack.weightTn}t`)
+        lines.push(`   Soni: ${pack.quantity}`)
+        if (idx < data.packs.length - 1) {
+            lines.push("") // Empty line between packs
+        }
+    })
 
     // Render lines
     lines.forEach((line) => {
