@@ -508,7 +508,12 @@ function ManufacturePlanFactContent() {
                                         <RoCell value={item.plank} />
                                         <RoCell value={item.reference_number} />
                                         <RoCell value={item.cart_weight} />
-                                        <CalcBadge value={item.waste} />
+                                        <CalcBadge
+                                            value={calculateWaste(
+                                                parseFloat(item.netto),
+                                                item.cart_weight,
+                                            )}
+                                        />
                                     </tr>
                                 ))
                             :   rawItems.map((row, idx) => (
@@ -585,23 +590,6 @@ function ManufacturePlanFactContent() {
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            </SectionBlock>
-
-            <SectionBlock title="Комментарий для Dynamics">
-                <div className="p-4">
-                    {isViewMode ?
-                        <p className="text-sm text-muted-foreground">
-                            {existing.comment || "—"}
-                        </p>
-                    :   <textarea
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                            placeholder="Введите комментарий..."
-                            rows={3}
-                            className="w-full border rounded-md px-3 py-2 text-sm bg-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
-                        />
-                    }
                 </div>
             </SectionBlock>
 

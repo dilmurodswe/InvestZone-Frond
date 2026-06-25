@@ -389,11 +389,6 @@ function RollingPlanFactContent() {
             prev.map((p) => (p.id === id ? { ...p, weight_tn: value } : p)),
         )
 
-    const updatePackQuantity = (id: number, value: string) =>
-        setPacks((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, quantity_m: value } : p)),
-        )
-
     const updatePackShtVPachke = (id: number, value: string) => {
         setPacks((prev) =>
             prev.map((p) => {
@@ -750,10 +745,10 @@ function RollingPlanFactContent() {
                                     Вес (тн)
                                 </th>
                                 <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                    Кол-во (м)
+                                    Шт в Пачке
                                 </th>
                                 <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                    Шт в Пачке
+                                    Кол-во (м)
                                 </th>
                                 {!isViewMode && <th className="w-10" />}
                             </tr>
@@ -770,8 +765,8 @@ function RollingPlanFactContent() {
                                         </td>
                                         <RoCell value={p.pack_number} />
                                         <RoCell value={p.weight_tn} />
-                                        <RoCell value={p.quantity} />
                                         <RoCell value={shtVPachke || "—"} />
+                                        <RoCell value={p.quantity} />
                                     </tr>
                                 ))
                             :   packs.map((pack, idx) => (
@@ -794,17 +789,6 @@ function RollingPlanFactContent() {
                                             }
                                             placeholder="0.000"
                                         />
-                                        {/* Кол-во (м) — auto calculated with manual override */}
-                                        <InputCell
-                                            value={
-                                                pack.quantity_m ||
-                                                quantityPerPack
-                                            }
-                                            onChange={(v) =>
-                                                updatePackQuantity(pack.id, v)
-                                            }
-                                            placeholder={quantityPerPack}
-                                        />
                                         {/* Шт в Пачке — editable, affects quantity_m */}
                                         <InputCell
                                             value={
@@ -815,6 +799,13 @@ function RollingPlanFactContent() {
                                                 updatePackShtVPachke(pack.id, v)
                                             }
                                             placeholder={String(shtVPachke)}
+                                        />
+                                        {/* Кол-во (м) — auto calculated, read-only */}
+                                        <RoCell
+                                            value={
+                                                pack.quantity_m ||
+                                                quantityPerPack
+                                            }
                                         />
                                         <td className="px-2 py-2">
                                             {packs.length > 1 && (

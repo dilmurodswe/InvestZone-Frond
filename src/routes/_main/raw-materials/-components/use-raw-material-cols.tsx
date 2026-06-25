@@ -1,6 +1,6 @@
+import { formatDecimal } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { RawMaterial } from "../-types"
-import { formatDecimal } from "@/lib/utils/format-number"
 
 const fmt = (val: number | null | undefined) => formatDecimal(val)
 
@@ -110,7 +110,7 @@ export const getRawMaterialCols = (): ColumnDef<RawMaterial>[] => [
         accessorKey: "wagon",
         header: "Wagon",
         cell: ({ row: { original } }) => (
-            <span className="text-sm">{fmt(original.wagon)}</span>
+            <span className="text-sm">{fmtStr(original.wagon)}</span>
         ),
     },
     {

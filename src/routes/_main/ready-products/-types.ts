@@ -22,7 +22,7 @@ export type RawItemDetail = {
     outer_size: number | null
     plank: string | null
     reference_number: string | null
-    wagon: number | null
+    wagon: string | null
     created_at: string
     updated_at: string
 }

@@ -53,7 +53,7 @@ type ServerItem = {
     plank: string | null
     reference_number: string | null
     price: number | null
-    wagon: number | null
+    wagon: string | null
 }
 
 const STATUSES = [
@@ -126,7 +126,7 @@ const toPayload = (r: ItemRow) => ({
     plank: r.plank || null,
     reference_number: r.reference_number || null,
     price: r.price ? Number(r.price) : null,
-    wagon: r.wagon ? Number(r.wagon) : null,
+    wagon: r.wagon?.trim() || null,
 })
 
 // ─── Status dropdown ──────────────────────────────────────────────────────────

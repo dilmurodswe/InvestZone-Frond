@@ -13,7 +13,7 @@ export type RawMaterial = {
     plank: string | null
     reference_number: string | null
     price: number | null
-    wagon: number | null
+    wagon: string | null
     created_at: string
     updated_at: string
 }
