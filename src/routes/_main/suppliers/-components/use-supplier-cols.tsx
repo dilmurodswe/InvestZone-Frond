@@ -3,6 +3,7 @@ import { useModal } from "@/hooks/use-modal"
 import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useSupplierStore } from "../-hooks/use-supplier-store"
 import type { Supplier } from "../-types"
 // eslint-disable-next-line react-refresh/only-export-components
@@ -89,6 +90,7 @@ function SupplierActions({ supplier }: { supplier: Supplier }) {
 }
 
 export const useSupplierCols = (): ColumnDef<Supplier>[] => {
+    const { t } = useTranslation()
     const { setSupplier } = useSupplierStore()
     const detailModal = useModal("supplier-detail")
 
@@ -100,7 +102,7 @@ export const useSupplierCols = (): ColumnDef<Supplier>[] => {
     return [
         {
             accessorKey: "company_name",
-            header: "Company",
+            header: t("table.company"),
             cell: ({ row: { original } }) => (
                 <button
                     className="text-sm font-medium text-left hover:text-primary hover:underline transition-colors"
@@ -112,7 +114,7 @@ export const useSupplierCols = (): ColumnDef<Supplier>[] => {
         },
         {
             accessorKey: "company_email",
-            header: "Email",
+            header: t("table.email"),
             cell: ({ row: { original } }) => (
                 <span
                     className="text-sm text-muted-foreground cursor-pointer"
@@ -124,7 +126,7 @@ export const useSupplierCols = (): ColumnDef<Supplier>[] => {
         },
         {
             accessorKey: "customer_type",
-            header: "Supplier type",
+            header: t("table.supplierType"),
             cell: ({ row: { original } }) => (
                 <span
                     className="cursor-pointer"
@@ -144,7 +146,7 @@ export const useSupplierCols = (): ColumnDef<Supplier>[] => {
         },
         {
             accessorKey: "region_address",
-            header: "Address",
+            header: t("table.address"),
             cell: ({ row: { original } }) => (
                 <span
                     className="text-sm cursor-pointer"
@@ -156,7 +158,7 @@ export const useSupplierCols = (): ColumnDef<Supplier>[] => {
         },
         {
             accessorKey: "inn",
-            header: "INN",
+            header: t("table.inn"),
             cell: ({ row: { original } }) => (
                 <span
                     className="text-sm cursor-pointer"
@@ -168,7 +170,7 @@ export const useSupplierCols = (): ColumnDef<Supplier>[] => {
         },
         {
             accessorKey: "full_name",
-            header: "CEO/Staff",
+            header: t("table.ceoStaff"),
             cell: ({ row: { original } }) => (
                 <span
                     className="text-sm cursor-pointer"

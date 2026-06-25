@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils/shadcn"
 import type { ReactNode } from "react"
 import FilterInput from "../filter/filter-input"
 import { HeaderCrumb } from "./header-crumb"
+import SelectLanguage from "./language-select"
 import type { HeaderCrumbLink } from "./types"
 
 type Props = {
@@ -48,11 +49,11 @@ export default function Navbar({
                         rightClassName,
                     )}
                 >
-                    {/* <SelectLanguage /> */}
                     {rightLeftChild}
                     {isSearch && <FilterInput />}
                     {isSearch}
                     {rightRightChild}
+                    <SelectLanguage />
                 </div>
             </main>
             {bottom}

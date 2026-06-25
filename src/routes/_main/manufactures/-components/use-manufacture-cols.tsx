@@ -1,10 +1,10 @@
 import { useModal } from "@/hooks/use-modal"
+import i18n from "@/lib/i18n/request"
 import type { ColumnDef } from "@tanstack/react-table"
 import { CheckCircle2, Clock } from "lucide-react"
 import { useManufactureStore } from "../-hooks/use-manufacture-store"
 import type { Manufacture } from "../-types"
 import { ManufactureActions } from "./manufacture-actions"
-import { ManufacturePrintButton } from "./manufacture-print-button"
 import ManufactureStatusBadge from "./status-badge"
 
 const fmt = (val: string | number | null | undefined) =>
@@ -39,7 +39,7 @@ export const getManufactureCols = (
     return [
         {
             id: "id",
-            header: "ID",
+            header: i18n.t("table.id"),
             cell: ({ row: { original } }) => (
                 <ClickableCell manufacture={original}>
                     <span className="text-sm text-muted-foreground">
@@ -50,7 +50,7 @@ export const getManufactureCols = (
         },
         {
             id: "products",
-            header: "Products",
+            header: i18n.t("table.products"),
             cell: ({ row: { original } }) => {
                 const names = original.detail_items
                     .map((d) => d.product.outer_dimension)
@@ -68,7 +68,7 @@ export const getManufactureCols = (
         },
         {
             accessorKey: "thickness",
-            header: "Thickness",
+            header: i18n.t("table.thickness"),
             cell: ({ row: { original } }) => (
                 <ClickableCell manufacture={original}>
                     <span className="text-sm">{fmt(original.thickness)}</span>
@@ -77,7 +77,7 @@ export const getManufactureCols = (
         },
         {
             accessorKey: "width",
-            header: "Width",
+            header: i18n.t("table.width"),
             cell: ({ row: { original } }) => (
                 <ClickableCell manufacture={original}>
                     <span className="text-sm">{fmt(original.width)}</span>
@@ -87,7 +87,7 @@ export const getManufactureCols = (
 
         {
             id: "raw_count",
-            header: "Raw Materials",
+            header: i18n.t("table.rawMaterials"),
             cell: ({ row: { original } }) => (
                 <ClickableCell manufacture={original}>
                     <span className="text-sm">
@@ -100,7 +100,7 @@ export const getManufactureCols = (
         },
         {
             accessorKey: "status",
-            header: "Status",
+            header: i18n.t("table.status"),
             cell: ({ row: { original } }) => (
                 <ManufactureStatusBadge
                     status={original.status}
@@ -110,7 +110,7 @@ export const getManufactureCols = (
         },
         {
             accessorKey: "created_at",
-            header: "Date",
+            header: i18n.t("table.date"),
             cell: ({ row: { original } }) => (
                 <ClickableCell manufacture={original}>
                     <span className="text-sm text-muted-foreground">
@@ -121,7 +121,7 @@ export const getManufactureCols = (
         },
         {
             id: "is_plan_fact",
-            header: "План-факт",
+            header: i18n.t("table.planFact"),
             cell: ({ row: { original } }) => (
                 <ClickableCell manufacture={original}>
                     {original.is_plan_fact ?
@@ -135,13 +135,6 @@ export const getManufactureCols = (
                         </span>
                     }
                 </ClickableCell>
-            ),
-        },
-        {
-            id: "print_label",
-            header: "Печать",
-            cell: ({ row: { original } }) => (
-                <ManufacturePrintButton manufacture={original} />
             ),
         },
         {

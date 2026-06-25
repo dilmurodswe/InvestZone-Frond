@@ -4,6 +4,7 @@ import { useParams } from "@tanstack/react-router"
 import type { CellContext, ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useProductStore } from "../-hooks/use-product-store"
 import { useProductsQuery } from "../-hooks/use-products-query"
 import type { Category, Product } from "../../../-types"
@@ -122,6 +123,7 @@ function TruncatedCell({
 export const useProductCols = (
     visibleExtraKeys: string[],
 ): ColumnDef<Product>[] => {
+    const { t } = useTranslation()
     const { productList } = useProductsQuery()
     const { setProduct } = useProductStore()
     const detailModal = useModal("product-detail")
@@ -166,7 +168,7 @@ export const useProductCols = (
 
     const outerDimensionCol: ColumnDef<Product> = {
         id: "outer_dimension",
-        header: "Наружный размер, мм",
+        header: t("table.outerSizeMm"),
         cell: ({ row: { original } }: CellContext<Product, unknown>) => (
             <TruncatedCell
                 value={original.outer_dimension ?? null}
@@ -178,7 +180,7 @@ export const useProductCols = (
 
     const thicknessCol: ColumnDef<Product> = {
         id: "thickness",
-        header: "Толщина",
+        header: t("table.thickness"),
         cell: ({ row: { original } }: CellContext<Product, unknown>) => (
             <TruncatedCell
                 value={original.thickness ?? null}
@@ -191,7 +193,7 @@ export const useProductCols = (
     return [
         {
             accessorKey: "name",
-            header: "Product Name",
+            header: t("table.productName"),
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
                     value={original.name}
@@ -202,7 +204,7 @@ export const useProductCols = (
         },
         {
             accessorKey: "code",
-            header: "Code",
+            header: t("table.code"),
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
                     value={original.code}
@@ -213,7 +215,7 @@ export const useProductCols = (
         },
         {
             accessorKey: "articul",
-            header: "SKU",
+            header: t("table.sku"),
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
                     value={original.articul}
@@ -224,7 +226,7 @@ export const useProductCols = (
         },
         {
             accessorKey: "price",
-            header: "Price",
+            header: t("table.price"),
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
                     value={original.price}
@@ -235,7 +237,7 @@ export const useProductCols = (
         },
         {
             accessorKey: "theoretically_price",
-            header: "Theoretically Price",
+            header: t("table.theoreticalPrice"),
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
                     value={original.theoretically_price}
@@ -246,7 +248,7 @@ export const useProductCols = (
         },
         {
             accessorKey: "factually_price",
-            header: "Factually Price",
+            header: t("table.factualPrice"),
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
                     value={original.factually_price}
@@ -261,7 +263,7 @@ export const useProductCols = (
         ...extraCols,
         {
             id: "description",
-            header: "Description",
+            header: t("table.description"),
             cell: ({ row: { original } }: CellContext<Product, unknown>) => {
                 const plain =
                     original.description ?

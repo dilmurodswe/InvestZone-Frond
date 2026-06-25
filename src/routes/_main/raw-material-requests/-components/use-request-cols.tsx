@@ -1,16 +1,17 @@
-import type { ColumnDef } from "@tanstack/react-table"
-import type { RawMaterialRequest } from "../-types"
 import { formatDecimal } from "@/lib/utils/format-number"
+import type { ColumnDef } from "@tanstack/react-table"
+import { useTranslation } from "react-i18next"
+import type { RawMaterialRequest } from "../-types"
 import StatusBadge from "./status-badge"
-// eslint-disable-next-line react-x/no-unnecessary-use-prefix
 export const useRequestCols = (
     onRowClick: (request: RawMaterialRequest) => void,
     onStatusClick: (request: RawMaterialRequest, el: HTMLElement) => void,
 ): ColumnDef<RawMaterialRequest>[] => {
+    const { t } = useTranslation()
     return [
         {
             accessorKey: "contract_number",
-            header: "Contract number",
+            header: t("table.contractNumber"),
             cell: ({ row: { original } }) => (
                 <button
                     className="w-full text-left text-sm font-medium hover:text-primary hover:underline"
@@ -22,7 +23,7 @@ export const useRequestCols = (
         },
         {
             accessorKey: "quantity",
-            header: "Quantity",
+            header: t("table.quantity"),
             cell: ({ row: { original } }) => (
                 <button
                     className="w-full text-left text-sm"
@@ -34,7 +35,7 @@ export const useRequestCols = (
         },
         {
             accessorKey: "supplier",
-            header: "Supplier",
+            header: t("table.supplier"),
             cell: ({ row: { original } }) => (
                 <button
                     className="w-full text-left text-sm"
@@ -46,7 +47,7 @@ export const useRequestCols = (
         },
         {
             accessorKey: "created_at",
-            header: "Date",
+            header: t("table.date"),
             cell: ({ row: { original } }) => (
                 <button
                     className="w-full text-left text-sm"
@@ -60,7 +61,7 @@ export const useRequestCols = (
         },
         {
             accessorKey: "status",
-            header: "Status",
+            header: t("table.status"),
             cell: ({ row: { original } }) => (
                 <StatusBadge
                     status={original.status}
@@ -72,7 +73,7 @@ export const useRequestCols = (
         },
         {
             accessorKey: "tolerant",
-            header: "Tolerants",
+            header: t("table.tolerance"),
             cell: ({ row: { original } }) => (
                 <button
                     className="w-full text-left text-sm"
@@ -84,7 +85,7 @@ export const useRequestCols = (
         },
         {
             accessorKey: "differance",
-            header: "Difference",
+            header: t("table.difference"),
             cell: ({ row: { original } }) => {
                 const val = original.differance
                 if (!val)

@@ -2,6 +2,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import i18n from "@/lib/i18n/request"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useEffect, useRef, useState } from "react"
 import { useOrderStore } from "../-hooks/use-order-store"
@@ -113,7 +114,7 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
     return [
         {
             accessorKey: "client",
-            header: "Client",
+            header: i18n.t("table.client"),
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
                     <span className="text-sm">{original.client}</span>
@@ -122,12 +123,12 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
         },
         {
             accessorKey: "status",
-            header: "Status",
+            header: i18n.t("table.status"),
             cell: ({ row: { original } }) => <StatusCell order={original} />,
         },
         {
             accessorKey: "payment_type",
-            header: "Payment Type",
+            header: i18n.t("table.paymentType"),
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
                     <span className="text-sm">{original.payment_type}</span>
@@ -136,7 +137,7 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
         },
         {
             accessorKey: "currency",
-            header: "Currency",
+            header: i18n.t("table.currency"),
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
                     <span className="text-sm">
@@ -148,7 +149,7 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
         },
         {
             accessorKey: "client_currency",
-            header: "Client Rate",
+            header: i18n.t("table.clientRate"),
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
                     <span className="text-sm">
@@ -159,7 +160,7 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
         },
         {
             accessorKey: "items",
-            header: "Products",
+            header: i18n.t("table.products"),
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
                     <span className="text-sm">
@@ -170,7 +171,7 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
         },
         {
             accessorKey: "created_at",
-            header: "Date",
+            header: i18n.t("table.date"),
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
                     <span className="text-sm text-muted-foreground">

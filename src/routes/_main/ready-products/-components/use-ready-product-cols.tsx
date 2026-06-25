@@ -1,6 +1,7 @@
+import i18n from "@/lib/i18n/request"
+import { formatDecimal } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { ReadyProduct } from "../-types"
-import { formatDecimal } from "@/lib/utils/format-number"
 
 const fmt = (val: number | null | undefined) => formatDecimal(val)
 
@@ -9,7 +10,7 @@ export const getReadyProductCols = (
 ): ColumnDef<ReadyProduct>[] => [
     {
         accessorKey: "thickness",
-        header: "Thickness",
+        header: i18n.t("table.thickness"),
         cell: ({ row: { original } }) => (
             <span
                 className="text-sm cursor-pointer"
@@ -21,7 +22,7 @@ export const getReadyProductCols = (
     },
     {
         accessorKey: "width",
-        header: "Width",
+        header: i18n.t("table.width"),
         cell: ({ row: { original } }) => (
             <span
                 className="text-sm cursor-pointer"
@@ -33,7 +34,7 @@ export const getReadyProductCols = (
     },
     {
         accessorKey: "status",
-        header: "Status",
+        header: i18n.t("table.status"),
         cell: ({ row: { original } }) => (
             <span
                 className="text-sm capitalize cursor-pointer"
@@ -45,7 +46,7 @@ export const getReadyProductCols = (
     },
     {
         accessorKey: "created_at",
-        header: "Date",
+        header: i18n.t("table.date"),
         cell: ({ row: { original } }) => (
             <span
                 className="text-sm text-muted-foreground cursor-pointer"

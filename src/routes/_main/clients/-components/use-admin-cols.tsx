@@ -3,6 +3,7 @@ import { useModal } from "@/hooks/use-modal"
 import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useClientStore } from "../-hooks/use-client-store"
 import type { Client } from "../-types"
 
@@ -90,6 +91,7 @@ function ClientActions({ client }: { client: Client }) {
 }
 
 export const useClientCols = (): ColumnDef<Client>[] => {
+    const { t } = useTranslation()
     const { setClient } = useClientStore()
     const detailModal = useModal("client-detail")
 
@@ -101,7 +103,7 @@ export const useClientCols = (): ColumnDef<Client>[] => {
     return [
         {
             accessorKey: "company_name",
-            header: "Company",
+            header: t("table.company"),
             cell: ({ row: { original } }) => (
                 <button
                     className="text-sm font-medium text-left hover:text-primary hover:underline transition-colors"
@@ -113,7 +115,7 @@ export const useClientCols = (): ColumnDef<Client>[] => {
         },
         {
             accessorKey: "company_email",
-            header: "Email",
+            header: t("table.email"),
             cell: ({ row: { original } }) => (
                 <span
                     className="text-sm text-muted-foreground cursor-pointer"
@@ -125,7 +127,7 @@ export const useClientCols = (): ColumnDef<Client>[] => {
         },
         {
             accessorKey: "customer_type",
-            header: "Client type",
+            header: t("table.clientType"),
             cell: ({ row: { original } }) => (
                 <span
                     className="cursor-pointer"
@@ -145,7 +147,7 @@ export const useClientCols = (): ColumnDef<Client>[] => {
         },
         {
             accessorKey: "official_name",
-            header: "Address",
+            header: t("table.address"),
             cell: ({ row: { original } }) => (
                 <span
                     className="text-sm cursor-pointer"
@@ -157,7 +159,7 @@ export const useClientCols = (): ColumnDef<Client>[] => {
         },
         {
             accessorKey: "inn",
-            header: "INN",
+            header: t("table.inn"),
             cell: ({ row: { original } }) => (
                 <span
                     className="text-sm cursor-pointer"
@@ -169,7 +171,7 @@ export const useClientCols = (): ColumnDef<Client>[] => {
         },
         {
             accessorKey: "full_name",
-            header: "CEO/Staff",
+            header: t("table.ceoStaff"),
             cell: ({ row: { original } }) => (
                 <span
                     className="text-sm cursor-pointer"
@@ -181,7 +183,7 @@ export const useClientCols = (): ColumnDef<Client>[] => {
         },
         {
             accessorKey: "balance",
-            header: "Balance",
+            header: t("table.balance"),
             cell: ({ row: { original } }) => (
                 <span
                     className={`text-sm cursor-pointer font-semibold ${original.balance != null && original.balance < 0 ? "text-red-500" : "text-green-500"}`}

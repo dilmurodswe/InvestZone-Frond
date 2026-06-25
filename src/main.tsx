@@ -10,6 +10,7 @@ import "./index.css"
 import { setupAxiosInterceptors } from "./lib/api/axios-instance"
 import i18n from "./lib/i18n/request"
 import { ConfirmProvider } from "./providers/confirm-provider"
+import { LanguageProvider } from "./providers/language-provider"
 import { routeTree } from "./routeTree.gen"
 
 // Setup axios interceptors with queryClient
@@ -50,16 +51,18 @@ if (!rootElement.innerHTML) {
     root.render(
         // <StrictMode>
         <I18nextProvider i18n={i18n}>
-            <Suspense fallback={<Loader />}>
-                <ConfirmProvider>
-                    <TooltipProvider>
-                        <QueryClientProvider client={queryClient}>
-                            <RouterProvider router={router} />
-                            <Toaster />
-                        </QueryClientProvider>
-                    </TooltipProvider>
-                </ConfirmProvider>
-            </Suspense>
+            <LanguageProvider>
+                <Suspense fallback={<Loader />}>
+                    <ConfirmProvider>
+                        <TooltipProvider>
+                            <QueryClientProvider client={queryClient}>
+                                <RouterProvider router={router} />
+                                <Toaster />
+                            </QueryClientProvider>
+                        </TooltipProvider>
+                    </ConfirmProvider>
+                </Suspense>
+            </LanguageProvider>
         </I18nextProvider>,
         // </StrictMode>,
     )

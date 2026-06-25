@@ -1,13 +1,15 @@
 import Phone from "@/components/custom/phone"
 import { Badge } from "@/components/ui/badge"
+import { useModal } from "@/hooks/use-modal"
 import { dateTimeColumn } from "@/lib/utils/common-cell-renderers"
 import type { ColumnDef } from "@tanstack/react-table"
-import type { Admin } from "../-types"
-import { useState, useRef, useEffect } from "react"
-import { useAdminStore } from "../-hooks/use-admin-store"
-import { useModal } from "@/hooks/use-modal"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { useAdminStore } from "../-hooks/use-admin-store"
+import type { Admin } from "../-types"
 
+// eslint-disable-next-line react-refresh/only-export-components
 function AdminActions({ admin }: { admin: Admin }) {
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -49,7 +51,12 @@ function AdminActions({ admin }: { admin: Admin }) {
             </button>
             {open && (
                 <div
-                    style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
+                    style={{
+                        position: "fixed",
+                        top: pos.top,
+                        left: pos.left,
+                        zIndex: 9999,
+                    }}
                     className="bg-white rounded-xl shadow-lg border flex flex-col overflow-hidden"
                 >
                     <button
@@ -81,10 +88,11 @@ function AdminActions({ admin }: { admin: Admin }) {
 }
 
 export const useAdminCols = (): ColumnDef<Admin>[] => {
+    const { t } = useTranslation()
     return [
         {
             accessorKey: "phone_number",
-            header: "Admin",
+            header: t("table.admin"),
             cell: ({ row: { original } }) => (
                 <div className="text-sm">
                     <p className="font-medium">
@@ -99,16 +107,14 @@ export const useAdminCols = (): ColumnDef<Admin>[] => {
         },
         {
             accessorKey: "employee_code",
-            header: "Employee Code",
+            header: t("table.employeeCode"),
             cell: ({ row: { original } }) => (
-                <span className="text-sm">
-                    {original.employee_code ?? "—"}
-                </span>
+                <span className="text-sm">{original.employee_code ?? "—"}</span>
             ),
         },
         {
             accessorKey: "role",
-            header: "Role",
+            header: t("table.role"),
             cell: ({ row: { original } }) => (
                 <Badge
                     variant={"secondary"}

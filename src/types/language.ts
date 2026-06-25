@@ -1,5 +1,5 @@
 export interface Language {
-    value: "en" | "ru"
+    value: "en" | "ru" | "uz"
     label: string
     scr: string
 }

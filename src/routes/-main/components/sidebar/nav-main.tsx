@@ -32,8 +32,10 @@ import {
 } from "@/components/ui/sidebar"
 import { useProfileQuery } from "@/hooks/react-query/use-profile-query"
 import { Link, linkOptions, useLocation } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 
 export function NavMain() {
+    const { t } = useTranslation()
     const { isAdmin } = useProfileQuery()
     const { setOpenMobile, open } = useSidebar()
     const pathname = useLocation({ select: (l) => l.pathname })
@@ -50,22 +52,22 @@ export function NavMain() {
             to: "/finance",
             icon: <WalletIcon />,
             enabled: true,
-            title: "Finance",
+            title: t("nav.finance"),
             childs: [
                 linkOptions({
                     to: "/finance/dashboard",
                     enabled: isAdmin,
-                    title: "Dashboard",
+                    title: t("nav.dashboard"),
                 }),
                 linkOptions({
                     to: "/finance/expence",
                     enabled: isAdmin,
-                    title: "Expense",
+                    title: t("nav.expense"),
                 }),
                 linkOptions({
                     to: "/finance/income",
                     enabled: isAdmin,
-                    title: "Income",
+                    title: t("nav.income"),
                 }),
             ],
         }),
@@ -73,22 +75,22 @@ export function NavMain() {
             to: "/admins",
             icon: <UserIcon />,
             enabled: true,
-            title: "Users",
+            title: t("nav.users"),
             childs: [
                 linkOptions({
                     to: "/admins",
                     enabled: isAdmin,
-                    title: "Admins",
+                    title: t("nav.admins"),
                 }),
                 linkOptions({
                     to: "/clients",
                     enabled: isAdmin,
-                    title: "Clients",
+                    title: t("nav.clients"),
                 }),
                 linkOptions({
                     to: "/suppliers",
                     enabled: isAdmin,
-                    title: "Suppliers",
+                    title: t("nav.suppliers"),
                 }),
             ],
         }),
@@ -96,17 +98,17 @@ export function NavMain() {
             to: "/extra",
             icon: <BoxIcon />,
             enabled: true,
-            title: "Warehouse",
+            title: t("nav.warehouse"),
             childs: [
                 linkOptions({
                     to: "/ready-products",
                     enabled: isAdmin,
-                    title: "Ready Product",
+                    title: t("nav.readyProduct"),
                 }),
                 linkOptions({
                     to: "/raw-materials",
                     enabled: isAdmin,
-                    title: "Raw Materials",
+                    title: t("nav.rawMaterials"),
                 }),
             ],
         }),
@@ -114,12 +116,12 @@ export function NavMain() {
             to: "/raw-material-requests",
             icon: <ClipboardListIcon />,
             enabled: true,
-            title: "Office Manager",
+            title: t("nav.officeManager"),
             childs: [
                 linkOptions({
                     to: "/raw-material-requests",
                     enabled: isAdmin,
-                    title: "Raw Material Requests",
+                    title: t("nav.rawMaterialRequests"),
                 }),
             ],
         }),
@@ -127,12 +129,12 @@ export function NavMain() {
             to: "/orders",
             icon: <ShoppingCartIcon />,
             enabled: true,
-            title: "Orders",
+            title: t("nav.orders"),
             childs: [
                 linkOptions({
                     to: "/orders",
                     enabled: isAdmin,
-                    title: "Sales",
+                    title: t("nav.sales"),
                 }),
             ],
         }),
@@ -140,12 +142,12 @@ export function NavMain() {
             to: "/task-manager",
             icon: <CheckSquareIcon />,
             enabled: true,
-            title: "Task Manager",
+            title: t("nav.taskManager"),
             childs: [
                 linkOptions({
                     to: "/task-manager",
                     enabled: isAdmin,
-                    title: "Task Manager",
+                    title: t("nav.taskManager"),
                 }),
             ],
         }),
@@ -154,22 +156,22 @@ export function NavMain() {
             to: "/manufactures",
             icon: <FactoryIcon />,
             enabled: true,
-            title: "Manufactures",
+            title: t("nav.manufactures"),
             childs: [
                 linkOptions({
                     to: "/manufactures",
                     enabled: isAdmin,
-                    title: "Reska Shtrips",
+                    title: t("nav.reskaShtrips"),
                 }),
                 linkOptions({
                     to: "/ready-strips",
                     enabled: isAdmin,
-                    title: "Ready shtrips",
+                    title: t("nav.readyShtrips"),
                 }),
                 linkOptions({
                     to: "/rolling-plans",
                     enabled: isAdmin,
-                    title: "Prokatka",
+                    title: t("nav.prokatka"),
                 }),
             ],
         }),
@@ -177,32 +179,32 @@ export function NavMain() {
             to: "/settings",
             icon: <SettingsIcon />,
             enabled: true,
-            title: "Settings",
+            title: t("nav.settings"),
             childs: [
                 linkOptions({
                     to: "/settings/products",
                     enabled: isAdmin,
-                    title: "Products",
+                    title: t("nav.products"),
                 }),
                 linkOptions({
                     to: "/settings/raw-materials",
                     enabled: isAdmin,
-                    title: "Raw Materials",
+                    title: t("nav.rawMaterials"),
                 }),
                 linkOptions({
                     to: "/settings/currency",
                     enabled: isAdmin,
-                    title: "Currency",
+                    title: t("nav.currency"),
                 }),
                 linkOptions({
                     to: "/settings/payment-type",
                     enabled: isAdmin,
-                    title: "Payment Types",
+                    title: t("nav.paymentTypes"),
                 }),
                 linkOptions({
                     to: "/settings/machine",
                     enabled: isAdmin,
-                    title: "Machine",
+                    title: t("nav.machine"),
                 }),
             ],
         }),

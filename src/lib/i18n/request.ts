@@ -5,11 +5,13 @@ import { initReactI18next } from "react-i18next"
 import { COOKIES } from "../constants/cookies"
 import en from "./locales/en.json"
 import ru from "./locales/ru.json"
+import uz from "./locales/uz.json"
 
 const isDev = import.meta.env.DEV
 
 const resources = {
     ru: { translation: ru },
+    uz: { translation: uz },
     en: { translation: en },
 }
 

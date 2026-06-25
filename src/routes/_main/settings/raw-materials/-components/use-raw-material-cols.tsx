@@ -2,6 +2,7 @@ import { useModal } from "@/hooks/use-modal"
 import type { CellContext, ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useRawMaterialStore } from "../-hooks/use-raw-material-store"
 import { useRawMaterialsQuery } from "../-hooks/use-raw-materials-query"
 import type { RawMaterial } from "../-types"
@@ -120,6 +121,7 @@ function TruncatedCell({
 export const useRawMaterialCols = (
     visibleExtraKeys: string[],
 ): ColumnDef<RawMaterial>[] => {
+    const { t } = useTranslation()
     const { rawMaterialList } = useRawMaterialsQuery()
     const { setRawMaterial } = useRawMaterialStore()
     const detailModal = useModal("raw-material-detail")
@@ -159,7 +161,7 @@ export const useRawMaterialCols = (
     return [
         {
             accessorKey: "name",
-            header: "Name",
+            header: t("table.name"),
             cell: ({
                 row: { original },
             }: CellContext<RawMaterial, unknown>) => (
@@ -172,7 +174,7 @@ export const useRawMaterialCols = (
         },
         {
             accessorKey: "standard",
-            header: "Standard",
+            header: t("table.standard"),
             cell: ({
                 row: { original },
             }: CellContext<RawMaterial, unknown>) => (
@@ -185,7 +187,7 @@ export const useRawMaterialCols = (
         },
         {
             accessorKey: "mark",
-            header: "Mark",
+            header: t("table.mark"),
             cell: ({
                 row: { original },
             }: CellContext<RawMaterial, unknown>) => (
@@ -198,7 +200,7 @@ export const useRawMaterialCols = (
         },
         {
             accessorKey: "sku",
-            header: "SKU",
+            header: t("table.sku"),
             cell: ({
                 row: { original },
             }: CellContext<RawMaterial, unknown>) => (
@@ -211,7 +213,7 @@ export const useRawMaterialCols = (
         },
         {
             accessorKey: "width",
-            header: "Ширина",
+            header: t("table.width"),
             cell: ({
                 row: { original },
             }: CellContext<RawMaterial, unknown>) => (
@@ -224,7 +226,7 @@ export const useRawMaterialCols = (
         },
         {
             accessorKey: "thickness",
-            header: "Толщина",
+            header: t("table.thickness"),
             cell: ({
                 row: { original },
             }: CellContext<RawMaterial, unknown>) => (
@@ -238,7 +240,7 @@ export const useRawMaterialCols = (
         ...extraCols,
         {
             id: "description",
-            header: "Description",
+            header: t("table.description"),
             cell: ({
                 row: { original },
             }: CellContext<RawMaterial, unknown>) => {

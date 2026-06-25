@@ -1,4 +1,5 @@
 import { useModal } from "@/hooks/use-modal"
+import i18n from "@/lib/i18n/request"
 import type { ColumnDef } from "@tanstack/react-table"
 import { CheckCircle2, Clock } from "lucide-react"
 import { useRollingPlanStore } from "../-hooks/use-rolling-plan-store"
@@ -39,7 +40,7 @@ export const getRollingPlanCols = (
     return [
         {
             accessorKey: "plan_number",
-            header: "План №",
+            header: i18n.t("table.planNo"),
             cell: ({ row: { original } }) => (
                 <ClickableCell plan={original}>
                     <span className="text-sm font-medium">
@@ -50,7 +51,7 @@ export const getRollingPlanCols = (
         },
         {
             id: "machine",
-            header: "Станок",
+            header: i18n.t("table.machine"),
             cell: ({ row: { original } }) => (
                 <ClickableCell plan={original}>
                     <span className="text-sm">
@@ -61,7 +62,7 @@ export const getRollingPlanCols = (
         },
         {
             id: "outer_dimension",
-            header: "Нар. размер",
+            header: i18n.t("table.outerSizeShort"),
             cell: ({ row: { original } }) => {
                 const dims = [
                     ...new Set(
@@ -81,7 +82,7 @@ export const getRollingPlanCols = (
         },
         {
             id: "thickness",
-            header: "Толщина",
+            header: i18n.t("table.thickness"),
             cell: ({ row: { original } }) => {
                 const thicknesses = [
                     ...new Set(
@@ -101,7 +102,7 @@ export const getRollingPlanCols = (
         },
         {
             id: "pipe_length_mm",
-            header: "Dlina Truba mm",
+            header: i18n.t("table.tubeLengthMm"),
             cell: ({ row: { original } }) => {
                 const lengths = [
                     ...new Set(
@@ -121,7 +122,7 @@ export const getRollingPlanCols = (
         },
         {
             id: "selected_weight_ton",
-            header: "Выбор (т)",
+            header: i18n.t("table.selectionTon"),
             cell: ({ row: { original } }) => {
                 const total = original.items?.reduce(
                     (sum, i) => sum + (i.selected_weight_ton ?? 0),
@@ -136,7 +137,7 @@ export const getRollingPlanCols = (
         },
         {
             id: "status",
-            header: "Статус",
+            header: i18n.t("table.status"),
             cell: ({ row: { original } }) => {
                 const status = original.status ?? original.items?.[0]?.status
                 if (!status)
@@ -155,7 +156,7 @@ export const getRollingPlanCols = (
         },
         {
             id: "plan_date",
-            header: "Дата плана",
+            header: i18n.t("table.planDate"),
             cell: ({ row: { original } }) => {
                 const dates = original.items
                     ?.map((i) => i.plan_date)
@@ -174,7 +175,7 @@ export const getRollingPlanCols = (
         },
         {
             id: "end_date",
-            header: "Дата окончания",
+            header: i18n.t("table.endDate"),
             cell: ({ row: { original } }) => {
                 const dates = original.items
                     ?.map((i) => i.end_date)
@@ -191,7 +192,7 @@ export const getRollingPlanCols = (
         },
         {
             id: "is_plan_fact",
-            header: "План-факт",
+            header: i18n.t("table.planFact"),
             cell: ({ row: { original } }) => {
                 // is_plan_fact may come as a top-level field from the list API
                 const hasFact = (

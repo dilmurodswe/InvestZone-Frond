@@ -1,3 +1,4 @@
+import i18n from "@/lib/i18n/request"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Expense } from "../-types"
 
@@ -9,21 +10,21 @@ export const getExpenseCols = (
 ): ColumnDef<Expense>[] => [
     {
         accessorKey: "name",
-        header: "Name",
+        header: i18n.t("table.name"),
         cell: ({ row: { original } }) => (
             <span className="text-sm font-medium">{original.name}</span>
         ),
     },
     {
         accessorKey: "payment_type",
-        header: "Payment Type",
+        header: i18n.t("table.paymentType"),
         cell: ({ row: { original } }) => (
             <span className="text-sm">{original.payment_type ?? "—"}</span>
         ),
     },
     {
         accessorKey: "currency",
-        header: "Currency",
+        header: i18n.t("table.currency"),
         cell: ({ row: { original } }) => (
             <span className="text-sm">
                 {original.currency?.currency} ({original.currency?.current_rate}
@@ -33,28 +34,28 @@ export const getExpenseCols = (
     },
     {
         accessorKey: "current_rate",
-        header: "Current Rate",
+        header: i18n.t("table.currentRate"),
         cell: ({ row: { original } }) => (
             <span className="text-sm">{original.current_rate ?? "—"}</span>
         ),
     },
     {
         accessorKey: "custom_rate",
-        header: "Custom Rate",
+        header: i18n.t("table.customRate"),
         cell: ({ row: { original } }) => (
             <span className="text-sm">{original.custom_rate ?? "—"}</span>
         ),
     },
     {
         accessorKey: "amount",
-        header: "Amount",
+        header: i18n.t("table.amount"),
         cell: ({ row: { original } }) => (
             <span className="text-sm font-semibold">{original.amount}</span>
         ),
     },
     {
         accessorKey: "date",
-        header: "Date",
+        header: i18n.t("table.date"),
         cell: ({ row: { original } }) => (
             <span className="text-sm text-muted-foreground">
                 {original.date}
@@ -63,7 +64,7 @@ export const getExpenseCols = (
     },
     {
         accessorKey: "comment",
-        header: "Comment",
+        header: i18n.t("table.comment"),
         cell: ({ row: { original } }) => (
             <span className="text-sm text-muted-foreground">
                 {original.comment ?? "—"}

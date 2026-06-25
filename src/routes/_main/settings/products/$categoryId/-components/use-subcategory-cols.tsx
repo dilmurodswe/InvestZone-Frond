@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "@tanstack/react-router"
 import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useSubCategoryStore } from "../-hooks/use-subcategory-store"
 import type { SubCategory } from "../../-types"
 // eslint-disable-next-line react-refresh/only-export-components
@@ -91,11 +92,12 @@ function SubCategoryActions({ subCategory }: { subCategory: SubCategory }) {
 export const useSubCategoryCols = (): ColumnDef<SubCategory>[] => {
     const navigate = useNavigate()
     const { categoryId } = useParams({ strict: false })
+    const { t } = useTranslation()
 
     return [
         {
             accessorKey: "name",
-            header: "Subcategory Name",
+            header: t("table.subcategoryName"),
             cell: ({ row: { original } }) => (
                 <button
                     className="w-full text-left text-sm font-medium hover:cursor-pointer hoverbg-primary"

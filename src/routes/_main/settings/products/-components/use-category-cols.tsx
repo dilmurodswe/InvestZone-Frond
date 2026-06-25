@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router"
 import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useCategoryStore } from "../-hooks/use-category-store"
 import type { Category } from "../-types"
 
@@ -97,11 +98,12 @@ function CategoryActions({ category }: { category: Category }) {
 
 export const useCategoryCols = (): ColumnDef<Category>[] => {
     const navigate = useNavigate()
+    const { t } = useTranslation()
 
     return [
         {
             accessorKey: "name",
-            header: "Category Name",
+            header: t("table.categoryName"),
             cell: ({ row: { original } }) => (
                 <button
                     className="w-full text-left text-sm font-medium hover:cursor-pointer hoverbg-primary"
@@ -118,7 +120,7 @@ export const useCategoryCols = (): ColumnDef<Category>[] => {
         },
         {
             accessorKey: "type",
-            header: "Type",
+            header: t("table.type"),
             cell: ({ row: { original } }) => (
                 <span className="text-sm">
                     {typeLabels[original.type] ?? original.type}

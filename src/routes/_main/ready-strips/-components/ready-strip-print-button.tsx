@@ -7,12 +7,11 @@ import { COOKIES } from "@/lib/constants/cookies"
 import Cookies from "js-cookie"
 import { Printer } from "lucide-react"
 import { useState } from "react"
-import type { Manufacture } from "../-types"
 
-export function ManufacturePrintButton({
-    manufacture,
+export function ReadyStripPrintButton({
+    manufactureId,
 }: {
-    manufacture: Manufacture
+    manufactureId: number
 }) {
     const [labelData, setLabelData] = useState<ManufactureLabelData | null>(
         null,
@@ -24,7 +23,7 @@ export function ManufacturePrintButton({
         try {
             const token = Cookies.get(COOKIES.ACCESS_TOKEN)
             const response = await fetch(
-                `${BASE_URL}manufactures/${manufacture.id}/print-label/`,
+                `${BASE_URL}manufactures/${manufactureId}/print-label/`,
                 {
                     method: "POST",
                     headers: {
