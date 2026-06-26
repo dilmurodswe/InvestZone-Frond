@@ -19,20 +19,18 @@ export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
     },
     {
         accessorKey: "roll",
-        header: i18n.t("table.roll"),
+        header: `${i18n.t("table.plank")} / ${i18n.t("table.referenceNumber")}`,
         cell: ({ row: { original } }) => {
-            const parts = [
-                original.roll_plank,
-                original.roll_reference_number,
-            ].filter(Boolean)
+            const rolls = original.rolls ?? []
+            if (!rolls.length) return <span className="text-sm">—</span>
             return (
-                <span className="text-sm">
-                    {parts.length ?
-                        parts.join(" / ")
-                    : original.roll_id ?
-                        `#${original.roll_id}`
-                    :   "—"}
-                </span>
+                <div className="flex flex-col gap-0.5 text-sm">
+                    {rolls.map((r) => (
+                        <span key={r.id} className="whitespace-nowrap">
+                            {r.plank || "—"} / {r.reference_number || "—"}
+                        </span>
+                    ))}
+                </div>
             )
         },
     },
