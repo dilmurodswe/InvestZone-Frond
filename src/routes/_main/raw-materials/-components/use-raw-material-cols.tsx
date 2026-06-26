@@ -2,6 +2,7 @@ import i18n from "@/lib/i18n/request"
 import { formatDecimal } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { RawMaterial } from "../-types"
+import { StatusBadge } from "./status-badge"
 
 const fmt = (val: number | null | undefined) => formatDecimal(val)
 
@@ -25,26 +26,19 @@ export const getRawMaterialCols = (): ColumnDef<RawMaterial>[] => [
         ),
     },
     {
-        accessorKey: "raw_material_name",
+        accessorKey: "raw_material",
         header: i18n.t("table.rawMaterial"),
         cell: ({ row: { original } }) => (
             <span className="text-sm">
-                {fmtStr(original.raw_material_name)}
+                {fmtStr(original.raw_material?.name)}
             </span>
         ),
     },
     {
-        accessorKey: "ton",
-        header: i18n.t("table.ton"),
+        accessorKey: "status",
+        header: i18n.t("table.status"),
         cell: ({ row: { original } }) => (
-            <span className="text-sm">{fmt(original.ton)}</span>
-        ),
-    },
-    {
-        accessorKey: "weight",
-        header: i18n.t("table.weight"),
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">{fmt(original.weight)}</span>
+            <StatusBadge status={original.status} />
         ),
     },
     {
@@ -66,20 +60,6 @@ export const getRawMaterialCols = (): ColumnDef<RawMaterial>[] => [
         header: i18n.t("table.outerSize"),
         cell: ({ row: { original } }) => (
             <span className="text-sm">{fmt(original.outer_size)}</span>
-        ),
-    },
-    {
-        accessorKey: "standard",
-        header: i18n.t("table.standard"),
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">{fmtStr(original.standard)}</span>
-        ),
-    },
-    {
-        accessorKey: "mark",
-        header: i18n.t("table.mark"),
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">{fmtStr(original.mark)}</span>
         ),
     },
     {

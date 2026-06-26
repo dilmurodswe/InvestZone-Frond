@@ -12,6 +12,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { API } from "@/lib/constants/api-endpoints"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { RawMaterialRequest, RequestStatus } from "../-types"
 import { STATUS_CONFIG } from "./status-config"
 
@@ -30,6 +31,7 @@ export default function StatusDropdown({
     onClose,
     onStatusChanged,
 }: StatusDropdownProps) {
+    const { t } = useTranslation()
     const ref = useRef<HTMLDivElement>(null)
     const { patch } = useRequest()
     const { invalidateByExactMatch } = useRevalidate()
@@ -110,7 +112,7 @@ export default function StatusDropdown({
                                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                                     style={{ backgroundColor: config.bg }}
                                 />
-                                {config.label}
+                                {t(config.labelKey)}
                             </button>
                         )
                     })}
@@ -126,17 +128,23 @@ export default function StatusDropdown({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Status o'zgartirilsinmi?
+                            {t("rmr.changeStatus")}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {pendingStatus && (
                                 <>
                                     <strong>
-                                        {STATUS_CONFIG[request.status]?.label}
+                                        {t(
+                                            STATUS_CONFIG[request.status]
+                                                .labelKey,
+                                        )}
                                     </strong>
                                     {" → "}
                                     <strong>
-                                        {STATUS_CONFIG[pendingStatus]?.label}
+                                        {t(
+                                            STATUS_CONFIG[pendingStatus]
+                                                .labelKey,
+                                        )}
                                     </strong>
                                 </>
                             )}
@@ -144,10 +152,10 @@ export default function StatusDropdown({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={handleCancel}>
-                            Cancel
+                            {t("common.cancel")}
                         </AlertDialogCancel>
                         <AlertDialogAction onClick={handleConfirm}>
-                            OK
+                            {t("common.confirm")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

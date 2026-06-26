@@ -3,8 +3,10 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { API } from "@/lib/constants/api-endpoints"
 import { getArray } from "@/lib/utils/get-array"
+import type { ParseKeys } from "i18next"
 import { File, FileText, Loader2, Sheet, Trash2, Upload, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useFileUpload } from "../-hooks/use-file-upload"
 import type { RawMaterialRequest } from "../-types"
@@ -72,6 +74,7 @@ function isImage(url: string) {
 }
 
 function FileIcon({ url, name }: { url: string; name: string }) {
+    const { t } = useTranslation()
     const ext = getFileExt(url)
     const icons: Record<
         string,
@@ -124,7 +127,7 @@ function FileIcon({ url, name }: { url: string; name: string }) {
                 </span>
             </a>
             <p className="text-[10px] mt-0.5 text-center truncate w-36">
-                {name || "Unnamed file"}
+                {name || t("rmr.unnamedFile")}
             </p>
         </div>
     )
@@ -151,6 +154,7 @@ function DetailContent({
     request: RawMaterialRequest
     onClose: () => void
 }) {
+    const { t } = useTranslation()
     const { patch, post, remove } = useRequest()
     const { invalidateByExactMatch } = useRevalidate()
     const { uploadFile, isUploading } = useFileUpload()
@@ -299,19 +303,19 @@ function DetailContent({
                 {
                     onSuccess: () => {
                         refetchFiles().catch(() => {
-                            toast.error("Failed to refresh file list")
+                            toast.error(t("rmr.failedRefreshFiles"))
                         })
-                        toast.success("File uploaded successfully")
+                        toast.success(t("rmr.fileUploaded"))
                     },
                     onError: (error) => {
                         console.error("File POST error:", error)
-                        toast.error("Failed to upload file")
+                        toast.error(t("rmr.failedUploadFile"))
                     },
                 },
             )
         } catch (error) {
             console.error("File upload error:", error)
-            toast.error("File upload failed")
+            toast.error(t("rmr.fileUploadFailed"))
         }
     }
 
@@ -331,10 +335,10 @@ function DetailContent({
                 String(requestFileId),
             ),
             {
-                onSuccess: () => toast.success("File deleted successfully"),
+                onSuccess: () => toast.success(t("rmr.fileDeleted")),
                 onError: () => {
                     setLocalFiles((prev) => [...prev, fileToDelete])
-                    toast.error("Failed to remove file")
+                    toast.error(t("rmr.failedRemoveFile"))
                 },
             },
         )
@@ -354,14 +358,17 @@ function DetailContent({
     }
 
     // Header fields are now read-only (GET only, no patch)
-    const headerFields = [
-        { label: "Tolerants (%)", value: request.tolerant },
-        { label: "Total quantity", value: request.total_quantity },
-        { label: "Shipped quantity", value: request.shipped_quantity },
-        { label: "Specification amount", value: request.specification_amount },
-        { label: "Shipped amount", value: request.shipped_amount },
+    const headerFields: { labelKey: ParseKeys; value: React.ReactNode }[] = [
+        { labelKey: "rmr.tolerancePercent", value: request.tolerant },
+        { labelKey: "rmr.totalQuantity", value: request.total_quantity },
+        { labelKey: "rmr.shippedQuantity", value: request.shipped_quantity },
         {
-            label: "Difference (USD) / Present (%)",
+            labelKey: "rmr.specificationAmount",
+            value: request.specification_amount,
+        },
+        { labelKey: "table.shippedAmount", value: request.shipped_amount },
+        {
+            labelKey: "rmr.differenceUsdPresent",
             value: request.difference_usd + "$ / " + calculatePresent() + "%",
         },
     ]
@@ -370,11 +377,11 @@ function DetailContent({
         setItemDetailTarget(null)
         // Refetch items table so shipped_amount updates are reflected
         refetchItems().catch(() => {
-            toast.error("Failed to refresh items")
+            toast.error(t("rmr.failedRefreshItems"))
         })
         // Also invalidate the main list
         invalidateByExactMatch([API.RAW_MATERIAL_ITEMS.INDEX])
-    }, [refetchItems, invalidateByExactMatch])
+    }, [refetchItems, invalidateByExactMatch, t])
 
     return (
         <>
@@ -391,7 +398,7 @@ function DetailContent({
                                 |
                             </span>
                             <span className="text-sm text-muted-foreground">
-                                Requested{" "}
+                                {t("rmr.requested")}{" "}
                                 <span className="font-semibold text-foreground">
                                     {request.quantity ?? 0} t
                                 </span>
@@ -416,11 +423,11 @@ function DetailContent({
                     <div className="flex gap-4 flex-wrap items-end">
                         {headerFields.map((field) => (
                             <div
-                                key={field.label}
+                                key={field.labelKey}
                                 className="flex flex-col gap-1"
                             >
                                 <label className="text-xs text-muted-foreground">
-                                    {field.label}
+                                    {t(field.labelKey)}
                                 </label>
                                 <div className="border rounded px-3 py-2 text-sm w-48 bg-muted/30 text-foreground min-h-[38px]">
                                     {field.value != null ? field.value : "—"}
@@ -432,16 +439,18 @@ function DetailContent({
                     {/* ── File upload ── */}
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Files</span>
+                            <span className="text-sm font-medium">
+                                {t("rmr.files")}
+                            </span>
                             <span className="text-xs text-muted-foreground">
-                                *Please keep your file size below 30 MB
+                                {t("rmr.fileSizeHint")}
                             </span>
                         </div>
                         <div className="flex gap-3 flex-wrap items-center">
                             {isUploading ?
                                 <div className="flex flex-col items-center justify-center gap-1 border-2 border-dashed rounded-lg w-24 h-24 text-xs text-muted-foreground">
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    <span>Uploading...</span>
+                                    <span>{t("rmr.uploading")}</span>
                                 </div>
                             :   <button
                                     type="button"
@@ -451,7 +460,7 @@ function DetailContent({
                                     className="flex flex-col items-center justify-center gap-1 border-2 border-dashed rounded-lg w-24 h-24 text-xs text-muted-foreground hover:bg-muted transition-colors"
                                 >
                                     <Upload className="w-5 h-5" />
-                                    <span>Upload</span>
+                                    <span>{t("rmr.upload")}</span>
                                 </button>
                             }
                             {filesLoading && (
@@ -508,28 +517,28 @@ function DetailContent({
                                 <thead>
                                     <tr className="border-b bg-muted/50">
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                            Raw material name
+                                            {t("table.rawMaterialName")}
                                         </th>
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                            Quantity
+                                            {t("table.quantity")}
                                         </th>
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                            Shipped qty
+                                            {t("table.shippedQty")}
                                         </th>
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                            Price
+                                            {t("table.price")}
                                         </th>
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                            Line total
+                                            {t("table.lineTotal")}
                                         </th>
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                            Shipped amount
+                                            {t("table.shippedAmount")}
                                         </th>
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                            Difference
+                                            {t("table.difference")}
                                         </th>
                                         <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                            Present (%)
+                                            {t("table.present")}
                                         </th>
                                     </tr>
                                 </thead>
@@ -540,7 +549,7 @@ function DetailContent({
                                                 colSpan={8}
                                                 className="text-center py-6 text-muted-foreground text-sm"
                                             >
-                                                No data
+                                                {t("common.noData")}
                                             </td>
                                         </tr>
                                     )}

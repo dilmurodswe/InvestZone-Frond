@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
 import { Plus } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useRequestsQuery } from "../-hooks/use-requests-query"
 import type { RawMaterialRequest } from "../-types"
 import NewRequestModal from "./new-request-modal"
@@ -16,6 +17,7 @@ import StatusDropdown from "./status-dropdown"
 import { useRequestCols } from "./use-request-cols"
 
 export default function Index() {
+    const { t } = useTranslation()
     const newRequestModal = useModal("new-request")
     const { requestList, data, isFetching } = useRequestsQuery()
     const [selectedRequest, setSelectedRequest] = useState<{
@@ -43,27 +45,27 @@ export default function Index() {
         handleStatusClick,
     )
     const roleOptions = [
-        { id: "1", name: "New request" },
-        { id: "2", name: "Factory" },
-        { id: "3", name: "On road" },
-        { id: "4", name: "Accepted" },
-        { id: "5", name: "Station" },
-        { id: "6", name: "In UZB" },
+        { id: "1", name: t("status.newRequest") },
+        { id: "2", name: t("status.factory") },
+        { id: "3", name: t("status.onRoad") },
+        { id: "4", name: t("status.accepted") },
+        { id: "5", name: t("status.station") },
+        { id: "6", name: t("status.inUzb") },
     ]
 
     return (
         <>
-            <Navbar links={[{ label: "Raw materials requests" }]} />
+            <Navbar links={[{ label: t("nav.rawMaterialRequests") }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <FilterSelect
                         filterKey="status"
-                        placeholder="Status"
+                        placeholder={t("table.status")}
                         options={roleOptions}
                     />
                     <Button onClick={() => newRequestModal.openModal()}>
                         <Plus className="w-4 h-4" />
-                        Request
+                        {t("rmr.request")}
                     </Button>
                 </Group>
 
@@ -84,7 +86,7 @@ export default function Index() {
                             className="text-primary"
                         >
                             <Plus className="w-4 h-4" />
-                            New Request
+                            {t("rmr.newRequest")}
                         </Button>
                     </NoData>
                 )}

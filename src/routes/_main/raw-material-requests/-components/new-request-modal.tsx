@@ -15,6 +15,7 @@ import {
     Upload,
 } from "lucide-react"
 import { useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useFileUpload } from "../-hooks/use-file-upload"
 import { useSuppliersSelectQuery } from "../-hooks/use-suppliers-select-query"
@@ -53,6 +54,7 @@ function isImage(url: string) {
 }
 
 function FileIcon({ url, name }: { url: string; name: string }) {
+    const { t } = useTranslation()
     const ext = getFileExt(url)
     const icons: Record<
         string,
@@ -104,13 +106,14 @@ function FileIcon({ url, name }: { url: string; name: string }) {
                 </span>
             </a>
             <p className="text-[10px] mt-0.5 text-center truncate w-36">
-                {name || "Unnamed file"}
+                {name || t("rmr.unnamedFile")}
             </p>
         </div>
     )
 }
 
 function NewRequestForm() {
+    const { t } = useTranslation()
     const { closeModal } = useModal("new-request")
     const { invalidateByPatternMatch } = useRevalidate()
     const { post, isPending } = useRequest()
@@ -158,7 +161,7 @@ function NewRequestForm() {
                 name: file.name,
             })
         } catch {
-            toast.error("File upload failed")
+            toast.error(t("rmr.fileUploadFailed"))
         }
     }
 
@@ -174,14 +177,14 @@ function NewRequestForm() {
                 name: file.name,
             })
         } catch {
-            toast.error("File upload failed")
+            toast.error(t("rmr.fileUploadFailed"))
         }
     }
 
     const onSuccess = () => {
         invalidateByPatternMatch([API.RAW_MATERIAL_ITEMS.INDEX])
         closeModal()
-        toast.success("Request created successfully")
+        toast.success(t("rmr.requestCreated"))
     }
 
     const onSubmit = (e: React.FormEvent) => {
@@ -200,14 +203,16 @@ function NewRequestForm() {
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-4 min-w-[420px]">
-            <CardTitle>New request</CardTitle>
+            <CardTitle>{t("rmr.newRequest")}</CardTitle>
 
             {/* Contract Number - Added at the beginning */}
             <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Contract number</label>
+                <label className="text-sm font-medium">
+                    {t("table.contractNumber")}
+                </label>
                 <input
                     type="text"
-                    placeholder="Enter contract number"
+                    placeholder={t("rmr.enterContractNumber")}
                     className="border rounded px-3 py-2 text-sm"
                     value={contractNumber}
                     onChange={(e) => setContractNumber(e.target.value)}
@@ -217,8 +222,8 @@ function NewRequestForm() {
             {/* Row items */}
             <div className="flex flex-col gap-2">
                 <div className="grid grid-cols-[1fr_80px_auto] gap-2 text-xs text-muted-foreground px-1">
-                    <span>Raw material</span>
-                    <span>Tonn</span>
+                    <span>{t("table.rawMaterial")}</span>
+                    <span>{t("table.ton")}</span>
                     <span />
                 </div>
                 {rows.map((row) => (
@@ -234,7 +239,7 @@ function NewRequestForm() {
                         />
                         <input
                             type="number"
-                            placeholder="Tonn"
+                            placeholder={t("table.ton")}
                             className="border rounded px-3 py-2 text-sm"
                             value={row.ton}
                             onChange={(e) =>
@@ -258,19 +263,21 @@ function NewRequestForm() {
                     className="flex items-center justify-center gap-2 border border-dashed rounded py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
                 >
                     <Plus className="w-4 h-4" />
-                    Add
+                    {t("common.add")}
                 </button>
             </div>
 
             {/* Supplier */}
             <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Supplier</label>
+                <label className="text-sm font-medium">
+                    {t("table.supplier")}
+                </label>
                 <select
                     className="border rounded px-3 py-2 text-sm bg-background"
                     value={supplier}
                     onChange={(e) => setSupplier(e.target.value)}
                 >
-                    <option value="">Select</option>
+                    <option value="">{t("common.select")}</option>
                     {supplierOptions.map((s) => (
                         <option key={s.id} value={s.id}>
                             {s.company_name}
@@ -281,7 +288,7 @@ function NewRequestForm() {
 
             {/* File - bitta */}
             <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">File</label>
+                <label className="text-sm font-medium">{t("rmr.file")}</label>
 
                 {!uploadedFile && !isUploading && (
                     <div
@@ -292,10 +299,10 @@ function NewRequestForm() {
                     >
                         <Upload className="w-6 h-6 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                            File upload
+                            {t("rmr.fileUpload")}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                            Select or drag and drop file
+                            {t("rmr.dragDropHint")}
                         </span>
                     </div>
                 )}
@@ -304,7 +311,7 @@ function NewRequestForm() {
                     <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center gap-2">
                         <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
                         <span className="text-sm text-muted-foreground">
-                            Uploading...
+                            {t("rmr.uploading")}
                         </span>
                     </div>
                 )}
@@ -358,7 +365,10 @@ function NewRequestForm() {
                 />
             </div>
 
-            <FormAction submitName="Send" loading={isPending || isUploading} />
+            <FormAction
+                submitName={t("rmr.send")}
+                loading={isPending || isUploading}
+            />
         </form>
     )
 }

@@ -12,8 +12,10 @@ import { useGet } from "@/hooks/react-query/use-get"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { API } from "@/lib/constants/api-endpoints"
 import { getArray } from "@/lib/utils/get-array"
+import type { ParseKeys } from "i18next"
 import { Loader2, Plus, Trash2, X } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 interface ItemDetailModalProps {
@@ -56,12 +58,12 @@ type ServerItem = {
     wagon: string | null
 }
 
-const STATUSES = [
-    { value: "shipped", label: "Shipped" },
-    { value: "in_uzb", label: "In UZB" },
-    { value: "at_station", label: "At Station" },
-    { value: "customs_cleared", label: "Customs Cleared" },
-    { value: "received", label: "Received" },
+const STATUSES: { value: string; labelKey: ParseKeys }[] = [
+    { value: "shipped", labelKey: "status.shipped" },
+    { value: "in_uzb", labelKey: "status.inUzb" },
+    { value: "at_station", labelKey: "status.atStation" },
+    { value: "customs_cleared", labelKey: "status.customsCleared" },
+    { value: "received", labelKey: "status.received" },
 ]
 
 const getStatusIndex = (status: string) =>
@@ -103,16 +105,16 @@ const serverToRow = (item: ServerItem): ItemRow => ({
 
 const FIELDS: {
     key: keyof Omit<ItemRow, "_id" | "serverId">
-    label: string
+    labelKey: ParseKeys
     isNumber?: boolean
 }[] = [
-    { key: "brutto", label: "Brutto", isNumber: true },
-    { key: "netto", label: "Netto", isNumber: true },
-    // { key: "inner_size", label: "Inner size", isNumber: true },
-    // { key: "outer_size", label: "Outer size", isNumber: true },
-    { key: "plank", label: "Plank" },
-    { key: "reference_number", label: "Reference number" },
-    { key: "wagon", label: "Wagon" },
+    { key: "brutto", labelKey: "table.brutto", isNumber: true },
+    { key: "netto", labelKey: "table.netto", isNumber: true },
+    // { key: "inner_size", labelKey: "table.innerSize", isNumber: true },
+    // { key: "outer_size", labelKey: "table.outerSize", isNumber: true },
+    { key: "plank", labelKey: "table.plank" },
+    { key: "reference_number", labelKey: "table.referenceNumber" },
+    { key: "wagon", labelKey: "table.wagon" },
 ]
 
 const toPayload = (r: ItemRow) => ({
@@ -137,10 +139,12 @@ function StatusDropdown({
     row: ItemRow
     onSelect: (row: ItemRow, val: string) => void
 }) {
+    const { t } = useTranslation()
     const [open, setOpen] = useState(false)
     const currentIndex = getStatusIndex(row.status)
+    const currentStatus = STATUSES.find((s) => s.value === row.status)
     const currentLabel =
-        STATUSES.find((s) => s.value === row.status)?.label ?? "Select"
+        currentStatus ? t(currentStatus.labelKey) : t("common.select")
 
     return (
         <div className="relative">
@@ -193,7 +197,7 @@ function StatusDropdown({
                                     <span
                                         className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? "bg-primary" : "bg-muted-foreground/40"}`}
                                     />
-                                    {s.label}
+                                    {t(s.labelKey)}
                                 </button>
                             )
                         })}
@@ -212,9 +216,11 @@ function NewRowStatusSelect({
     value: string
     onChange: (val: string) => void
 }) {
+    const { t } = useTranslation()
     const [open, setOpen] = useState(false)
+    const currentStatus = STATUSES.find((s) => s.value === value)
     const currentLabel =
-        STATUSES.find((s) => s.value === value)?.label ?? "Select"
+        currentStatus ? t(currentStatus.labelKey) : t("common.select")
 
     return (
         <div className="relative">
@@ -264,7 +270,7 @@ function NewRowStatusSelect({
                                     <span
                                         className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? "bg-primary" : "bg-muted-foreground/40"}`}
                                     />
-                                    {s.label}
+                                    {t(s.labelKey)}
                                 </button>
                             )
                         })}
@@ -281,6 +287,7 @@ export default function ItemDetailModal({
     contractNumber,
     onClose,
 }: ItemDetailModalProps) {
+    const { t } = useTranslation()
     const { post, patch, isPending } = useRequest()
 
     const { data: serverData, isLoading } = useGet<ServerItem[]>(
@@ -359,7 +366,7 @@ export default function ItemDetailModal({
         e.preventDefault()
 
         if (extraRows.length === 0) {
-            toast.success("Saved")
+            toast.success(t("rmr.saved"))
             // onClose triggers refetch in parent (RequestDetailModal)
             onClose()
             return
@@ -375,7 +382,7 @@ export default function ItemDetailModal({
             { row_item: rowItemId, items },
             {
                 onSuccess: () => {
-                    toast.success("Saved successfully")
+                    toast.success(t("rmr.savedSuccessfully"))
                     // onClose triggers refetch in parent (RequestDetailModal)
                     onClose()
                 },
@@ -413,7 +420,7 @@ export default function ItemDetailModal({
                         },
                     }))
                     setPendingStatus(null)
-                    toast.success("Status updated")
+                    toast.success(t("rmr.statusUpdated"))
                 },
             },
         )
@@ -458,14 +465,14 @@ export default function ItemDetailModal({
                                         <thead>
                                             <tr className="border-b">
                                                 <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                                    Status
+                                                    {t("table.status")}
                                                 </th>
                                                 {FIELDS.map((f) => (
                                                     <th
                                                         key={f.key}
                                                         className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground whitespace-nowrap"
                                                     >
-                                                        {f.label}
+                                                        {t(f.labelKey)}
                                                     </th>
                                                 ))}
                                                 <th className="w-8" />
@@ -571,7 +578,7 @@ export default function ItemDetailModal({
                                         className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground border border-dashed rounded-lg px-4 py-2 w-full justify-center hover:bg-muted transition-colors"
                                     >
                                         <Plus className="w-4 h-4" />
-                                        Add row
+                                        {t("rmr.addRow")}
                                     </button>
                                 </>
                             }
@@ -584,14 +591,14 @@ export default function ItemDetailModal({
                                 onClick={onClose}
                                 className="px-4 py-2 text-sm rounded-lg border hover:bg-muted transition-colors"
                             >
-                                Cancel
+                                {t("common.cancel")}
                             </button>
                             <button
                                 type="submit"
                                 disabled={isPending}
                                 className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60"
                             >
-                                {isPending ? "Saving..." : "Save"}
+                                {isPending ? t("rmr.saving") : t("common.save")}
                             </button>
                         </div>
                     </form>
@@ -604,29 +611,32 @@ export default function ItemDetailModal({
             >
                 <AlertDialogContent className="z-[99999]">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Change status?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t("rmr.changeStatus")}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Status will change to{" "}
+                            {t("rmr.statusWillChangeTo")}{" "}
                             <span className="font-semibold">
-                                {
-                                    STATUSES.find(
+                                {(() => {
+                                    const s = STATUSES.find(
                                         (s) =>
                                             s.value ===
                                             pendingStatus?.newStatus,
-                                    )?.label
-                                }
+                                    )
+                                    return s ? t(s.labelKey) : ""
+                                })()}
                             </span>
-                            . This action cannot be undone.
+                            . {t("rmr.actionCannotBeUndone")}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel
                             onClick={() => setPendingStatus(null)}
                         >
-                            Cancel
+                            {t("common.cancel")}
                         </AlertDialogCancel>
                         <AlertDialogAction onClick={confirmStatusChange}>
-                            Confirm
+                            {t("common.confirm")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
