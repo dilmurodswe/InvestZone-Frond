@@ -1,3 +1,4 @@
+import LogoLoader from "@/components/ui/logo-loader"
 import { useGet } from "@/hooks/react-query/use-get"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
@@ -511,7 +512,7 @@ function DetailContent({
                     <div className="overflow-x-auto rounded-md border">
                         {itemsLoading ?
                             <div className="flex justify-center py-8">
-                                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                                <LogoLoader size={40} />
                             </div>
                         :   <table className="w-full text-sm">
                                 <thead>

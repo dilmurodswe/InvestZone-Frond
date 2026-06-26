@@ -14,6 +14,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import i18n from "@/lib/i18n/request"
 import { formatDecimal } from "@/lib/utils/format-number"
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -430,9 +431,16 @@ function NewManufactureForm() {
     const { thicknessOptions } = useThicknessesQuery()
     const { widthOptions } = useWidthsQuery()
 
-    // Fetch all raw materials without thickness/width filters
-    // Only use thickness/width for local frontend filtering
-    const { rawItemDetailOptions } = useRawItemDetailsSelectQuery(undefined)
+    // Filter rolls server-side by thickness/width so results aren't lost to
+    // pagination. Large page_size keeps all matching rolls on one page.
+    // status=received -> only available rolls (used rolls are excluded here).
+    const rawItemParams: Record<string, string> = {
+        page_size: "1000",
+        status: "received",
+    }
+    if (thickness) rawItemParams.thickness = thickness
+    if (width) rawItemParams.width = width
+    const { rawItemDetailOptions } = useRawItemDetailsSelectQuery(rawItemParams)
 
     const { categoryOptions } = useCategoriesSelectQuery()
     const { subCategoryOptions } = useSubCategoriesSelectQuery(
@@ -732,7 +740,9 @@ function NewManufactureForm() {
                                                 {r.reference_number ?? "—"}
                                             </td>
                                             <td className="px-3 py-2">
-                                                {r.status ?? "—"}
+                                                {r.status === "received" ?
+                                                    i18n.t("table.active")
+                                                :   (r.status ?? "—")}
                                             </td>
 
                                             <td className="px-3 py-2">

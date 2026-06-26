@@ -2,6 +2,7 @@ import i18n from "@/lib/i18n/request"
 import { formatDecimal } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { ReadyStrip } from "../-types"
+import { StatusBadge } from "../../raw-materials/-components/status-badge"
 import { ReadyStripPrintButton } from "./ready-strip-print-button"
 
 export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
@@ -57,6 +58,13 @@ export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
             <span className="text-sm font-medium">
                 {formatDecimal(original.quantity)}
             </span>
+        ),
+    },
+    {
+        accessorKey: "status",
+        header: i18n.t("table.status"),
+        cell: ({ row: { original } }) => (
+            <StatusBadge status={original.status} />
         ),
     },
     {

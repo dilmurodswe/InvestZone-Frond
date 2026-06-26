@@ -6,10 +6,10 @@ import { useSearch } from "@tanstack/react-router"
 import type { ReadyStrip } from "../-types"
 
 export const useReadyStripsQuery = () => {
-    const params = useSearch({ strict: false })
+    const params = useSearch({ strict: false }) as Record<string, unknown>
     const res = useGet<PaginatedResponse<ReadyStrip>>(
         API.MANUFACTURES.READY_STRIPS,
-        { params: { page_size: 20, ...params } },
+        { params: { page_size: 20, status: "active", ...params } },
     )
     const readyStripList = getArray<ReadyStrip>(res.data?.results)
     const count = res.data?.count ?? 0

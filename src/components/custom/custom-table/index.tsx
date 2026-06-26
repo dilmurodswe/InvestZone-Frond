@@ -1,4 +1,4 @@
-import Spinner from "@/components/ui/spinner"
+import LogoLoader from "@/components/ui/logo-loader"
 import {
     Table,
     TableBody,
@@ -174,8 +174,8 @@ export function CustomTable<TData, TValue>({
                 {header}
 
                 {isLoading && (
-                    <div className="absolute top-0 w-full h-full grid place-items-center bg-black/50 z-20">
-                        <Spinner />
+                    <div className="absolute top-0 w-full h-full grid place-items-center bg-background/60 backdrop-blur-[2px] z-20">
+                        <LogoLoader size={44} />
                     </div>
                 )}
 

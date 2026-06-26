@@ -7,12 +7,14 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
     at_station: "status.atStation",
     customs_cleared: "status.customsCleared",
     received: "table.active",
+    active: "table.active",
     used: "status.used",
 }
 
 const STATUS_CLASSES: Record<string, string> = {
     used: "bg-amber-100 text-amber-700",
     received: "bg-green-100 text-green-700",
+    active: "bg-green-100 text-green-700",
 }
 
 export function StatusBadge({ status }: { status: string | null }) {

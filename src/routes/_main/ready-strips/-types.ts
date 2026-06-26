@@ -13,5 +13,6 @@ export type ReadyStrip = {
     strip_cut_width_mm: number
     quantity: number
     total_wes: number
+    status: string | null
     created_at: string
 }

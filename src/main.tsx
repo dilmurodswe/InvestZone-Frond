@@ -3,7 +3,8 @@ import { createRouter, RouterProvider } from "@tanstack/react-router"
 import { Suspense } from "react"
 import { createRoot } from "react-dom/client"
 import { I18nextProvider } from "react-i18next"
-import Loader from "./components/ui/loader"
+import GlobalLoader from "./components/global-loader"
+import LogoLoader from "./components/ui/logo-loader"
 import { Toaster } from "./components/ui/sonner"
 import { TooltipProvider } from "./components/ui/tooltip"
 import "./index.css"
@@ -52,11 +53,12 @@ if (!rootElement.innerHTML) {
         // <StrictMode>
         <I18nextProvider i18n={i18n}>
             <LanguageProvider>
-                <Suspense fallback={<Loader />}>
+                <Suspense fallback={<LogoLoader fullscreen />}>
                     <ConfirmProvider>
                         <TooltipProvider>
                             <QueryClientProvider client={queryClient}>
                                 <RouterProvider router={router} />
+                                <GlobalLoader />
                                 <Toaster />
                             </QueryClientProvider>
                         </TooltipProvider>

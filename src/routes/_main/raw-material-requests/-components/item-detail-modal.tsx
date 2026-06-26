@@ -8,12 +8,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import LogoLoader from "@/components/ui/logo-loader"
 import { useGet } from "@/hooks/react-query/use-get"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { API } from "@/lib/constants/api-endpoints"
 import { getArray } from "@/lib/utils/get-array"
 import type { ParseKeys } from "i18next"
-import { Loader2, Plus, Trash2, X } from "lucide-react"
+import { Plus, Trash2, X } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -458,7 +459,7 @@ export default function ItemDetailModal({
                         <div className="overflow-auto flex-1 px-6 pt-4 min-h-[60vh]">
                             {isLoading ?
                                 <div className="flex justify-center py-10">
-                                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                                    <LogoLoader size={40} />
                                 </div>
                             :   <>
                                     <table className="w-full text-sm border-collapse">
