@@ -12,6 +12,7 @@ import type { Category, Product } from "../../../-types"
 // ─── Actions dropdown ─────────────────────────────────────────────────────────
 // eslint-disable-next-line react-refresh/only-export-components
 function ProductActions({ product }: { product: Product }) {
+    const { t } = useTranslation()
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
     const btnRef = useRef<HTMLButtonElement>(null)
@@ -73,7 +74,7 @@ function ProductActions({ product }: { product: Product }) {
                             setOpen(false)
                         }}
                     >
-                        <Pencil className="w-4 h-4" /> Edit
+                        <Pencil className="w-4 h-4" /> {t("common.edit")}
                     </button>
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
@@ -85,7 +86,7 @@ function ProductActions({ product }: { product: Product }) {
                             setOpen(false)
                         }}
                     >
-                        <Trash2 className="w-4 h-4" /> Delete
+                        <Trash2 className="w-4 h-4" /> {t("common.delete")}
                     </button>
                 </div>
             )}

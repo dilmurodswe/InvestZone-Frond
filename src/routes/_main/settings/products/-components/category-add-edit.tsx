@@ -8,6 +8,7 @@ import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useCategoryStore } from "../-hooks/use-category-store"
 import type { Category } from "../-types"
@@ -30,6 +31,7 @@ const typeOptions = [
 ]
 
 function CategoryAddEdit() {
+    const { t } = useTranslation()
     const { closeModal } = useModal("add-category")
     const { invalidateByExactMatch } = useRevalidate()
     const { category } = useCategoryStore()
@@ -82,7 +84,7 @@ function CategoryAddEdit() {
                 placeholder="Select type"
             />
             <FormAction
-                submitName={category ? "Save" : "Add"}
+                submitName={category ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>

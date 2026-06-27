@@ -2,6 +2,7 @@ import Modal from "@/components/custom/modal"
 import { CardTitle } from "@/components/ui/card"
 import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
+import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
 import type { OrderDetail, OrderItemDetail, RawItemDetail } from "../-types"
 import OrderStatusBadge from "./order-status-badge"
@@ -20,6 +21,7 @@ export default function OrderDetailModal() {
 }
 
 function OrderDetail() {
+    const { t } = useTranslation()
     const { order } = useOrderStore()
 
     const { data, isLoading } = useGet<OrderDetail>(
@@ -39,7 +41,9 @@ function OrderDetail() {
     return (
         <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between">
-                <CardTitle>Order #{data.id}</CardTitle>
+                <CardTitle>
+                    {t("entity.order")} #{data.id}
+                </CardTitle>
                 <OrderStatusBadge status={data.status} />
             </div>
 

@@ -741,7 +741,7 @@ function NewManufactureForm() {
                                             </td>
                                             <td className="px-3 py-2">
                                                 {r.status === "received" ?
-                                                    i18n.t("table.active")
+                                                    i18n.t("status.inShop")
                                                 :   (r.status ?? "—")}
                                             </td>
 

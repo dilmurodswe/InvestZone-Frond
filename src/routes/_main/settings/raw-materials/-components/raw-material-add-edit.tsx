@@ -32,6 +32,7 @@ import {
     useForm,
     type UseFormReturn,
 } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useRawMaterialStore } from "../-hooks/use-raw-material-store"
 import type { RawMaterial } from "../-types"
@@ -272,6 +273,7 @@ function ComboboxExtraField({
 
 // ─── Main form ────────────────────────────────────────────────────────────────
 function RawMaterialAddEdit() {
+    const { t } = useTranslation()
     const { closeModal } = useModal("add-raw-material")
     const { invalidateByExactMatch } = useRevalidate()
     const { rawMaterial } = useRawMaterialStore()
@@ -450,7 +452,7 @@ function RawMaterialAddEdit() {
             </div>
 
             <FormAction
-                submitName={rawMaterial ? "Save" : "Add"}
+                submitName={rawMaterial ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>

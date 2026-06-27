@@ -5,6 +5,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useStatusStore } from "../-hooks/use-status-store"
 
@@ -21,6 +22,7 @@ export default function StatusDeleteModal({ projectId }: Props) {
 }
 
 function StatusDelete({ projectId }: Props) {
+    const { t } = useTranslation()
     const { closeModal } = useModal("delete-status")
     const { invalidateByExactMatch } = useRevalidate()
     const { status } = useStatusStore()
@@ -56,7 +58,7 @@ function StatusDelete({ projectId }: Props) {
                 <span className="font-semibold">"{status?.name}"</span>? All
                 tasks inside will be affected.
             </CardDescription>
-            <FormAction submitName="Delete" loading={isPending} />
+            <FormAction submitName={t("common.delete")} loading={isPending} />
         </form>
     )
 }

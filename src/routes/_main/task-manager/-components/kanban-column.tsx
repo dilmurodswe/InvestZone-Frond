@@ -32,6 +32,7 @@ import {
     User,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useStatusStore } from "../-hooks/use-status-store"
 import { useTaskStore } from "../-hooks/use-task-store"
 import type { InvitedUser, KanbanStatus, Task } from "../-types"
@@ -263,6 +264,7 @@ function KanbanColumn({
     members,
     activeTaskId,
 }: ColumnProps) {
+    const { t } = useTranslation()
     const { setTask, setSelectedStatusId } = useTaskStore()
     const { setStatus } = useStatusStore()
     const taskModal = useModal("add-task")
@@ -340,7 +342,8 @@ function KanbanColumn({
                                         setMenuOpen(false)
                                     }}
                                 >
-                                    <Pencil className="w-4 h-4" /> Edit
+                                    <Pencil className="w-4 h-4" />{" "}
+                                    {t("common.edit")}
                                 </button>
                                 <button
                                     style={{
@@ -355,7 +358,8 @@ function KanbanColumn({
                                         setMenuOpen(false)
                                     }}
                                 >
-                                    <Trash2 className="w-4 h-4" /> Delete
+                                    <Trash2 className="w-4 h-4" />{" "}
+                                    {t("common.delete")}
                                 </button>
                             </div>
                         )}

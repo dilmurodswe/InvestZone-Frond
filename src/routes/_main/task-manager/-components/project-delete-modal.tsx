@@ -5,6 +5,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useProjectStore } from "../-hooks/use-project-store"
 
@@ -17,6 +18,7 @@ export default function ProjectDeleteModal() {
 }
 
 function ProjectDelete() {
+    const { t } = useTranslation()
     const { closeModal } = useModal("delete-project")
     const { invalidateByExactMatch } = useRevalidate()
     const { project } = useProjectStore()
@@ -50,7 +52,7 @@ function ProjectDelete() {
                 <span className="font-semibold">{project?.name}</span>? This
                 action cannot be undone.
             </CardDescription>
-            <FormAction submitName="Delete" loading={isPending} />
+            <FormAction submitName={t("common.delete")} loading={isPending} />
         </form>
     )
 }

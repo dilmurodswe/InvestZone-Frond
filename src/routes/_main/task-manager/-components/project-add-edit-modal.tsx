@@ -8,6 +8,7 @@ import { API } from "@/lib/constants/api-endpoints"
 import { ImagePlus, Loader2, X } from "lucide-react"
 import { useRef, useState } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useAdminUsersQuery } from "../-hooks/use-admin-users-query"
 import { useFileUpload } from "../-hooks/use-file-upload"
@@ -24,6 +25,7 @@ export default function ProjectAddEditModal() {
 }
 
 function ProjectAddEdit() {
+    const { t } = useTranslation()
     const { closeModal } = useModal("add-project")
     const { invalidateByExactMatch } = useRevalidate()
     const { project } = useProjectStore()
@@ -205,7 +207,7 @@ function ProjectAddEdit() {
             />
 
             <FormAction
-                submitName={project ? "Save" : "Create"}
+                submitName={project ? t("common.save") : t("common.create")}
                 loading={isPending || isUploading}
             />
         </form>

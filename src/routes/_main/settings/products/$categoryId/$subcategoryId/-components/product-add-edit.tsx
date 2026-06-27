@@ -33,6 +33,7 @@ import {
     useForm,
     type UseFormReturn,
 } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useProductStore } from "../-hooks/use-product-store"
 import type { Category, Product } from "../../../-types"
@@ -276,6 +277,7 @@ function ComboboxExtraField({
 
 // ─── Main Form ─────────────────────────────────────────────────────────────────
 function ProductAddEdit() {
+    const { t } = useTranslation()
     const { closeModal } = useModal("add-product")
     const { invalidateByExactMatch } = useRevalidate()
     const { product } = useProductStore()
@@ -488,7 +490,7 @@ function ProductAddEdit() {
             </div>
 
             <FormAction
-                submitName={product ? "Save" : "Add"}
+                submitName={product ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>

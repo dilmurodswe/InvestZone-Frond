@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useTaskStore } from "../-hooks/use-task-store"
 import type { InvitedUser, KanbanStatus, TaskForm } from "../-types"
@@ -48,6 +49,7 @@ const PRIORITY_OPTIONS = [
 ] as const
 
 function TaskAddEdit({ projectId, statuses, members }: Props) {
+    const { t } = useTranslation()
     const { closeModal } = useModal("add-task")
     const { invalidateByExactMatch } = useRevalidate()
     const { task, selectedStatusId } = useTaskStore()
@@ -323,7 +325,7 @@ function TaskAddEdit({ projectId, statuses, members }: Props) {
             </div>
 
             <FormAction
-                submitName={task ? "Save" : "Create"}
+                submitName={task ? t("common.save") : t("common.create")}
                 loading={isPending}
             />
         </form>

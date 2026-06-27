@@ -2,6 +2,7 @@ import { useModal } from "@/hooks/use-modal"
 import { format } from "date-fns"
 import { Clock, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useProjectStore } from "../-hooks/use-project-store"
 import type { Project } from "../-types"
 import ProjectDetailView from "./project-detail-view"
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function ProjectCard({ project }: Props) {
+    const { t } = useTranslation()
     const [menuOpen, setMenuOpen] = useState(false)
     const [detailOpen, setDetailOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
@@ -125,7 +127,7 @@ export default function ProjectCard({ project }: Props) {
                                     editModal.openModal()
                                 }}
                                 className="w-8 h-8 rounded-lg bg-white/15 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
-                                title="Edit"
+                                title={t("common.edit")}
                             >
                                 <Pencil className="w-4 h-4" />
                             </button>
@@ -137,7 +139,7 @@ export default function ProjectCard({ project }: Props) {
                                     deleteModal.openModal()
                                 }}
                                 className="w-8 h-8 rounded-lg bg-red-500/30 hover:bg-red-500/60 flex items-center justify-center text-white transition-colors"
-                                title="Delete"
+                                title={t("common.delete")}
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>

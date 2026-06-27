@@ -11,6 +11,7 @@ import { API } from "@/lib/constants/api-endpoints"
 import { formatDecimal } from "@/lib/utils/format-number"
 import { PlusIcon, Trash2 } from "lucide-react"
 import { useFieldArray, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useClientsQuery } from "../-hooks/use-clients-query"
 import { useCurrenciesQuery } from "../-hooks/use-currencies-query"
@@ -33,6 +34,7 @@ export default function OrderAddEditModal() {
 }
 
 function OrderAddEdit() {
+    const { t } = useTranslation()
     const { closeModal } = useModal("add-order")
     const { invalidateByExactMatch } = useRevalidate()
     const { order } = useOrderStore()
@@ -133,7 +135,11 @@ function OrderAddEdit() {
             onSubmit={onSubmit}
             className="flex flex-col gap-4 max-h-[80vh] overflow-y-auto pr-1"
         >
-            <CardTitle>{order ? "Edit Order" : "Add Order"}</CardTitle>
+            <CardTitle>
+                {order ?
+                    t("common.editEntity", { entity: t("entity.order") })
+                :   t("common.addEntity", { entity: t("entity.order") })}
+            </CardTitle>
 
             <div className="grid grid-cols-2 gap-4">
                 <SelectField
@@ -242,7 +248,7 @@ function OrderAddEdit() {
             </div>
 
             <FormAction
-                submitName={order ? "Save" : "Add"}
+                submitName={order ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>

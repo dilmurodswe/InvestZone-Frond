@@ -15,7 +15,7 @@ export default function Index() {
 
     const STATUS_OPTIONS = [
         { id: "", name: i18n.t("common.all") },
-        { id: "active", name: i18n.t("table.active") },
+        { id: "active", name: i18n.t("status.inShop") },
         { id: "used", name: i18n.t("status.used") },
     ]
 

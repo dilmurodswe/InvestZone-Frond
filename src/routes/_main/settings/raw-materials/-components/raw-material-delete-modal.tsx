@@ -5,6 +5,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useRawMaterialStore } from "../-hooks/use-raw-material-store"
 
@@ -17,6 +18,7 @@ export default function RawMaterialDeleteModal() {
 }
 
 function RawMaterialDelete() {
+    const { t } = useTranslation()
     const { closeModal } = useModal("delete-raw-material")
     const { invalidateByExactMatch } = useRevalidate()
     const { rawMaterial } = useRawMaterialStore()
@@ -50,7 +52,7 @@ function RawMaterialDelete() {
                 <span className="font-semibold">{rawMaterial?.name}</span>? This
                 action cannot be undone.
             </CardDescription>
-            <FormAction submitName="Delete" loading={isPending} />
+            <FormAction submitName={t("common.delete")} loading={isPending} />
         </form>
     )
 }

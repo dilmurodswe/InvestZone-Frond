@@ -26,6 +26,7 @@ import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useCurrenciesQuery } from "../-hooks/use-currencies-query"
 import { usePaymentTypesQuery } from "../-hooks/use-payment-types-query"
@@ -49,6 +50,7 @@ export default function ExpenseAddEditModal({ expense }: Props) {
 }
 
 function ExpenseFormInner({ expense }: Props) {
+    const { t } = useTranslation()
     const { closeModal } = useModal("add-expense")
     const { invalidateByPatternMatch } = useRevalidate()
     const { post, patch, isPending } = useRequest()
@@ -116,7 +118,11 @@ function ExpenseFormInner({ expense }: Props) {
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <CardTitle>{expense ? "Edit Expense" : "Add Expense"}</CardTitle>
+            <CardTitle>
+                {expense ?
+                    t("common.editEntity", { entity: t("entity.expense") })
+                :   t("common.addEntity", { entity: t("entity.expense") })}
+            </CardTitle>
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
@@ -277,7 +283,7 @@ function ExpenseFormInner({ expense }: Props) {
             </div>
 
             <FormAction
-                submitName={expense ? "Save" : "Add"}
+                submitName={expense ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
 import { PlusIcon } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useExpensesQuery } from "../-hooks/use-expenses-query"
 import type { Expense } from "../-types"
 import ExpenseAddEditModal from "./expense-add-edit-modal"
@@ -19,6 +20,7 @@ export default function ExpensePage() {
     const [selected, setSelected] = useState<Expense | null>(null)
     const addModal = useModal("add-expense")
     const deleteModal = useModal("delete-expense")
+    const { t } = useTranslation()
 
     const cols = getExpenseCols(
         (expense) => {
@@ -43,7 +45,7 @@ export default function ExpensePage() {
 
     return (
         <>
-            <Navbar links={[{ label: "Expense" }]} />
+            <Navbar links={[{ label: t("nav.expense") }]} />
             <Layout>
                 <Group className="flex justify-between mb-4">
                     <div className="flex gap-x-3">
@@ -65,7 +67,7 @@ export default function ExpensePage() {
                         }}
                     >
                         <PlusIcon />
-                        Add Expense
+                        {t("common.addEntity", { entity: t("entity.expense") })}
                     </Button>
                 </Group>
 
@@ -89,7 +91,9 @@ export default function ExpensePage() {
                             className="text-primary"
                         >
                             <PlusIcon />
-                            Add Expense
+                            {t("common.addEntity", {
+                                entity: t("entity.expense"),
+                            })}
                         </Button>
                     </NoData>
                 )}

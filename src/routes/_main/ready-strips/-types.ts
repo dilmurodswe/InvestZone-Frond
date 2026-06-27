@@ -1,6 +1,9 @@
+import type { ManufactureStatus } from "../manufactures/-types"
+
 export type ReadyStrip = {
     id: number
     manufacture_id: number
+    manufacture_status: ManufactureStatus | null
     product_name: string
     roll_id: number | null
     roll_plank: string | null

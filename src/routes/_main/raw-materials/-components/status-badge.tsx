@@ -1,13 +1,13 @@
 import i18n from "@/lib/i18n/request"
 
-// i18n keys per status. On this page "received" is shown as "Active".
+// i18n keys per status. "received"/"active" are shown as "In Shop" (Sexda).
 const STATUS_LABEL_KEYS: Record<string, string> = {
     shipped: "status.shipped",
     in_uzb: "status.inUzb",
     at_station: "status.atStation",
     customs_cleared: "status.customsCleared",
-    received: "table.active",
-    active: "table.active",
+    received: "status.inShop",
+    active: "status.inShop",
     used: "status.used",
 }
 

@@ -24,6 +24,7 @@ import {
     X,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import type { InvitedUser, KanbanStatus, Subtask, Task } from "../-types"
 
@@ -237,6 +238,7 @@ function DeleteConfirm({
     onCancel: () => void
     isPending: boolean
 }) {
+    const { t } = useTranslation()
     return (
         <div className="absolute inset-0 z-20 bg-black/40 backdrop-blur-sm flex items-center justify-center rounded-2xl">
             <div className="bg-white rounded-2xl shadow-2xl p-6 mx-4 max-w-xs w-full">
@@ -252,7 +254,7 @@ function DeleteConfirm({
                         onClick={onCancel}
                         className="flex-1 py-2 rounded-lg border text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                     >
-                        Cancel
+                        {t("common.cancel")}
                     </button>
                     <button
                         type="button"
@@ -260,7 +262,7 @@ function DeleteConfirm({
                         disabled={isPending}
                         className="flex-1 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors disabled:opacity-50"
                     >
-                        Delete
+                        {t("common.delete")}
                     </button>
                 </div>
             </div>

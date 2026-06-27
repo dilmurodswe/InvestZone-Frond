@@ -18,6 +18,7 @@ function AdminActions({ admin }: { admin: Admin }) {
     const { setAdmin } = useAdminStore()
     const addModal = useModal("add-admin")
     const deleteModal = useModal("delete-admin")
+    const { t } = useTranslation()
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -68,7 +69,7 @@ function AdminActions({ admin }: { admin: Admin }) {
                             setOpen(false)
                         }}
                     >
-                        <Pencil className="w-4 h-4" /> Edit
+                        <Pencil className="w-4 h-4" /> {t("common.edit")}
                     </button>
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
@@ -79,7 +80,7 @@ function AdminActions({ admin }: { admin: Admin }) {
                             setOpen(false)
                         }}
                     >
-                        <Trash2 className="w-4 h-4" /> Delete
+                        <Trash2 className="w-4 h-4" /> {t("common.delete")}
                     </button>
                 </div>
             )}

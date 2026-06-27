@@ -16,6 +16,7 @@ function ClientActions({ client }: { client: Client }) {
     const { setClient } = useClientStore()
     const editModal = useModal()
     const deleteModal = useModal("delete-client")
+    const { t } = useTranslation()
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -70,7 +71,7 @@ function ClientActions({ client }: { client: Client }) {
                             setOpen(false)
                         }}
                     >
-                        <Pencil className="w-4 h-4" /> Edit
+                        <Pencil className="w-4 h-4" /> {t("common.edit")}
                     </button>
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
@@ -82,7 +83,7 @@ function ClientActions({ client }: { client: Client }) {
                             setOpen(false)
                         }}
                     >
-                        <Trash2 className="w-4 h-4" /> Delete
+                        <Trash2 className="w-4 h-4" /> {t("common.delete")}
                     </button>
                 </div>
             )}

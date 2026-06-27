@@ -6,6 +6,7 @@ import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useStatusStore } from "../-hooks/use-status-store"
 
@@ -22,6 +23,7 @@ export default function StatusAddEditModal({ projectId }: Props) {
 }
 
 function StatusAddEdit({ projectId }: Props) {
+    const { t } = useTranslation()
     const { closeModal } = useModal("add-status")
     const { invalidateByExactMatch } = useRevalidate()
     const { status } = useStatusStore()
@@ -76,7 +78,7 @@ function StatusAddEdit({ projectId }: Props) {
                 )}
             </div>
             <FormAction
-                submitName={status ? "Save" : "Add"}
+                submitName={status ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>

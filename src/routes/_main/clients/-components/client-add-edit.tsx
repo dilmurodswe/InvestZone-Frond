@@ -10,6 +10,7 @@ import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useClientStore } from "../-hooks/use-client-store"
 import type { Client, CustomerType } from "../-types"
@@ -40,6 +41,7 @@ function Content() {
     const { invalidateByExactMatch } = useRevalidate()
     const { client } = useClientStore()
     const { post, patch, isPending } = useRequest()
+    const { t } = useTranslation()
 
     const form = useForm<Client>({
         defaultValues: {
@@ -92,7 +94,9 @@ function Content() {
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-6 p-6">
             <CardTitle>
-                {client ? `Edit / ${client.company_name}` : "Add Client"}
+                {client ?
+                    t("common.editEntity", { entity: t("entity.client") })
+                :   t("common.addEntity", { entity: t("entity.client") })}
             </CardTitle>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -219,7 +223,7 @@ function Content() {
             />
 
             <FormAction
-                submitName={client ? "Save" : "Add"}
+                submitName={client ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>

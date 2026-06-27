@@ -8,6 +8,7 @@ import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { useParams } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useSubCategoryStore } from "../-hooks/use-subcategory-store"
 import type { SubCategory } from "../../-types"
@@ -23,6 +24,7 @@ export default function SubCategoryAddEditModal() {
 type Form = Omit<SubCategory, "id">
 
 function SubCategoryAddEdit() {
+    const { t } = useTranslation()
     const { closeModal } = useModal("add-subcategory")
     const { invalidateByExactMatch } = useRevalidate()
     const { subCategory } = useSubCategoryStore()
@@ -76,7 +78,7 @@ function SubCategoryAddEdit() {
                 label="Subcategory name"
             />
             <FormAction
-                submitName={subCategory ? "Save" : "Add"}
+                submitName={subCategory ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>

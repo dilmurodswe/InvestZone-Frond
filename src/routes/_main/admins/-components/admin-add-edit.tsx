@@ -10,16 +10,14 @@ import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useAdminStore } from "../-hooks/use-admin-store"
 import type { Admin } from "../-types"
 
 export default function AdminAddEditModal() {
     return (
-        <Modal
-            modalKey="add-admin"
-            title={null}
-        >
+        <Modal modalKey="add-admin" title={null}>
             <AdminAddEdit />
         </Modal>
     )
@@ -46,6 +44,7 @@ function AdminAddEdit() {
     const { invalidateByExactMatch } = useRevalidate()
     const { admin } = useAdminStore()
     const { post, patch, isPending } = useRequest()
+    const { t } = useTranslation()
     const form = useForm<Form>({
         defaultValues: {
             first_name: "",
@@ -58,7 +57,7 @@ function AdminAddEdit() {
         values:
             admin ?
                 { ...admin, password: "", confirm_password: "" }
-                : undefined,
+            :   undefined,
     })
     const onSuccess = () => {
         invalidateByExactMatch([API.ADMIN.USERS.INDEX])
@@ -97,7 +96,13 @@ function AdminAddEdit() {
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            {<CardTitle>{admin ? "Edit" : "Add"}</CardTitle>}
+            {
+                <CardTitle>
+                    {admin ?
+                        t("common.editEntity", { entity: t("entity.admin") })
+                    :   t("common.addEntity", { entity: t("entity.admin") })}
+                </CardTitle>
+            }
             <UncontrolledInput
                 methods={form}
                 name="first_name"
@@ -118,13 +123,19 @@ function AdminAddEdit() {
                 <input
                     type="number"
                     {...form.register("employee_code", {
-                        validate: (v) => !v || String(v).length === 6 || "Employee code must be 6 digits",
-                        setValueAs: (v) => v === "" ? null : Number(v),
+                        validate: (v) =>
+                            !v ||
+                            String(v).length === 6 ||
+                            "Employee code must be 6 digits",
+                        setValueAs: (v) => (v === "" ? null : Number(v)),
                     })}
                     onInput={(e) => {
                         // 6 raqamdan ko'p kiritilmasin
                         if (e.currentTarget.value.length > 6) {
-                            e.currentTarget.value = e.currentTarget.value.slice(0, 6)
+                            e.currentTarget.value = e.currentTarget.value.slice(
+                                0,
+                                6,
+                            )
                         }
                     }}
                     className="border rounded px-3 py-2 text-sm"
@@ -158,7 +169,7 @@ function AdminAddEdit() {
                 optional={!!admin}
             />
             <FormAction
-                submitName={admin ? "Save" : "Add"}
+                submitName={admin ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>

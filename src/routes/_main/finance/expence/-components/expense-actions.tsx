@@ -1,6 +1,7 @@
 import { useModal } from "@/hooks/use-modal"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { Expense } from "../-types"
 
 interface ExpenseActionsProps {
@@ -14,6 +15,7 @@ export function ExpenseActions({
     onEdit,
     onDelete,
 }: ExpenseActionsProps) {
+    const { t } = useTranslation()
     const [open, setOpen] = useState(false)
     const [pos, setPos] = useState({ top: 0, left: 0 })
     const btnRef = useRef<HTMLButtonElement>(null)
@@ -69,7 +71,7 @@ export function ExpenseActions({
                             setOpen(false)
                         }}
                     >
-                        <Pencil className="w-4 h-4" /> Edit
+                        <Pencil className="w-4 h-4" /> {t("common.edit")}
                     </button>
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
@@ -80,7 +82,7 @@ export function ExpenseActions({
                             setOpen(false)
                         }}
                     >
-                        <Trash2 className="w-4 h-4" /> Delete
+                        <Trash2 className="w-4 h-4" /> {t("common.delete")}
                     </button>
                 </div>
             )}

@@ -8,6 +8,7 @@ import Group from "@/components/semantic/group"
 import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
 import { PlusIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
 import { useOrdersQuery } from "../-hooks/use-orders-query"
 import { getOrderCols } from "./get-order-cols"
@@ -20,6 +21,7 @@ export default function OrdersPage() {
     const { setOrder } = useOrderStore()
     const addModal = useModal("add-order")
     const cols = getOrderCols()
+    const { t } = useTranslation()
     const roleOptions = [
         { id: "new", name: "New" },
         { id: "in_processing", name: "In Processing" },
@@ -27,7 +29,7 @@ export default function OrdersPage() {
     ]
     return (
         <>
-            <Navbar links={[{ label: "Orders" }]} />
+            <Navbar links={[{ label: t("nav.orders") }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <div className="flex flex-wrap gap-x-2 gap-y-4">
@@ -45,7 +47,7 @@ export default function OrdersPage() {
                         }}
                     >
                         <PlusIcon />
-                        Add Order
+                        {t("common.addEntity", { entity: t("entity.order") })}
                     </Button>
                 </Group>
 
@@ -68,7 +70,9 @@ export default function OrdersPage() {
                             className="text-primary"
                         >
                             <PlusIcon />
-                            Add Order
+                            {t("common.addEntity", {
+                                entity: t("entity.order"),
+                            })}
                         </Button>
                     </NoData>
                 )}

@@ -8,15 +8,17 @@ import Group from "@/components/semantic/group"
 import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
 import { PlusIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useAdminStore } from "../-hooks/use-admin-store"
 import { useAdminsQuery } from "../-hooks/use-admins-query"
 import AdminAddEditModal from "./admin-add-edit"
-import { useAdminCols } from "./use-admin-cols"
 import AdminDeleteModal from "./admin-delete-modal"
+import { useAdminCols } from "./use-admin-cols"
 
 export default function Index() {
     const { adminList, data, isFetching } = useAdminsQuery()
     const { setAdmin } = useAdminStore()
+    const { t } = useTranslation()
 
     const addModal = useModal("add-admin")
     // const deleteModal = useModal("delete-admin")
@@ -33,14 +35,16 @@ export default function Index() {
 
     return (
         <>
-            <Navbar links={[{ label: "Admins" }]} />
+            <Navbar links={[{ label: t("nav.admins") }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <div className="flex flex-wrap gap-x-2 gap-y-4">
                         <FilterInput />
-                        <FilterSelect filterKey="role"
-                            placeholder="Role"
-                            options={roleOptions} />
+                        <FilterSelect
+                            filterKey="role"
+                            placeholder={t("table.role")}
+                            options={roleOptions}
+                        />
                     </div>
                     <Button
                         onClick={() => {
@@ -49,7 +53,7 @@ export default function Index() {
                         }}
                     >
                         <PlusIcon />
-                        Add Admin
+                        {t("common.addEntity", { entity: t("entity.admin") })}
                     </Button>
                 </Group>
 
@@ -72,7 +76,9 @@ export default function Index() {
                             className="text-primary"
                         >
                             <PlusIcon />
-                            Add Admin
+                            {t("common.addEntity", {
+                                entity: t("entity.admin"),
+                            })}
                         </Button>
                     </NoData>
                 )}

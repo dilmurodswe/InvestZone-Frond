@@ -2,6 +2,7 @@ import i18n from "@/lib/i18n/request"
 import { formatDecimal } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { ReadyStrip } from "../-types"
+import ManufactureStatusBadge from "../../manufactures/-components/status-badge"
 import { StatusBadge } from "../../raw-materials/-components/status-badge"
 import { ReadyStripPrintButton } from "./ready-strip-print-button"
 
@@ -52,20 +53,19 @@ export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
         ),
     },
     {
-        accessorKey: "quantity",
-        header: i18n.t("table.quantity"),
-        cell: ({ row: { original } }) => (
-            <span className="text-sm font-medium">
-                {formatDecimal(original.quantity)}
-            </span>
-        ),
-    },
-    {
         accessorKey: "status",
-        header: i18n.t("table.status"),
+        header: i18n.t("table.usage"),
         cell: ({ row: { original } }) => (
             <StatusBadge status={original.status} />
         ),
+    },
+    {
+        accessorKey: "manufacture_status",
+        header: i18n.t("table.manufactureStatus"),
+        cell: ({ row: { original } }) =>
+            original.manufacture_status ?
+                <ManufactureStatusBadge status={original.manufacture_status} />
+            :   <span className="text-sm">—</span>,
     },
     {
         accessorKey: "created_at",

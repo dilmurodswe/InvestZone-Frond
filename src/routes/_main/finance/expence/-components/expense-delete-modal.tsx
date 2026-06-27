@@ -5,6 +5,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import type { Expense } from "../-types"
 
@@ -21,6 +22,7 @@ export default function ExpenseDeleteModal({ expense }: Props) {
 }
 
 function ExpenseDelete({ expense }: Props) {
+    const { t } = useTranslation()
     const { closeModal } = useModal("delete-expense")
     const { invalidateByPatternMatch } = useRevalidate()
     const { remove, isPending } = useRequest()
@@ -47,13 +49,11 @@ function ExpenseDelete({ expense }: Props) {
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <CardTitle>Delete Expense</CardTitle>
-            <CardDescription>
-                Are you sure you want to delete{" "}
-                <span className="font-semibold">"{expense?.name}"</span>? This
-                action cannot be undone.
-            </CardDescription>
-            <FormAction submitName="Delete" loading={isPending} />
+            <CardTitle>
+                {t("common.deleteEntity", { entity: t("entity.expense") })}
+            </CardTitle>
+            <CardDescription>{t("common.deleteConfirm")}</CardDescription>
+            <FormAction submitName={t("common.delete")} loading={isPending} />
         </form>
     )
 }

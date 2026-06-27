@@ -8,22 +8,24 @@ import Group from "@/components/semantic/group"
 import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
 import { PlusIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useSupplierStore } from "../-hooks/use-supplier-store"
-import SupplierAddEditModal from "./supplier-add-edit"
-import { useSupplierCols } from "./use-supplier-cols"
 import { useSuppliersQuery } from "../-hooks/use-suppliers-query"
+import SupplierAddEditModal from "./supplier-add-edit"
 import SupplierDeleteModal from "./supplier-delete-modal"
 import SupplierDetailModal from "./supplier-detail-modal"
+import { useSupplierCols } from "./use-supplier-cols"
 
 export default function Index() {
     const { supplierList, data, isFetching } = useSuppliersQuery()
     const { setSupplier } = useSupplierStore()
     const { openModal } = useModal()
     const cols = useSupplierCols()
+    const { t } = useTranslation()
 
     return (
         <>
-            <Navbar links={[{ label: "Suppliers" }]} />
+            <Navbar links={[{ label: t("nav.suppliers") }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <div className="flex flex-wrap gap-y-4 gap-x-2">
@@ -37,7 +39,9 @@ export default function Index() {
                         }}
                     >
                         <PlusIcon />
-                        Add Supplier
+                        {t("common.addEntity", {
+                            entity: t("entity.supplier"),
+                        })}
                     </Button>
                 </Group>
 
@@ -59,7 +63,9 @@ export default function Index() {
                             className="text-primary"
                         >
                             <PlusIcon />
-                            Add Supplier
+                            {t("common.addEntity", {
+                                entity: t("entity.supplier"),
+                            })}
                         </Button>
                     </NoData>
                 )}

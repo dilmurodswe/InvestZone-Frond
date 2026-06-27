@@ -7,6 +7,7 @@ import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useCurrencyStore } from "../-hooks/use-currency-store"
 import type { Currency } from "../-types"
@@ -22,6 +23,7 @@ export default function CurrencyAddEditModal() {
 type Form = Omit<Currency, "id" | "is_active">
 
 function CurrencyAddEdit() {
+    const { t } = useTranslation()
     const { closeModal } = useModal("add-currency")
     const { invalidateByExactMatch } = useRevalidate()
     const { currency } = useCurrencyStore()
@@ -66,7 +68,11 @@ function CurrencyAddEdit() {
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <CardTitle>{currency ? "Edit Currency" : "Add Currency"}</CardTitle>
+            <CardTitle>
+                {currency ?
+                    t("common.editEntity", { entity: t("entity.currency") })
+                :   t("common.addEntity", { entity: t("entity.currency") })}
+            </CardTitle>
             <UncontrolledInput
                 methods={form}
                 name="currency"
@@ -78,7 +84,7 @@ function CurrencyAddEdit() {
                 label="Current rate"
             />
             <FormAction
-                submitName={currency ? "Save" : "Add"}
+                submitName={currency ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>

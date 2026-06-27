@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
 import { PlusIcon } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useIncomesQuery } from "../-hooks/use-incomes-query"
 import type { Income } from "../-types"
 import IncomeAddEditModal from "./income-add-edit-modal"
@@ -19,6 +20,7 @@ export default function IncomePage() {
     const [selected, setSelected] = useState<Income | null>(null)
     const addModal = useModal("add-income")
     const deleteModal = useModal("delete-income")
+    const { t } = useTranslation()
 
     const cols = getIncomeCols(
         (income) => {
@@ -43,7 +45,7 @@ export default function IncomePage() {
 
     return (
         <>
-            <Navbar links={[{ label: "Income" }]} />
+            <Navbar links={[{ label: t("nav.income") }]} />
             <Layout>
                 <Group className="flex justify-between mb-4">
                     <div className="flex gap-x-3">
@@ -65,7 +67,7 @@ export default function IncomePage() {
                         }}
                     >
                         <PlusIcon />
-                        Add Income
+                        {t("common.addEntity", { entity: t("entity.income") })}
                     </Button>
                 </Group>
 
@@ -89,7 +91,9 @@ export default function IncomePage() {
                             className="text-primary"
                         >
                             <PlusIcon />
-                            Add Income
+                            {t("common.addEntity", {
+                                entity: t("entity.income"),
+                            })}
                         </Button>
                     </NoData>
                 )}

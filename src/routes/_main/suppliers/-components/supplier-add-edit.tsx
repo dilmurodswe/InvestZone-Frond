@@ -10,6 +10,7 @@ import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useSupplierStore } from "../-hooks/use-supplier-store"
 import type { CustomerType, Supplier } from "../-types"
@@ -40,6 +41,7 @@ function Content() {
     const { invalidateByExactMatch } = useRevalidate()
     const { supplier } = useSupplierStore()
     const { post, patch, isPending } = useRequest()
+    const { t } = useTranslation()
 
     const form = useForm<Supplier>({
         defaultValues: {
@@ -95,7 +97,9 @@ function Content() {
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-6 p-6">
             <CardTitle>
-                {supplier ? `Edit / ${supplier.company_name}` : "Add Supplier"}
+                {supplier ?
+                    t("common.editEntity", { entity: t("entity.supplier") })
+                :   t("common.addEntity", { entity: t("entity.supplier") })}
             </CardTitle>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -206,7 +210,7 @@ function Content() {
             />
 
             <FormAction
-                submitName={supplier ? "Save" : "Add"}
+                submitName={supplier ? t("common.save") : t("common.add")}
                 loading={isPending}
             />
         </form>
