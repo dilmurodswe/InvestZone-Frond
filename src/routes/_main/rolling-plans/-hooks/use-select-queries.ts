@@ -15,8 +15,10 @@ export const useMachinesQuery = () => {
 export const useReadyStripsQuery = (params?: Record<string, string>) => {
     const res = useGet<PaginatedResponse<ReadyStrip>>(
         API.MANUFACTURES.READY_STRIPS,
-        { params },
+        // page_size katta — barcha sahifalardagi ready striplar bitta so'rovda kelsin
+        { params: { page_size: "1000", status: "active", ...params } },
     )
     const readyStripOptions = getArray<ReadyStrip>(res.data?.results)
-    return { ...res, readyStripOptions }
+    const count = res.data?.count ?? 0
+    return { ...res, readyStripOptions, count }
 }

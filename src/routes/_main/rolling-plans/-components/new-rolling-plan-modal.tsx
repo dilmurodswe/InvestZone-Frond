@@ -297,8 +297,10 @@ function NewRollingPlanForm() {
                                     <th className="w-10 px-3 py-2.5" />
                                     {[
                                         "Product",
+                                        "Roll",
+                                        "Width",
+                                        "Thickness",
                                         "Strip Cut Width (mm)",
-                                        "Quantity",
                                         "Total WES",
                                         "Created At",
                                     ].map((h) => (
@@ -315,7 +317,7 @@ function NewRollingPlanForm() {
                                 {filteredStrips.length === 0 && (
                                     <tr>
                                         <td
-                                            colSpan={6}
+                                            colSpan={8}
                                             className="text-center py-8 text-sm text-muted-foreground"
                                         >
                                             No data
@@ -339,15 +341,21 @@ function NewRollingPlanForm() {
                                                 <Checkbox checked={checked} />
                                             </td>
                                             <td className="px-3 py-2 font-medium">
-                                                {strip.product_name} (
-                                                {strip.strip_cut_width_mm} ×{" "}
-                                                {strip.quantity})
+                                                {strip.product_name}
+                                            </td>
+                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                {strip.roll_reference_number ||
+                                                    strip.roll_plank ||
+                                                    "—"}
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                {strip.width ?? "—"}
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                {strip.thickness ?? "—"}
                                             </td>
                                             <td className="px-3 py-2">
                                                 {strip.strip_cut_width_mm}
-                                            </td>
-                                            <td className="px-3 py-2">
-                                                {strip.quantity}
                                             </td>
                                             <td className="px-3 py-2">
                                                 {strip.total_wes}

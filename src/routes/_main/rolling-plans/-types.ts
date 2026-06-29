@@ -7,13 +7,28 @@ export type RollingPlanStatus =
     | "in_progress"
     | "completed"
 
+export type ReadyStripRoll = {
+    id: number
+    plank: string
+    reference_number: string
+}
+
 export type ReadyStrip = {
     id: number
+    manufacture_id?: number
+    manufacture_status?: string
+    roll_id?: number
+    roll_plank?: string
+    roll_reference_number?: string
+    rolls?: ReadyStripRoll[]
     product_id: number
     product_name: string
+    width?: number
+    thickness?: number
     strip_cut_width_mm: number
     quantity: number
     total_wes: number
+    status?: string
     created_at: string
 }
 
