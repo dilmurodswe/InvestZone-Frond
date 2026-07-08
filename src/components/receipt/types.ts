@@ -39,16 +39,18 @@ export interface RollingPackData {
 
 // Rolling/Prokatka label data - plan with multiple packs
 export interface RollingLabelData {
-    planNumber: string // Plan №
-    tubeSize: string // e.g. "76x3.5"
+    planNumber: string // Plan № → ПАРТИЯ №
+    tubeSize: string // Наружный размер x Толщина, e.g. "60x60x2.5"
     batchNumber: string
-    length: number // in mm
-    steelGrade: string // Marka stali
-    standard: string // e.g. "ГОСТ 10704-91"
-    productionDate: string
+    length: number // ДЛИНА (plan zadaniya) — millimetrlarda
+    totalLength?: number // ОБЩАЯ ДЛИНА (plan-fakt) — metrlarda
+    steelGrade: string // Marka stali → МАРКА СТАЛИ
+    standard: string // СТАНДАРТ НТД, e.g. "ГОСТ 8639-82"
+    specification?: string // SPECIFICATION, ikkinchi standart, e.g. "ГОСТ 13663-86"
+    productionDate: string // ДАТА — print sanasi
     master: string
     smena: string
-    packs: RollingPackData[] // Multiple packs
+    packs: RollingPackData[] // Har biri alohida yorliq
 }
 
 export type PrintLanguage = "escpos" | "tspl"

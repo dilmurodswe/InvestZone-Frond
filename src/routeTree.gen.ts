@@ -194,32 +194,32 @@ const MainSettingsProductsCategoryIdSubcategoryIdIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
-  '/login/': typeof AuthLoginIndexRoute
-  '/admins/': typeof MainAdminsIndexRoute
-  '/clients/': typeof MainClientsIndexRoute
-  '/dashboard/': typeof MainDashboardIndexRoute
-  '/extra/': typeof MainExtraIndexRoute
-  '/finance/': typeof MainFinanceIndexRoute
-  '/manufactures/': typeof MainManufacturesIndexRoute
-  '/orders/': typeof MainOrdersIndexRoute
-  '/raw-material-requests/': typeof MainRawMaterialRequestsIndexRoute
-  '/raw-materials/': typeof MainRawMaterialsIndexRoute
-  '/ready-products/': typeof MainReadyProductsIndexRoute
-  '/ready-strips/': typeof MainReadyStripsIndexRoute
-  '/rolling-plans/': typeof MainRollingPlansIndexRoute
-  '/settings/': typeof MainSettingsIndexRoute
-  '/suppliers/': typeof MainSuppliersIndexRoute
-  '/task-manager/': typeof MainTaskManagerIndexRoute
-  '/finance/dashboard/': typeof MainFinanceDashboardIndexRoute
-  '/finance/expence/': typeof MainFinanceExpenceIndexRoute
-  '/finance/income/': typeof MainFinanceIncomeIndexRoute
-  '/settings/currency/': typeof MainSettingsCurrencyIndexRoute
-  '/settings/machine/': typeof MainSettingsMachineIndexRoute
-  '/settings/payment-type/': typeof MainSettingsPaymentTypeIndexRoute
-  '/settings/products/': typeof MainSettingsProductsIndexRoute
-  '/settings/raw-materials/': typeof MainSettingsRawMaterialsIndexRoute
-  '/settings/products/$categoryId/': typeof MainSettingsProductsCategoryIdIndexRoute
-  '/settings/products/$categoryId/$subcategoryId/': typeof MainSettingsProductsCategoryIdSubcategoryIdIndexRoute
+  '/login': typeof AuthLoginIndexRoute
+  '/admins': typeof MainAdminsIndexRoute
+  '/clients': typeof MainClientsIndexRoute
+  '/dashboard': typeof MainDashboardIndexRoute
+  '/extra': typeof MainExtraIndexRoute
+  '/finance': typeof MainFinanceIndexRoute
+  '/manufactures': typeof MainManufacturesIndexRoute
+  '/orders': typeof MainOrdersIndexRoute
+  '/raw-material-requests': typeof MainRawMaterialRequestsIndexRoute
+  '/raw-materials': typeof MainRawMaterialsIndexRoute
+  '/ready-products': typeof MainReadyProductsIndexRoute
+  '/ready-strips': typeof MainReadyStripsIndexRoute
+  '/rolling-plans': typeof MainRollingPlansIndexRoute
+  '/settings': typeof MainSettingsIndexRoute
+  '/suppliers': typeof MainSuppliersIndexRoute
+  '/task-manager': typeof MainTaskManagerIndexRoute
+  '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
+  '/finance/expence': typeof MainFinanceExpenceIndexRoute
+  '/finance/income': typeof MainFinanceIncomeIndexRoute
+  '/settings/currency': typeof MainSettingsCurrencyIndexRoute
+  '/settings/machine': typeof MainSettingsMachineIndexRoute
+  '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
+  '/settings/products': typeof MainSettingsProductsIndexRoute
+  '/settings/raw-materials': typeof MainSettingsRawMaterialsIndexRoute
+  '/settings/products/$categoryId': typeof MainSettingsProductsCategoryIdIndexRoute
+  '/settings/products/$categoryId/$subcategoryId': typeof MainSettingsProductsCategoryIdSubcategoryIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
@@ -286,32 +286,32 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/login/'
-    | '/admins/'
-    | '/clients/'
-    | '/dashboard/'
-    | '/extra/'
-    | '/finance/'
-    | '/manufactures/'
-    | '/orders/'
-    | '/raw-material-requests/'
-    | '/raw-materials/'
-    | '/ready-products/'
-    | '/ready-strips/'
-    | '/rolling-plans/'
-    | '/settings/'
-    | '/suppliers/'
-    | '/task-manager/'
-    | '/finance/dashboard/'
-    | '/finance/expence/'
-    | '/finance/income/'
-    | '/settings/currency/'
-    | '/settings/machine/'
-    | '/settings/payment-type/'
-    | '/settings/products/'
-    | '/settings/raw-materials/'
-    | '/settings/products/$categoryId/'
-    | '/settings/products/$categoryId/$subcategoryId/'
+    | '/login'
+    | '/admins'
+    | '/clients'
+    | '/dashboard'
+    | '/extra'
+    | '/finance'
+    | '/manufactures'
+    | '/orders'
+    | '/raw-material-requests'
+    | '/raw-materials'
+    | '/ready-products'
+    | '/ready-strips'
+    | '/rolling-plans'
+    | '/settings'
+    | '/suppliers'
+    | '/task-manager'
+    | '/finance/dashboard'
+    | '/finance/expence'
+    | '/finance/income'
+    | '/settings/currency'
+    | '/settings/machine'
+    | '/settings/payment-type'
+    | '/settings/products'
+    | '/settings/raw-materials'
+    | '/settings/products/$categoryId'
+    | '/settings/products/$categoryId/$subcategoryId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -384,14 +384,14 @@ declare module '@tanstack/react-router' {
     '/_main': {
       id: '/_main'
       path: ''
-      fullPath: '/'
+      fullPath: ''
       preLoaderRoute: typeof MainRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth': {
       id: '/_auth'
       path: ''
-      fullPath: '/'
+      fullPath: ''
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -405,182 +405,182 @@ declare module '@tanstack/react-router' {
     '/_main/task-manager/': {
       id: '/_main/task-manager/'
       path: '/task-manager'
-      fullPath: '/task-manager/'
+      fullPath: '/task-manager'
       preLoaderRoute: typeof MainTaskManagerIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/suppliers/': {
       id: '/_main/suppliers/'
       path: '/suppliers'
-      fullPath: '/suppliers/'
+      fullPath: '/suppliers'
       preLoaderRoute: typeof MainSuppliersIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/settings/': {
       id: '/_main/settings/'
       path: '/settings'
-      fullPath: '/settings/'
+      fullPath: '/settings'
       preLoaderRoute: typeof MainSettingsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/rolling-plans/': {
       id: '/_main/rolling-plans/'
       path: '/rolling-plans'
-      fullPath: '/rolling-plans/'
+      fullPath: '/rolling-plans'
       preLoaderRoute: typeof MainRollingPlansIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/ready-strips/': {
       id: '/_main/ready-strips/'
       path: '/ready-strips'
-      fullPath: '/ready-strips/'
+      fullPath: '/ready-strips'
       preLoaderRoute: typeof MainReadyStripsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/ready-products/': {
       id: '/_main/ready-products/'
       path: '/ready-products'
-      fullPath: '/ready-products/'
+      fullPath: '/ready-products'
       preLoaderRoute: typeof MainReadyProductsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/raw-materials/': {
       id: '/_main/raw-materials/'
       path: '/raw-materials'
-      fullPath: '/raw-materials/'
+      fullPath: '/raw-materials'
       preLoaderRoute: typeof MainRawMaterialsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/raw-material-requests/': {
       id: '/_main/raw-material-requests/'
       path: '/raw-material-requests'
-      fullPath: '/raw-material-requests/'
+      fullPath: '/raw-material-requests'
       preLoaderRoute: typeof MainRawMaterialRequestsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/orders/': {
       id: '/_main/orders/'
       path: '/orders'
-      fullPath: '/orders/'
+      fullPath: '/orders'
       preLoaderRoute: typeof MainOrdersIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/manufactures/': {
       id: '/_main/manufactures/'
       path: '/manufactures'
-      fullPath: '/manufactures/'
+      fullPath: '/manufactures'
       preLoaderRoute: typeof MainManufacturesIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/finance/': {
       id: '/_main/finance/'
       path: '/finance'
-      fullPath: '/finance/'
+      fullPath: '/finance'
       preLoaderRoute: typeof MainFinanceIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/extra/': {
       id: '/_main/extra/'
       path: '/extra'
-      fullPath: '/extra/'
+      fullPath: '/extra'
       preLoaderRoute: typeof MainExtraIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/dashboard/': {
       id: '/_main/dashboard/'
       path: '/dashboard'
-      fullPath: '/dashboard/'
+      fullPath: '/dashboard'
       preLoaderRoute: typeof MainDashboardIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/clients/': {
       id: '/_main/clients/'
       path: '/clients'
-      fullPath: '/clients/'
+      fullPath: '/clients'
       preLoaderRoute: typeof MainClientsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/admins/': {
       id: '/_main/admins/'
       path: '/admins'
-      fullPath: '/admins/'
+      fullPath: '/admins'
       preLoaderRoute: typeof MainAdminsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_auth/login/': {
       id: '/_auth/login/'
       path: '/login'
-      fullPath: '/login/'
+      fullPath: '/login'
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_main/settings/raw-materials/': {
       id: '/_main/settings/raw-materials/'
       path: '/settings/raw-materials'
-      fullPath: '/settings/raw-materials/'
+      fullPath: '/settings/raw-materials'
       preLoaderRoute: typeof MainSettingsRawMaterialsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/settings/products/': {
       id: '/_main/settings/products/'
       path: '/settings/products'
-      fullPath: '/settings/products/'
+      fullPath: '/settings/products'
       preLoaderRoute: typeof MainSettingsProductsIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/settings/payment-type/': {
       id: '/_main/settings/payment-type/'
       path: '/settings/payment-type'
-      fullPath: '/settings/payment-type/'
+      fullPath: '/settings/payment-type'
       preLoaderRoute: typeof MainSettingsPaymentTypeIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/settings/machine/': {
       id: '/_main/settings/machine/'
       path: '/settings/machine'
-      fullPath: '/settings/machine/'
+      fullPath: '/settings/machine'
       preLoaderRoute: typeof MainSettingsMachineIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/settings/currency/': {
       id: '/_main/settings/currency/'
       path: '/settings/currency'
-      fullPath: '/settings/currency/'
+      fullPath: '/settings/currency'
       preLoaderRoute: typeof MainSettingsCurrencyIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/finance/income/': {
       id: '/_main/finance/income/'
       path: '/finance/income'
-      fullPath: '/finance/income/'
+      fullPath: '/finance/income'
       preLoaderRoute: typeof MainFinanceIncomeIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/finance/expence/': {
       id: '/_main/finance/expence/'
       path: '/finance/expence'
-      fullPath: '/finance/expence/'
+      fullPath: '/finance/expence'
       preLoaderRoute: typeof MainFinanceExpenceIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/finance/dashboard/': {
       id: '/_main/finance/dashboard/'
       path: '/finance/dashboard'
-      fullPath: '/finance/dashboard/'
+      fullPath: '/finance/dashboard'
       preLoaderRoute: typeof MainFinanceDashboardIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/settings/products/$categoryId/': {
       id: '/_main/settings/products/$categoryId/'
       path: '/settings/products/$categoryId'
-      fullPath: '/settings/products/$categoryId/'
+      fullPath: '/settings/products/$categoryId'
       preLoaderRoute: typeof MainSettingsProductsCategoryIdIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/settings/products/$categoryId/$subcategoryId/': {
       id: '/_main/settings/products/$categoryId/$subcategoryId/'
       path: '/settings/products/$categoryId/$subcategoryId'
-      fullPath: '/settings/products/$categoryId/$subcategoryId/'
+      fullPath: '/settings/products/$categoryId/$subcategoryId'
       preLoaderRoute: typeof MainSettingsProductsCategoryIdSubcategoryIdIndexRouteImport
       parentRoute: typeof MainRoute
     }
