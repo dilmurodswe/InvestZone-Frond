@@ -72,25 +72,21 @@ export type LabelCalibration = {
 }
 
 /**
- * Bu printer sahifa tugagan joyda to'xtaydi va o'sha yerdan keyingi ishni
- * boshlaydi — qog'ozni orqaga qaytarmaydi. Shu sabab ikki nosozlik bitta
- * sababdan kelib chiqadi:
+ * Sinovda tasdiqlangan qiymatlar (birka to'liq va joyida chiqadi).
  *
- *   sahifa 130mm, lekin ish ~24mm kech boshlanadi
- *     → qog'oz perforatsiyadan ~24mm o'tib to'xtaydi ("ortiqcha chiqadi")
- *     → keyingi ish yana o'sha 24mm kech boshlanadi ("ma'lumot pastga tushadi")
- *
- * Yechim: sahifani 24mm ga qisqartiramiz (130 − 24 = 106mm). Endi sahifa aynan
- * perforatsiyada tugaydi, keyingi ish esa perforatsiyadan boshlanadi — shuning
- * uchun offsetY ham 0 bo'ladi. Qisqartirilgan qism birkaning bo'sh shapka
- * zonasiga to'g'ri keladi (birka 180° aylantirilgan), ma'lumot kesilmaydi.
+ * offsetY = −25: printer har bir ishni perforatsiyadan ~25mm keyin boshlaydi,
+ * chunki oldingi ishdan so'ng qog'ozni uzish planshetiga surib, orqaga
+ * qaytarmaydi. Buni sahifani qisqartirish bilan bartaraf qilib bo'lmaydi —
+ * printer sahifa tugagach baribir o'sha masofani suradi (sinab ko'rilgan).
+ * Shu sabab endTrim = 0, ortiqcha surish esa printer drayverida
+ * ("tear-off / back-feed") sozlanishi kerak.
  */
 export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
-    offsetYMm: 0,
+    offsetYMm: -25,
     rotate180: true,
     pitchMm: LABEL_HEIGHT_MM,
-    endTrimMm: 24,
+    endTrimMm: 0,
 }
 
 /** Birka qadami chegarasi (mm) — tanadan kichik bo'lolmaydi. */
@@ -137,8 +133,8 @@ export const NO_CALIBRATION: LabelCalibration = {
     endTrimMm: 0,
 }
 
-// v8 — offsetY=0, sahifa oxiri 24mm qisqartiriladi
-const STORAGE_KEY = "iz.rollingLabel.calibration.v8"
+// v9 — sinovda tasdiqlangan qiymatlarga qaytarildi
+const STORAGE_KEY = "iz.rollingLabel.calibration.v9"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
