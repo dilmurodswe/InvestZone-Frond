@@ -1,9 +1,18 @@
 /**
  * Yorliqlardan PDF yasab, chop etish oynasini ochadi.
  *
- * HTML chop etishdan farqi: PDF'da brauzerning "Kolontitullar" va "Chetlari"
- * sozlamalari yo'q, shuning uchun sahifa aynan 80×130mm bo'lib qoladi va
- * ma'lumot qo'shni birkaga sirpanmaydi.
+ * Ikkita muhim qaror:
+ *
+ * 1. HTML emas, PDF. Brauzerning HTML chop etishida "Kolontitullar" yoqilgan
+ *    bo'lsa Chrome `@page { margin: 0 }` ni bekor qiladi va sahifani suradi.
+ *    PDF chop etishda bunday sozlama yo'q.
+ *
+ * 2. Har bir birka alohida sahifa EMAS — hammasi BITTA uzun sahifada, aniq
+ *    qadam bilan. Alohida sahifalarda oraliqni printerning qog'oz surishi
+ *    belgilaydi va u perforatsiya qadamiga to'g'ri kelmagani uchun xato
+ *    birkadan birkaga to'planib borardi. Bitta sahifada oraliqni biz
+ *    belgilaymiz, sahifa esa aynan oxirgi birkaning oxirida tugaydi —
+ *    shuning uchun ortiqcha qog'oz chiqmaydi.
  */
 
 import { jsPDF } from "jspdf"
@@ -19,14 +28,18 @@ import type { RollingLabelData, RollingPackData } from "./types"
 const PRINT_DPI = 300
 const PX_PER_MM = PRINT_DPI / 25.4
 
+/** Sahifa balandligi: oxirgi birka tanasining oxirida tugaydi. */
+export function pdfHeightMm(packCount: number, pitchMm: number): number {
+    return Math.max(0, packCount - 1) * pitchMm + LABEL_HEIGHT_MM
+}
+
 export function buildLabelsPdf(
     data: RollingLabelData,
     packs: RollingPackData[],
     calibration: LabelCalibration,
 ): Blob {
-    // Sahifa birkadan uzunroq bo'lishi mumkin (perforatsiya qadamiga moslash
-    // uchun) — yorliq har doim sahifaning tepasiga chiziladi.
-    const pageHeight = Math.max(calibration.pageHeightMm, LABEL_HEIGHT_MM)
+    const pitch = Math.max(calibration.pitchMm, LABEL_HEIGHT_MM)
+    const pageHeight = pdfHeightMm(packs.length, pitch)
 
     const doc = new jsPDF({
         unit: "mm",
@@ -36,8 +49,6 @@ export function buildLabelsPdf(
     })
 
     packs.forEach((pack, i) => {
-        if (i > 0) doc.addPage([LABEL_WIDTH_MM, pageHeight], "portrait")
-
         const canvas = drawRollingLabel({
             data,
             pack,
@@ -50,7 +61,7 @@ export function buildLabelsPdf(
             canvas.toDataURL("image/png"),
             "PNG",
             0,
-            0,
+            i * pitch,
             LABEL_WIDTH_MM,
             LABEL_HEIGHT_MM,
         )

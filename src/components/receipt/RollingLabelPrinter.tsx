@@ -16,7 +16,7 @@ import {
     NO_CALIBRATION,
     OFFSET_X_RANGE_MM,
     OFFSET_Y_RANGE_MM,
-    PAGE_HEIGHT_RANGE_MM,
+    PITCH_RANGE_MM,
     loadCalibration,
     saveCalibration,
 } from "./rollingLabelConstants"
@@ -300,7 +300,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                     >
                         {showCal ? "▾" : "▸"} Printer kalibrovkasi
                         {cal.rotate180 ? " · 180°" : ""} · X {cal.offsetXMm} · Y{" "}
-                        {cal.offsetYMm} · H {cal.pageHeightMm}mm
+                        {cal.offsetYMm} · qadam {cal.pitchMm}mm
                     </button>
 
                     {showCal && (
@@ -345,12 +345,12 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                             />
 
                             <OffsetField
-                                label="Sahifa balandligi"
-                                hint="keyingi birka pastga sursa — oshiring"
-                                value={cal.pageHeightMm}
-                                range={PAGE_HEIGHT_RANGE_MM}
-                                onChange={(pageHeightMm) =>
-                                    setCal((c) => ({ ...c, pageHeightMm }))
+                                label="Birka qadami"
+                                hint="keyingi birka pastga sursa — kamaytiring"
+                                value={cal.pitchMm}
+                                range={PITCH_RANGE_MM}
+                                onChange={(pitchMm) =>
+                                    setCal((c) => ({ ...c, pitchMm }))
                                 }
                             />
 

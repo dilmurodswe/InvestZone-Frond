@@ -53,17 +53,17 @@ export const LABEL_CERTIFICATIONS = [
  *  - offsetXMm: musbat = O'NGGA, manfiy = CHAPGA (qog'oz ko'rinishida).
  *  - offsetYMm: musbat = PASTGA, manfiy = YUQORIGA (qog'oz ko'rinishida).
  *  - rotate180: birkani 180° aylantirib chop etish (qog'oz teskari kelsa).
- *  - pageHeightMm: PDF sahifasining balandligi = printer bir birka uchun
- *      suradigan qog'oz uzunligi. Birka tanasi 130mm, lekin perforatsiya
- *      tufayli qadam biroz kattaroq. Agar keyingi birka har safar pastga
- *      surilib borsa — bu qiymatni oshiring; yuqoriga sursa — kamaytiring.
- *      Yorliq har doim sahifaning tepasiga chiziladi, ortiqchasi bo'sh qoladi.
+ *  - pitchMm: qo'shni ikki birkaning boshlanishi orasidagi masofa —
+ *      130mm tana + perforatsiya kesigi. Barcha birkalar BITTA uzun sahifaga
+ *      shu qadam bilan joylashtiriladi, shuning uchun oraliqni printer emas,
+ *      biz belgilaymiz va xato to'planmaydi. Agar keyingi birka pastga
+ *      surilsa — qadamni kamaytiring, yuqoriga sursa — oshiring.
  */
 export type LabelCalibration = {
     offsetXMm: number
     offsetYMm: number
     rotate180: boolean
-    pageHeightMm: number
+    pitchMm: number
 }
 
 /**
@@ -76,11 +76,11 @@ export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
     offsetYMm: -25,
     rotate180: true,
-    pageHeightMm: 139,
+    pitchMm: 139,
 }
 
-/** Sahifa balandligi chegarasi (mm). */
-export const PAGE_HEIGHT_RANGE_MM = { min: LABEL_HEIGHT_MM, max: 160 }
+/** Birka qadami chegarasi (mm) — tanadan kichik bo'lolmaydi. */
+export const PITCH_RANGE_MM = { min: LABEL_HEIGHT_MM, max: 170 }
 
 /**
  * Siljish chegaralari: bundan oshsa matn sahifadan chiqib kesiladi.
@@ -103,11 +103,11 @@ export const NO_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
     offsetYMm: 0,
     rotate180: false,
-    pageHeightMm: LABEL_HEIGHT_MM,
+    pitchMm: LABEL_HEIGHT_MM,
 }
 
-// v3 — standart qiymatlar printerdan o'lchab topildi, eskilari bekor qilindi
-const STORAGE_KEY = "iz.rollingLabel.calibration.v3"
+// v4 — sahifa balandligi o'rniga birka qadami saqlanadi
+const STORAGE_KEY = "iz.rollingLabel.calibration.v4"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
@@ -128,10 +128,10 @@ export function loadCalibration(): LabelCalibration {
                 typeof parsed.rotate180 === "boolean" ?
                     parsed.rotate180
                 :   DEFAULT_CALIBRATION.rotate180,
-            pageHeightMm:
-                typeof parsed.pageHeightMm === "number" ?
-                    clampTo(parsed.pageHeightMm, PAGE_HEIGHT_RANGE_MM)
-                :   DEFAULT_CALIBRATION.pageHeightMm,
+            pitchMm:
+                typeof parsed.pitchMm === "number" ?
+                    clampTo(parsed.pitchMm, PITCH_RANGE_MM)
+                :   DEFAULT_CALIBRATION.pitchMm,
         }
     } catch {
         return DEFAULT_CALIBRATION
