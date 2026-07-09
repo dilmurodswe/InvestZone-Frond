@@ -80,14 +80,21 @@ export type LabelCalibration = {
  * ma'lumot pastga tushar va keyingi birka buzilardi. O'lcham to'g'rilangach
  * o'sha katta qoplama keraksiz bo'ldi.
  *
- * Qolgan `−3mm` — TSC drayverining o'z kichik vertikal siljishi.
+ * Qolgan `−15mm` — printer chop etib bo'lgach qog'ozni uzish qirrasiga suradi,
+ * lekin keyingi ishdan oldin orqaga qaytarmaydi. Shu sabab HAR BIR yangi ish
+ * perforatsiyadan ~15mm keyin boshlanadi. Miqdor o'zgarmas (bu kalla bilan
+ * uzish qirrasi orasidagi masofa), shuning uchun bitta doimiy tuzatish yetadi.
+ * Bitta ish ichidagi birkalar orasida xato to'planmaydi — ular bitta sahifada.
+ *
+ * Buni butunlay yo'qotish uchun drayverda `Post-Print Action` ni `Tear Off`
+ * qilish kerak (o'shanda printer orqaga qaytaradi), ammo shart emas.
  *
  * MUHIM: yorliq katta miqdorda siljisa, bu yerni emas, avval DRAYVERdagi
- * qog'oz o'lchamini tekshiring.
+ * qog'oz o'lchamini tekshiring (80×130mm bo'lishi shart).
  */
 export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
-    offsetYMm: -3,
+    offsetYMm: -15,
     rotate180: true,
     pitchMm: LABEL_HEIGHT_MM,
     endTrimMm: 0,
@@ -137,8 +144,8 @@ export const NO_CALIBRATION: LabelCalibration = {
     endTrimMm: 0,
 }
 
-// v11 — drayver 80x130mm; faqat kichik -3mm vertikal tuzatish qoldi
-const STORAGE_KEY = "iz.rollingLabel.calibration.v11"
+// v12 — uzish planshetiga surish qoplandi (-15mm)
+const STORAGE_KEY = "iz.rollingLabel.calibration.v12"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
