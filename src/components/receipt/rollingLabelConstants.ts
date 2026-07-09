@@ -19,10 +19,14 @@ export const LABEL_HEIGHT_MM = 130
  *  - HEADER_RESERVED_MM: yuqorida teshik + INVEST ZONE logotipi/manzil/QR bloki.
  *  - FOOTER_RESERVED_MM: pastda STZ logotipi.
  *  - LEFT/RIGHT_PADDING_MM: qizil ramkadan ichkariga chekinish.
+ *
+ * DIQQAT: chekinish kalibrovka siljishidan KATTA bo'lishi shart, aks holda
+ * siljitilgan matn sahifa chekkasidan chiqib kesiladi. Standart offsetX = −7mm
+ * bo'lgani uchun LEFT_PADDING_MM = 12 (zaxira 5mm).
  */
 export const HEADER_RESERVED_MM = 32
 export const FOOTER_RESERVED_MM = 14
-export const LEFT_PADDING_MM = 6
+export const LEFT_PADDING_MM = 12
 export const RIGHT_PADDING_MM = 6
 
 /**
