@@ -25,15 +25,19 @@ export function buildLabelsPdf(
     qrImages: (CanvasImageSource | null)[],
     calibration: LabelCalibration,
 ): Blob {
+    // Sahifa birkadan uzunroq bo'lishi mumkin (perforatsiya qadamiga moslash
+    // uchun) — yorliq har doim sahifaning tepasiga chiziladi.
+    const pageHeight = Math.max(calibration.pageHeightMm, LABEL_HEIGHT_MM)
+
     const doc = new jsPDF({
         unit: "mm",
-        format: [LABEL_WIDTH_MM, LABEL_HEIGHT_MM],
+        format: [LABEL_WIDTH_MM, pageHeight],
         orientation: "portrait",
         compress: true,
     })
 
     packs.forEach((pack, i) => {
-        if (i > 0) doc.addPage([LABEL_WIDTH_MM, LABEL_HEIGHT_MM], "portrait")
+        if (i > 0) doc.addPage([LABEL_WIDTH_MM, pageHeight], "portrait")
 
         const canvas = drawRollingLabel({
             data,

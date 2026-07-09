@@ -13,9 +13,10 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { drawRollingLabel } from "./drawRollingLabel"
 import {
     DEFAULT_CALIBRATION,
-    MAX_OFFSET_X_MM,
-    MAX_OFFSET_Y_MM,
     NO_CALIBRATION,
+    OFFSET_X_RANGE_MM,
+    OFFSET_Y_RANGE_MM,
+    PAGE_HEIGHT_RANGE_MM,
     loadCalibration,
     saveCalibration,
 } from "./rollingLabelConstants"
@@ -33,16 +34,16 @@ function OffsetField({
     label,
     hint,
     value,
-    max,
+    range,
     onChange,
 }: {
     label: string
     hint: string
     value: number
-    max: number
+    range: { min: number; max: number }
     onChange: (v: number) => void
 }) {
-    const clamp = (v: number) => Math.max(-max, Math.min(max, v))
+    const clamp = (v: number) => Math.max(range.min, Math.min(range.max, v))
     const btn = {
         width: 28,
         height: 28,
@@ -329,8 +330,8 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                         }}
                     >
                         {showCal ? "▾" : "▸"} Printer kalibrovkasi
-                        {cal.rotate180 ? " · 180°" : ""} · X {cal.offsetXMm}mm ·
-                        Y {cal.offsetYMm}mm
+                        {cal.rotate180 ? " · 180°" : ""} · X {cal.offsetXMm} · Y{" "}
+                        {cal.offsetYMm} · H {cal.pageHeightMm}mm
                     </button>
 
                     {showCal && (
@@ -357,20 +358,30 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
 
                             <OffsetField
                                 label="Gorizontal (X)"
-                                hint={`− chapga / + o'ngga · max ${MAX_OFFSET_X_MM}mm`}
+                                hint={`− chapga / + o'ngga · ${OFFSET_X_RANGE_MM.min}…+${OFFSET_X_RANGE_MM.max}mm`}
                                 value={cal.offsetXMm}
-                                max={MAX_OFFSET_X_MM}
+                                range={OFFSET_X_RANGE_MM}
                                 onChange={(offsetXMm) =>
                                     setCal((c) => ({ ...c, offsetXMm }))
                                 }
                             />
                             <OffsetField
                                 label="Vertikal (Y)"
-                                hint={`− yuqoriga / + pastga · max ${MAX_OFFSET_Y_MM}mm`}
+                                hint={`− yuqoriga / + pastga · ${OFFSET_Y_RANGE_MM.min}…+${OFFSET_Y_RANGE_MM.max}mm`}
                                 value={cal.offsetYMm}
-                                max={MAX_OFFSET_Y_MM}
+                                range={OFFSET_Y_RANGE_MM}
                                 onChange={(offsetYMm) =>
                                     setCal((c) => ({ ...c, offsetYMm }))
+                                }
+                            />
+
+                            <OffsetField
+                                label="Sahifa balandligi"
+                                hint="keyingi birka pastga sursa — oshiring"
+                                value={cal.pageHeightMm}
+                                range={PAGE_HEIGHT_RANGE_MM}
+                                onChange={(pageHeightMm) =>
+                                    setCal((c) => ({ ...c, pageHeightMm }))
                                 }
                             />
 

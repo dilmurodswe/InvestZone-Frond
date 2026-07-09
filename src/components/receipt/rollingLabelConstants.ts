@@ -52,36 +52,51 @@ export const LABEL_CERTIFICATIONS = [
  *  - offsetXMm: musbat = O'NGGA, manfiy = CHAPGA (qog'oz ko'rinishida).
  *  - offsetYMm: musbat = PASTGA, manfiy = YUQORIGA (qog'oz ko'rinishida).
  *  - rotate180: birkani 180° aylantirib chop etish (qog'oz teskari kelsa).
- *
- * Standart qiymat 0 — chunki `@page { margin: 0 }` bilan sahifa aynan birka
- * o'lchamida chiqadi. Agar chop etish oynasida "Kolontitullar / Headers and
- * footers" YOQILGAN bo'lsa, Chrome bu qoidani bekor qiladi, sahifani ~2.5%
- * kichraytiradi va suradi — avval o'sha belgini olib tashlang, keyingina
- * qolgan 1-2mm siljishni shu yerdan sozlang.
+ *  - pageHeightMm: PDF sahifasining balandligi = printer bir birka uchun
+ *      suradigan qog'oz uzunligi. Birka tanasi 130mm, lekin perforatsiya
+ *      tufayli qadam biroz kattaroq. Agar keyingi birka har safar pastga
+ *      surilib borsa — bu qiymatni oshiring; yuqoriga sursa — kamaytiring.
+ *      Yorliq har doim sahifaning tepasiga chiziladi, ortiqchasi bo'sh qoladi.
  */
 export type LabelCalibration = {
     offsetXMm: number
     offsetYMm: number
     rotate180: boolean
+    pageHeightMm: number
 }
 
 export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
     offsetYMm: 0,
     rotate180: true,
+    pageHeightMm: LABEL_HEIGHT_MM,
 }
 
+/** Sahifa balandligi chegarasi (mm). */
+export const PAGE_HEIGHT_RANGE_MM = { min: LABEL_HEIGHT_MM, max: 160 }
+
 /**
- * Siljish chegaralari: bundan oshsa matn sahifa chetidan chiqib kesiladi.
- * X — chekinish (padding) qadar, Y — pastdagi zaxira zona qadar.
+ * Siljish chegaralari: bundan oshsa matn sahifadan chiqib kesiladi.
+ * Chegara nosimmetrik, chunki ma'lumot bloki ham birkaning o'rtasida emas:
+ * tepada 32mm (shapka), pastda 12mm (STZ) bo'sh joy bor.
  */
-export const MAX_OFFSET_X_MM = Math.min(LEFT_PADDING_MM, RIGHT_PADDING_MM)
-export const MAX_OFFSET_Y_MM = FOOTER_RESERVED_MM
+export const OFFSET_X_RANGE_MM = {
+    min: -LEFT_PADDING_MM,
+    max: RIGHT_PADDING_MM,
+}
+export const OFFSET_Y_RANGE_MM = {
+    min: -HEADER_RESERVED_MM,
+    max: FOOTER_RESERVED_MM,
+}
+
+const clampTo = (v: number, r: { min: number; max: number }) =>
+    Math.max(r.min, Math.min(r.max, v))
 
 export const NO_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
     offsetYMm: 0,
     rotate180: false,
+    pageHeightMm: LABEL_HEIGHT_MM,
 }
 
 // v2 — maket qayta o'lchangani uchun eski saqlangan qiymatlar bekor qilindi
@@ -96,16 +111,20 @@ export function loadCalibration(): LabelCalibration {
         return {
             offsetXMm:
                 typeof parsed.offsetXMm === "number" ?
-                    parsed.offsetXMm
+                    clampTo(parsed.offsetXMm, OFFSET_X_RANGE_MM)
                 :   DEFAULT_CALIBRATION.offsetXMm,
             offsetYMm:
                 typeof parsed.offsetYMm === "number" ?
-                    parsed.offsetYMm
+                    clampTo(parsed.offsetYMm, OFFSET_Y_RANGE_MM)
                 :   DEFAULT_CALIBRATION.offsetYMm,
             rotate180:
                 typeof parsed.rotate180 === "boolean" ?
                     parsed.rotate180
                 :   DEFAULT_CALIBRATION.rotate180,
+            pageHeightMm:
+                typeof parsed.pageHeightMm === "number" ?
+                    clampTo(parsed.pageHeightMm, PAGE_HEIGHT_RANGE_MM)
+                :   DEFAULT_CALIBRATION.pageHeightMm,
         }
     } catch {
         return DEFAULT_CALIBRATION
