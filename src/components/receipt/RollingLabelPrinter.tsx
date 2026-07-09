@@ -21,6 +21,7 @@ import {
     saveCalibration,
 } from "./rollingLabelConstants"
 import { buildLabelsPdf } from "./rollingLabelPdf"
+import { buildCalibrationPdf } from "./rollingLabelTestSheet"
 import type { RollingLabelData } from "./types"
 
 type Props = {
@@ -141,6 +142,19 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
 
     const packs = useMemo(() => data.packs ?? [], [data])
 
+    const openPdf = (blob: Blob, filename: string) => {
+        const url = URL.createObjectURL(blob)
+        const win = window.open(url, "_blank")
+        if (!win) {
+            // Popup bloklangan bo'lsa — yuklab olishga tushamiz
+            const a = document.createElement("a")
+            a.href = url
+            a.download = filename
+            a.click()
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    }
+
     const doPrint = (indexes: number[]) => {
         try {
             const blob = buildLabelsPdf(
@@ -148,18 +162,18 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                 indexes.map((i) => packs[i]),
                 cal,
             )
-            const url = URL.createObjectURL(blob)
-            const win = window.open(url, "_blank")
-            if (!win) {
-                // Popup bloklangan bo'lsa — yuklab olishga tushamiz
-                const a = document.createElement("a")
-                a.href = url
-                a.download = `yorliq-${data.planNumber}.pdf`
-                a.click()
-            }
-            setTimeout(() => URL.revokeObjectURL(url), 60_000)
+            openPdf(blob, `yorliq-${data.planNumber}.pdf`)
         } catch (e) {
             setError(`PDF yasashda xatolik: ${e}`)
+        }
+    }
+
+    /** Millimetrli shkala — printerning xom xatosini o'lchash uchun. */
+    const printRuler = () => {
+        try {
+            openPdf(buildCalibrationPdf(cal), "kalibrovka.pdf")
+        } catch (e) {
+            setError(`O'lchagich yasashda xatolik: ${e}`)
         }
     }
 
@@ -378,21 +392,52 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                                 180° aylantirib chop etish (teskari chiqsa)
                             </label>
 
-                            <button
-                                onClick={() => setCal(DEFAULT_CALIBRATION)}
+                            <div style={{ display: "flex", gap: 6 }}>
+                                <button
+                                    onClick={printRuler}
+                                    style={{
+                                        padding: "4px 10px",
+                                        borderRadius: 6,
+                                        border: "1px solid #2563eb",
+                                        background: "#fff",
+                                        color: "#2563eb",
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    O'lchagichni chop etish
+                                </button>
+                                <button
+                                    onClick={() => setCal(DEFAULT_CALIBRATION)}
+                                    style={{
+                                        padding: "4px 10px",
+                                        borderRadius: 6,
+                                        border: "1px solid #d1d5db",
+                                        background: "#fff",
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    Standart qiymatlar
+                                </button>
+                            </div>
+
+                            <p
                                 style={{
-                                    alignSelf: "flex-start",
-                                    padding: "3px 10px",
-                                    borderRadius: 6,
-                                    border: "1px solid #d1d5db",
-                                    background: "#fff",
+                                    margin: 0,
                                     fontSize: 11,
-                                    fontWeight: 600,
-                                    cursor: "pointer",
+                                    lineHeight: 1.4,
+                                    color: "#6b7280",
                                 }}
                             >
-                                Standart qiymatlarga qaytarish
-                            </button>
+                                O'lchagich birkaga millimetrli shkala bosadi.
+                                «0» birka tanasining boshiga tushishi kerak;
+                                qayerga tushgan bo'lsa, o'shancha mm ni Y ga
+                                teskari ishora bilan yozing. 2-varaqdagi «0» esa
+                                haqiqiy qadamni ko'rsatadi.
+                            </p>
 
                             <p
                                 style={{
