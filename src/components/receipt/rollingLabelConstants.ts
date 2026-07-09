@@ -72,29 +72,45 @@ export type LabelCalibration = {
 }
 
 /**
- * Qadam = 130mm — maketdagi ("Макет бумаги") perforatsiyadan perforatsiyagacha
- * bo'lgan o'lcham. Shu sabab bitta birka uchun sahifa aynan 130mm bo'ladi va
- * printer perforatsiyada to'xtaydi, ortiqcha qog'oz chiqarmaydi.
+ * Bu printer sahifa tugagan joyda to'xtaydi va o'sha yerdan keyingi ishni
+ * boshlaydi — qog'ozni orqaga qaytarmaydi. Shu sabab ikki nosozlik bitta
+ * sababdan kelib chiqadi:
  *
- * offsetY sexdagi printerdan chiqqan birkalarni o'lchash orqali topilgan:
- * ma'lumot doim ~25mm pastga tushardi.
+ *   sahifa 130mm, lekin ish ~24mm kech boshlanadi
+ *     → qog'oz perforatsiyadan ~24mm o'tib to'xtaydi ("ortiqcha chiqadi")
+ *     → keyingi ish yana o'sha 24mm kech boshlanadi ("ma'lumot pastga tushadi")
+ *
+ * Yechim: sahifani 24mm ga qisqartiramiz (130 − 24 = 106mm). Endi sahifa aynan
+ * perforatsiyada tugaydi, keyingi ish esa perforatsiyadan boshlanadi — shuning
+ * uchun offsetY ham 0 bo'ladi. Qisqartirilgan qism birkaning bo'sh shapka
+ * zonasiga to'g'ri keladi (birka 180° aylantirilgan), ma'lumot kesilmaydi.
  */
 export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
-    offsetYMm: -25,
+    offsetYMm: 0,
     rotate180: true,
     pitchMm: LABEL_HEIGHT_MM,
-    endTrimMm: 10,
+    endTrimMm: 24,
 }
 
 /** Birka qadami chegarasi (mm) — tanadan kichik bo'lolmaydi. */
 export const PITCH_RANGE_MM = { min: LABEL_HEIGHT_MM, max: 170 }
 
 /**
- * Oxirgi qisqartirish chegarasi: shapka zonasidan (32mm) oshib ketmasin,
- * aks holda ma'lumotning bir qismi kesiladi.
+ * Sahifani ko'pi bilan qancha qisqartirsa bo'ladi.
+ *
+ * Qisqartirish birkaning bo'sh shapka zonasini (0…32mm) yeydi, lekin manfiy
+ * offsetY o'sha zonaning bir qismini allaqachon ishlatgan bo'ladi. Shuning
+ * uchun chegara offsetY ga bog'liq — aks holda birinchi qator kesiladi.
  */
-export const END_TRIM_RANGE_MM = { min: 0, max: HEADER_RESERVED_MM - 2 }
+export function maxEndTrimMm(offsetYMm: number): number {
+    return Math.max(0, HEADER_RESERVED_MM + offsetYMm - 2)
+}
+
+export const endTrimRangeMm = (offsetYMm: number) => ({
+    min: 0,
+    max: maxEndTrimMm(offsetYMm),
+})
 
 /**
  * Siljish chegaralari: bundan oshsa matn sahifadan chiqib kesiladi.
@@ -121,8 +137,8 @@ export const NO_CALIBRATION: LabelCalibration = {
     endTrimMm: 0,
 }
 
-// v6 — qadam 130mm, sahifa oxiri ortiqcha surishga qisqartiriladi
-const STORAGE_KEY = "iz.rollingLabel.calibration.v6"
+// v8 — offsetY=0, sahifa oxiri 24mm qisqartiriladi
+const STORAGE_KEY = "iz.rollingLabel.calibration.v8"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
@@ -130,15 +146,16 @@ export function loadCalibration(): LabelCalibration {
         const raw = localStorage.getItem(STORAGE_KEY)
         if (!raw) return DEFAULT_CALIBRATION
         const parsed = JSON.parse(raw) as Partial<LabelCalibration>
+        const offsetY =
+            typeof parsed.offsetYMm === "number" ?
+                clampTo(parsed.offsetYMm, OFFSET_Y_RANGE_MM)
+            :   DEFAULT_CALIBRATION.offsetYMm
         return {
             offsetXMm:
                 typeof parsed.offsetXMm === "number" ?
                     clampTo(parsed.offsetXMm, OFFSET_X_RANGE_MM)
                 :   DEFAULT_CALIBRATION.offsetXMm,
-            offsetYMm:
-                typeof parsed.offsetYMm === "number" ?
-                    clampTo(parsed.offsetYMm, OFFSET_Y_RANGE_MM)
-                :   DEFAULT_CALIBRATION.offsetYMm,
+            offsetYMm: offsetY,
             rotate180:
                 typeof parsed.rotate180 === "boolean" ?
                     parsed.rotate180
@@ -149,7 +166,7 @@ export function loadCalibration(): LabelCalibration {
                 :   DEFAULT_CALIBRATION.pitchMm,
             endTrimMm:
                 typeof parsed.endTrimMm === "number" ?
-                    clampTo(parsed.endTrimMm, END_TRIM_RANGE_MM)
+                    clampTo(parsed.endTrimMm, endTrimRangeMm(offsetY))
                 :   DEFAULT_CALIBRATION.endTrimMm,
         }
     } catch {

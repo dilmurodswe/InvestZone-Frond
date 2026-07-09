@@ -20,6 +20,7 @@ import { drawRollingLabel } from "./drawRollingLabel"
 import {
     LABEL_HEIGHT_MM,
     LABEL_WIDTH_MM,
+    maxEndTrimMm,
     type LabelCalibration,
 } from "./rollingLabelConstants"
 import type { RollingLabelData, RollingPackData } from "./types"
@@ -49,7 +50,11 @@ export function buildLabelsPdf(
     calibration: LabelCalibration,
 ): Blob {
     const pitch = Math.max(calibration.pitchMm, LABEL_HEIGHT_MM)
-    const pageHeight = pdfHeightMm(packs.length, pitch, calibration.endTrimMm)
+    const trim = Math.min(
+        calibration.endTrimMm,
+        maxEndTrimMm(calibration.offsetYMm),
+    )
+    const pageHeight = pdfHeightMm(packs.length, pitch, trim)
 
     const doc = new jsPDF({
         unit: "mm",

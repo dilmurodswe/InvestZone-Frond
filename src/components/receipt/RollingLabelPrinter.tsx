@@ -13,12 +13,12 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { drawRollingLabel } from "./drawRollingLabel"
 import {
     DEFAULT_CALIBRATION,
-    END_TRIM_RANGE_MM,
+    endTrimRangeMm,
+    loadCalibration,
     NO_CALIBRATION,
     OFFSET_X_RANGE_MM,
     OFFSET_Y_RANGE_MM,
     PITCH_RANGE_MM,
-    loadCalibration,
     saveCalibration,
 } from "./rollingLabelConstants"
 import { buildLabelsPdf } from "./rollingLabelPdf"
@@ -373,7 +373,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                                 label="Oxirgi ortiqcha qog'oz"
                                 hint="chop etgach qancha ortiqcha chiqsa — shuncha"
                                 value={cal.endTrimMm}
-                                range={END_TRIM_RANGE_MM}
+                                range={endTrimRangeMm(cal.offsetYMm)}
                                 onChange={(endTrimMm) =>
                                     setCal((c) => ({ ...c, endTrimMm }))
                                 }
