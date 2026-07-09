@@ -12,6 +12,7 @@
  */
 
 import { drawCode128 } from "./code128"
+import { buildBarcodePayload, metersFromMm } from "./rollingLabelBarcode"
 import {
     BARCODE_HEIGHT_MM,
     BARCODE_WIDTH_MM,
@@ -25,7 +26,6 @@ import {
     RIGHT_PADDING_MM,
     type LabelCalibration,
 } from "./rollingLabelConstants"
-import { buildBarcodePayload, metersFromMm } from "./rollingLabelQr"
 import type { RollingLabelData, RollingPackData } from "./types"
 
 /** `en` bo'sh bo'lsa qator bir satrli bo'ladi (maketdagi ДАТА kabi). */
