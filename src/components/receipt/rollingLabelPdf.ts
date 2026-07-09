@@ -28,9 +28,19 @@ import type { RollingLabelData, RollingPackData } from "./types"
 const PRINT_DPI = 300
 const PX_PER_MM = PRINT_DPI / 25.4
 
-/** Sahifa balandligi: oxirgi birka tanasining oxirida tugaydi. */
-export function pdfHeightMm(packCount: number, pitchMm: number): number {
-    return Math.max(0, packCount - 1) * pitchMm + LABEL_HEIGHT_MM
+/**
+ * Sahifa balandligi: oxirgi birka tanasining oxirida tugaydi, minus printer
+ * chop etishdan keyin o'zi suradigan ortiqcha qog'oz (`endTrimMm`).
+ *
+ * Qisqartirilgan qism — birka 180° aylantirilgani uchun — uning bo'sh shapka
+ * zonasiga to'g'ri keladi, shuning uchun hech qanday ma'lumot kesilmaydi.
+ */
+export function pdfHeightMm(
+    packCount: number,
+    pitchMm: number,
+    endTrimMm = 0,
+): number {
+    return Math.max(0, packCount - 1) * pitchMm + LABEL_HEIGHT_MM - endTrimMm
 }
 
 export function buildLabelsPdf(
@@ -39,7 +49,7 @@ export function buildLabelsPdf(
     calibration: LabelCalibration,
 ): Blob {
     const pitch = Math.max(calibration.pitchMm, LABEL_HEIGHT_MM)
-    const pageHeight = pdfHeightMm(packs.length, pitch)
+    const pageHeight = pdfHeightMm(packs.length, pitch, calibration.endTrimMm)
 
     const doc = new jsPDF({
         unit: "mm",

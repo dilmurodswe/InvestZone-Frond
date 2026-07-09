@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { drawRollingLabel } from "./drawRollingLabel"
 import {
     DEFAULT_CALIBRATION,
+    END_TRIM_RANGE_MM,
     NO_CALIBRATION,
     OFFSET_X_RANGE_MM,
     OFFSET_Y_RANGE_MM,
@@ -314,7 +315,8 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                     >
                         {showCal ? "▾" : "▸"} Printer kalibrovkasi
                         {cal.rotate180 ? " · 180°" : ""} · X {cal.offsetXMm} · Y{" "}
-                        {cal.offsetYMm} · qadam {cal.pitchMm}mm
+                        {cal.offsetYMm} · qadam {cal.pitchMm} · oxiri −
+                        {cal.endTrimMm}mm
                     </button>
 
                     {showCal && (
@@ -365,6 +367,15 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                                 range={PITCH_RANGE_MM}
                                 onChange={(pitchMm) =>
                                     setCal((c) => ({ ...c, pitchMm }))
+                                }
+                            />
+                            <OffsetField
+                                label="Oxirgi ortiqcha qog'oz"
+                                hint="chop etgach qancha ortiqcha chiqsa — shuncha"
+                                value={cal.endTrimMm}
+                                range={END_TRIM_RANGE_MM}
+                                onChange={(endTrimMm) =>
+                                    setCal((c) => ({ ...c, endTrimMm }))
                                 }
                             />
 

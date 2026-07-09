@@ -85,7 +85,10 @@ export function buildCalibrationPdf(calibration: LabelCalibration): Blob {
 
     const doc = new jsPDF({
         unit: "mm",
-        format: [LABEL_WIDTH_MM, pdfHeightMm(count, pitch)],
+        format: [
+            LABEL_WIDTH_MM,
+            pdfHeightMm(count, pitch, calibration.endTrimMm),
+        ],
         orientation: "portrait",
         compress: true,
     })

@@ -58,12 +58,17 @@ export const LABEL_CERTIFICATIONS = [
  *      bilan joylashtiriladi, shuning uchun oraliqni printer emas, biz
  *      belgilaymiz va xato birkadan birkaga to'planmaydi. Agar keyingi birka
  *      pastga surilsa — qadamni kamaytiring, yuqoriga sursa — oshiring.
+ *  - endTrimMm: chop etish tugagach printer ortiqcha suradigan qog'oz (mm).
+ *      Sahifani shuncha qisqartiramiz, shunda qog'oz aynan perforatsiyada
+ *      to'xtaydi. Birka 180° aylantirilgani uchun sahifaning oxiri birkaning
+ *      BO'SH shapka zonasiga to'g'ri keladi — ma'lumot kesilmaydi.
  */
 export type LabelCalibration = {
     offsetXMm: number
     offsetYMm: number
     rotate180: boolean
     pitchMm: number
+    endTrimMm: number
 }
 
 /**
@@ -79,10 +84,17 @@ export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetYMm: -25,
     rotate180: true,
     pitchMm: LABEL_HEIGHT_MM,
+    endTrimMm: 10,
 }
 
 /** Birka qadami chegarasi (mm) — tanadan kichik bo'lolmaydi. */
 export const PITCH_RANGE_MM = { min: LABEL_HEIGHT_MM, max: 170 }
+
+/**
+ * Oxirgi qisqartirish chegarasi: shapka zonasidan (32mm) oshib ketmasin,
+ * aks holda ma'lumotning bir qismi kesiladi.
+ */
+export const END_TRIM_RANGE_MM = { min: 0, max: HEADER_RESERVED_MM - 2 }
 
 /**
  * Siljish chegaralari: bundan oshsa matn sahifadan chiqib kesiladi.
@@ -106,10 +118,11 @@ export const NO_CALIBRATION: LabelCalibration = {
     offsetYMm: 0,
     rotate180: false,
     pitchMm: LABEL_HEIGHT_MM,
+    endTrimMm: 0,
 }
 
-// v5 — qadam maketdagi 130mm ga qaytarildi, eski saqlangan 139 bekor
-const STORAGE_KEY = "iz.rollingLabel.calibration.v5"
+// v6 — qadam 130mm, sahifa oxiri ortiqcha surishga qisqartiriladi
+const STORAGE_KEY = "iz.rollingLabel.calibration.v6"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
@@ -134,6 +147,10 @@ export function loadCalibration(): LabelCalibration {
                 typeof parsed.pitchMm === "number" ?
                     clampTo(parsed.pitchMm, PITCH_RANGE_MM)
                 :   DEFAULT_CALIBRATION.pitchMm,
+            endTrimMm:
+                typeof parsed.endTrimMm === "number" ?
+                    clampTo(parsed.endTrimMm, END_TRIM_RANGE_MM)
+                :   DEFAULT_CALIBRATION.endTrimMm,
         }
     } catch {
         return DEFAULT_CALIBRATION
