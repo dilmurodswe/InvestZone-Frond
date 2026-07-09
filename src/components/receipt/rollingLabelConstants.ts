@@ -80,14 +80,19 @@ export type LabelCalibration = {
  * ma'lumot pastga tushar va keyingi birka buzilardi. O'lcham to'g'rilangach
  * o'sha katta qoplama keraksiz bo'ldi.
  *
- * Qolgan `−15mm` — printer chop etib bo'lgach qog'ozni uzish qirrasiga suradi,
- * lekin keyingi ishdan oldin orqaga qaytarmaydi. Shu sabab HAR BIR yangi ish
- * perforatsiyadan ~15mm keyin boshlanadi. Miqdor o'zgarmas (bu kalla bilan
- * uzish qirrasi orasidagi masofa), shuning uchun bitta doimiy tuzatish yetadi.
- * Bitta ish ichidagi birkalar orasida xato to'planmaydi — ular bitta sahifada.
+ * Har bir ish perforatsiyadan ~15mm keyin boshlanadi (qog'oz o'sha holatda
+ * to'xtab qolgan). Shuning uchun ikkita tuzatish birga ishlaydi:
  *
- * Buni butunlay yo'qotish uchun drayverda `Post-Print Action` ni `Tear Off`
- * qilish kerak (o'shanda printer orqaga qaytaradi), ammo shart emas.
+ *  - offsetY = −15: ma'lumotni o'sha 15mm ga yuqoriga surib, birkaga to'g'ri
+ *      tushiradi.
+ *  - endTrim = 15: sahifani 15mm qisqartiradi, shunda u aynan perforatsiyada
+ *      tugaydi va printer ortiqcha qog'oz chiqarmaydi. Qisqargan qism —
+ *      birkaning bo'sh shapka zonasi (birka 180° aylantirilgan), ma'lumot
+ *      kesilmaydi. Chegara: maxEndTrimMm(−15) = 15, ya'ni aynan yetadi.
+ *
+ * Chop etilgach ko'rinadigan ~15mm — printerning bosuvchi kallasi bilan uzish
+ * qirrasi orasidagi masofa. U yo'qotilmaydi va behuda ketmaydi: bu keyingi
+ * birka, printer uni orqaga qaytarib ustiga bosadi.
  *
  * MUHIM: yorliq katta miqdorda siljisa, bu yerni emas, avval DRAYVERdagi
  * qog'oz o'lchamini tekshiring (80×130mm bo'lishi shart).
@@ -97,7 +102,7 @@ export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetYMm: -15,
     rotate180: true,
     pitchMm: LABEL_HEIGHT_MM,
-    endTrimMm: 0,
+    endTrimMm: 15,
 }
 
 /** Birka qadami chegarasi (mm) — tanadan kichik bo'lolmaydi. */
@@ -144,8 +149,8 @@ export const NO_CALIBRATION: LabelCalibration = {
     endTrimMm: 0,
 }
 
-// v12 — uzish planshetiga surish qoplandi (-15mm)
-const STORAGE_KEY = "iz.rollingLabel.calibration.v12"
+// v13 — Y=-15 va sahifa oxiri 15mm qisqartirildi
+const STORAGE_KEY = "iz.rollingLabel.calibration.v13"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
