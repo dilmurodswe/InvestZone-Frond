@@ -72,19 +72,22 @@ export type LabelCalibration = {
 }
 
 /**
- * Standart holat: hech qanday tuzatish kerak emas.
+ * Standart holat: drayverda yorliq o'lchami 80×130mm bo'lganda to'g'ri chiqadi.
  *
- * Uzoq vaqt bu yerda `offsetY = −25` turgan edi — u printer drayverida yorliq
- * o'lchami 4×6 dyuym (101.6×152.4mm) qilib qo'yilganini qoplab turgan. Drayver
- * 152mm suradi, birka esa 130mm — shundan har bir ish oldingisidan ~22mm kech
- * boshlanardi. Drayverda o'lcham 80×130mm ga to'g'rilangach, tuzatish keraksiz.
+ * Uzoq vaqt bu yerda `offsetY = −25` turgan edi — u drayverdagi 4×6 dyuymlik
+ * (101.6×152.4mm) noto'g'ri o'lchamni qoplab turgan. Drayver 152mm suradi,
+ * birka esa 130mm; shundan har bir ish oldingisidan ~22mm kech boshlanar,
+ * ma'lumot pastga tushar va keyingi birka buzilardi. O'lcham to'g'rilangach
+ * o'sha katta qoplama keraksiz bo'ldi.
  *
- * Ya'ni: yorliq siljigan bo'lsa, avval DRAYVERdagi qog'oz o'lchamini
- * tekshiring; bu yerdagi qiymatlar faqat qolgan 1-2mm uchun.
+ * Qolgan `−3mm` — TSC drayverining o'z kichik vertikal siljishi.
+ *
+ * MUHIM: yorliq katta miqdorda siljisa, bu yerni emas, avval DRAYVERdagi
+ * qog'oz o'lchamini tekshiring.
  */
 export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
-    offsetYMm: 0,
+    offsetYMm: -3,
     rotate180: true,
     pitchMm: LABEL_HEIGHT_MM,
     endTrimMm: 0,
@@ -134,8 +137,8 @@ export const NO_CALIBRATION: LabelCalibration = {
     endTrimMm: 0,
 }
 
-// v10 — drayverda qog'oz 80x130mm ga to'g'rilandi, tuzatish kerak emas
-const STORAGE_KEY = "iz.rollingLabel.calibration.v10"
+// v11 — drayver 80x130mm; faqat kichik -3mm vertikal tuzatish qoldi
+const STORAGE_KEY = "iz.rollingLabel.calibration.v11"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
