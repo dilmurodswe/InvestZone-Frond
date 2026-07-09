@@ -1,25 +1,25 @@
 /**
- * Prokatka/Prokatka yorlig'ini chop etish oynasi.
+ * Prokatka yorlig'ini chop etish oynasi.
  *
  * Oqim: tugma bosiladi → bu modal ochiladi (har pachka uchun to'ldirilgan
- * yorliq preview'i) → "Chop etish" bosilganda brauzerning printer tanlash
- * oynasi chiqadi → tanlangan printerga chiqadi. Qog'oz oldindan bosilgan
- * bo'lgani uchun chop etishda faqat ma'lumot (matn + QR) chiqadi.
+ * yorliq preview'i) → "Chop etish" bosilganda 80×130mm PDF yasaladi va
+ * brauzerning PDF ko'ruvchisida chop etish oynasi ochiladi.
+ *
+ * Preview va PDF bitta chizuvchidan (`drawRollingLabel`) chiqadi, shuning uchun
+ * ekranda ko'rgan narsangiz aynan qog'ozga tushadi.
  */
 
-import { useEffect, useMemo, useState } from "react"
-import {
-    buildPrintDocument,
-    labelStyles,
-    renderPackLabelHtml,
-} from "./renderRollingLabelHtml"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { drawRollingLabel } from "./drawRollingLabel"
 import {
     DEFAULT_CALIBRATION,
     MAX_OFFSET_X_MM,
     MAX_OFFSET_Y_MM,
+    NO_CALIBRATION,
     loadCalibration,
     saveCalibration,
 } from "./rollingLabelConstants"
+import { buildLabelsPdf, loadImage } from "./rollingLabelPdf"
 import { buildQrPayload, makeQrDataUrl } from "./rollingLabelQr"
 import type { RollingLabelData } from "./types"
 
@@ -96,8 +96,44 @@ function OffsetField({
     )
 }
 
+/** Ekrandagi preview — kalibrovkasiz, oldindan bosilgan qog'oz bilan. */
+function LabelPreview({
+    data,
+    packIndex,
+    qrImages,
+}: {
+    data: RollingLabelData
+    packIndex: number
+    qrImages: HTMLImageElement[] | null
+}) {
+    const holder = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const node = holder.current
+        const pack = data.packs[packIndex]
+        if (!node || !pack) return
+
+        const canvas = drawRollingLabel({
+            data,
+            pack,
+            qr: qrImages?.[packIndex] ?? null,
+            pxPerMm: 8,
+            guide: true,
+            calibration: NO_CALIBRATION,
+        })
+        canvas.style.width = "260px"
+        canvas.style.height = "auto"
+        canvas.style.display = "block"
+        canvas.style.boxShadow = "0 4px 14px rgba(0,0,0,0.18)"
+
+        node.replaceChildren(canvas)
+    }, [data, packIndex, qrImages])
+
+    return <div ref={holder} />
+}
+
 export function RollingLabelPrinter({ data, onFinish }: Props) {
-    const [qrUrls, setQrUrls] = useState<string[] | null>(null)
+    const [qrImages, setQrImages] = useState<HTMLImageElement[] | null>(null)
     const [active, setActive] = useState(0)
     const [error, setError] = useState<string | null>(null)
     const [cal, setCal] = useState(loadCalibration)
@@ -107,17 +143,19 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
         saveCalibration(cal)
     }, [cal])
 
-    const packs = data.packs?.length ? data.packs : []
+    const packs = useMemo(() => data.packs ?? [], [data])
 
-    // Har bir pachka uchun QR rasm (data-URL) tayyorlash
+    // Har bir pachka uchun QR rasm
     useEffect(() => {
         let cancelled = false
         ;(async () => {
             try {
-                const urls = await Promise.all(
-                    packs.map((p) => makeQrDataUrl(buildQrPayload(data, p))),
+                const images = await Promise.all(
+                    packs.map(async (p) =>
+                        loadImage(await makeQrDataUrl(buildQrPayload(data, p))),
+                    ),
                 )
-                if (!cancelled) setQrUrls(urls)
+                if (!cancelled) setQrImages(images)
             } catch (e) {
                 if (!cancelled) setError(`QR yaratishda xatolik: ${e}`)
             }
@@ -125,71 +163,35 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
         return () => {
             cancelled = true
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data])
-
-    // Har bir pachka yorlig'ining HTML'i
-    const labelsHtml = useMemo(() => {
-        if (!qrUrls) return []
-        return packs.map((p, i) => renderPackLabelHtml(data, p, qrUrls[i]))
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [qrUrls, data])
+    }, [data, packs])
 
     const doPrint = (indexes: number[]) => {
-        if (!labelsHtml.length) return
-        const selected = indexes.map((i) => labelsHtml[i]).filter(Boolean)
-        const doc = buildPrintDocument(selected, cal)
-
-        const iframe = document.createElement("iframe")
-        iframe.style.position = "fixed"
-        iframe.style.right = "0"
-        iframe.style.bottom = "0"
-        iframe.style.width = "0"
-        iframe.style.height = "0"
-        iframe.style.border = "0"
-
-        const cleanup = () => {
-            setTimeout(() => iframe.remove(), 1000)
-        }
-
-        iframe.onload = () => {
-            const win = iframe.contentWindow
-            const doc = iframe.contentDocument
-            if (!win || !doc) return cleanup()
-
-            // QR rasm(lar) to'liq yuklanmasa, print bo'sh joy chiqaradi
-            const images = Array.from(doc.images)
-            const ready = images.map((img) =>
-                img.complete ?
-                    Promise.resolve()
-                :   img.decode().catch(
-                        () =>
-                            new Promise<void>((res) => {
-                                img.onload = img.onerror = () => res()
-                            }),
-                    ),
+        if (!qrImages) return
+        try {
+            const blob = buildLabelsPdf(
+                data,
+                indexes.map((i) => packs[i]),
+                indexes.map((i) => qrImages[i]),
+                cal,
             )
-
-            void Promise.all(ready).then(() => {
-                win.focus()
-                win.print()
-                cleanup()
-            })
+            const url = URL.createObjectURL(blob)
+            const win = window.open(url, "_blank")
+            if (!win) {
+                // Popup bloklangan bo'lsa — yuklab olishga tushamiz
+                const a = document.createElement("a")
+                a.href = url
+                a.download = `yorliq-${data.planNumber}.pdf`
+                a.click()
+            }
+            setTimeout(() => URL.revokeObjectURL(url), 60_000)
+        } catch (e) {
+            setError(`PDF yasashda xatolik: ${e}`)
         }
-
-        iframe.srcdoc = doc
-        document.body.appendChild(iframe)
     }
 
     const printAll = () => doPrint(packs.map((_, i) => i))
     const printCurrent = () => doPrint([active])
-
-    // Preview uchun bitta yorliqning HTML'i (yo'riqchi bilan)
-    const previewHtml = useMemo(() => {
-        if (!qrUrls || !packs[active]) return ""
-        return renderPackLabelHtml(data, packs[active], qrUrls[active])
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [qrUrls, active, data])
+    const ready = qrImages !== null && packs.length > 0
 
     return (
         <div
@@ -219,6 +221,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                     flexDirection: "column",
                     gap: "0.85rem",
                     boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+                    overflowY: "auto",
                 }}
             >
                 <div
@@ -248,35 +251,21 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                     </p>
                 )}
 
-                {/* Preview */}
                 <div
                     style={{
                         display: "flex",
                         justifyContent: "center",
-                        alignItems: "flex-start",
-                        overflow: "auto",
                         background: "#f3f4f6",
                         borderRadius: "0.5rem",
                         padding: "1rem",
-                        maxHeight: "60vh",
                     }}
                 >
-                    {previewHtml ?
-                        <div
-                            style={{
-                                transform: "scale(0.9)",
-                                transformOrigin: "top center",
-                                boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
-                            }}
-                        >
-                            <style>{labelStyles()}</style>
-                            <div
-                                // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml
-                                dangerouslySetInnerHTML={{
-                                    __html: previewHtml,
-                                }}
-                            />
-                        </div>
+                    {ready ?
+                        <LabelPreview
+                            data={data}
+                            packIndex={active}
+                            qrImages={qrImages}
+                        />
                     :   <p
                             style={{
                                 fontSize: 13,
@@ -289,7 +278,6 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                     }
                 </div>
 
-                {/* Pachka navigatsiyasi */}
                 {packs.length > 1 && (
                     <div
                         style={{
@@ -362,9 +350,9 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                                     color: "#6b7280",
                                 }}
                             >
-                                Faqat chop etishda qo'llanadi. Chapga surish
-                                uchun X'ni kamaytiring, yuqoriga surish uchun
-                                Y'ni kamaytiring.
+                                Faqat chop etishda qo'llanadi. Qog'ozda ma'lumot
+                                chapga siljigan bo'lsa X'ni oshiring, yuqoriga
+                                siljigan bo'lsa Y'ni oshiring.
                             </p>
 
                             <OffsetField
@@ -434,13 +422,9 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                                     color: "#b45309",
                                 }}
                             >
-                                <strong>Avval printer oynasini sozlang:</strong>{" "}
-                                «Kolontitullar / Колонтитулы / Headers and
-                                footers» — <strong>o'chirilgan</strong>,
-                                «Masshtab / Scale» — 100%, «Chetlari / Поля /
-                                Margins» — yo'q. Kolontitul yoqilgan bo'lsa
-                                brauzer sahifani kichraytirib suradi va hech
-                                qanday kalibrovka yordam bermaydi.
+                                Chop etish oynasida «Masshtab / Масштаб / Scale»
+                                — <strong>100% (Actual size)</strong> bo'lsin,
+                                «Fit to printable area» emas.
                             </p>
                         </div>
                     )}
@@ -466,7 +450,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                     {packs.length > 1 && (
                         <button
                             onClick={printCurrent}
-                            disabled={!labelsHtml.length}
+                            disabled={!ready}
                             style={{
                                 flex: 1,
                                 padding: "0.6rem 1rem",
@@ -476,7 +460,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                                 borderRadius: "0.5rem",
                                 cursor: "pointer",
                                 fontWeight: 700,
-                                opacity: labelsHtml.length ? 1 : 0.5,
+                                opacity: ready ? 1 : 0.5,
                             }}
                         >
                             Shu pachka
@@ -484,7 +468,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                     )}
                     <button
                         onClick={printAll}
-                        disabled={!labelsHtml.length}
+                        disabled={!ready}
                         style={{
                             flex: 1,
                             padding: "0.6rem 1rem",
@@ -494,7 +478,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                             borderRadius: "0.5rem",
                             cursor: "pointer",
                             fontWeight: 700,
-                            opacity: labelsHtml.length ? 1 : 0.5,
+                            opacity: ready ? 1 : 0.5,
                         }}
                     >
                         Chop etish{packs.length > 1 ? ` (${packs.length})` : ""}

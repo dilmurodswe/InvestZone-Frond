@@ -25,17 +25,20 @@ export const LABEL_HEIGHT_MM = 130
  */
 export const HEADER_RESERVED_MM = 32
 export const FOOTER_RESERVED_MM = 12
-export const LEFT_PADDING_MM = 6
-export const RIGHT_PADDING_MM = 6
+export const LEFT_PADDING_MM = 5
+export const RIGHT_PADDING_MM = 5
+
+/** QR tomoni (mm) — birka pastida, chap tomonda. */
+export const QR_SIZE_MM = 14
+
+/** Sertifikatning o'ng chekinishi — STZ logotipiga tegmasligi uchun (mm). */
+export const CERT_RIGHT_INSET_MM = 15
 
 /**
- * Sertifikat matni birkaning pastida BIZ tomonimizdan chop etiladi
- * (maket bo'yicha u qizil ramka ichidagi chop etiladigan zonaga kiradi —
- * qog'ozda oldindan bosilgani faqat logotip, manzil va STZ belgisi).
+ * Pastdagi o'zgarmas sertifikat matnlari (yorliqda + QR payload'ida).
+ * Maket bo'yicha ular qizil ramka ichidagi chop etiladigan zonaga kiradi —
+ * qog'ozda oldindan bosilgani faqat logotip, manzil va STZ belgisi.
  */
-export const SHOW_CERT_TEXT = true
-
-/** Pastdagi o'zgarmas sertifikat matnlari (yorliqda + QR payload'ida). */
 export const LABEL_CERTIFICATIONS = [
     "ISO 9001:2015-000351/A/176-12-25",
     "UZTR.319-004:2015",
