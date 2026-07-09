@@ -72,18 +72,19 @@ export type LabelCalibration = {
 }
 
 /**
- * Sinovda tasdiqlangan qiymatlar (birka to'liq va joyida chiqadi).
+ * Standart holat: hech qanday tuzatish kerak emas.
  *
- * offsetY = −25: printer har bir ishni perforatsiyadan ~25mm keyin boshlaydi,
- * chunki oldingi ishdan so'ng qog'ozni uzish planshetiga surib, orqaga
- * qaytarmaydi. Buni sahifani qisqartirish bilan bartaraf qilib bo'lmaydi —
- * printer sahifa tugagach baribir o'sha masofani suradi (sinab ko'rilgan).
- * Shu sabab endTrim = 0, ortiqcha surish esa printer drayverida
- * ("tear-off / back-feed") sozlanishi kerak.
+ * Uzoq vaqt bu yerda `offsetY = −25` turgan edi — u printer drayverida yorliq
+ * o'lchami 4×6 dyuym (101.6×152.4mm) qilib qo'yilganini qoplab turgan. Drayver
+ * 152mm suradi, birka esa 130mm — shundan har bir ish oldingisidan ~22mm kech
+ * boshlanardi. Drayverda o'lcham 80×130mm ga to'g'rilangach, tuzatish keraksiz.
+ *
+ * Ya'ni: yorliq siljigan bo'lsa, avval DRAYVERdagi qog'oz o'lchamini
+ * tekshiring; bu yerdagi qiymatlar faqat qolgan 1-2mm uchun.
  */
 export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
-    offsetYMm: -25,
+    offsetYMm: 0,
     rotate180: true,
     pitchMm: LABEL_HEIGHT_MM,
     endTrimMm: 0,
@@ -133,8 +134,8 @@ export const NO_CALIBRATION: LabelCalibration = {
     endTrimMm: 0,
 }
 
-// v9 — sinovda tasdiqlangan qiymatlarga qaytarildi
-const STORAGE_KEY = "iz.rollingLabel.calibration.v9"
+// v10 — drayverda qog'oz 80x130mm ga to'g'rilandi, tuzatish kerak emas
+const STORAGE_KEY = "iz.rollingLabel.calibration.v10"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
