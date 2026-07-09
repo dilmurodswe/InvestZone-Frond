@@ -80,26 +80,22 @@ export type LabelCalibration = {
  * ma'lumot pastga tushar va keyingi birka buzilardi. O'lcham to'g'rilangach
  * o'sha katta qoplama keraksiz bo'ldi.
  *
- * Har bir ish perforatsiyadan ~15mm keyin boshlanadi (qog'oz o'sha holatda
- * to'xtab qolgan). Shuning uchun ikkita tuzatish birga ishlaydi:
+ * `endTrim = 15`: sahifani 15mm qisqartiradi, shunda u aynan perforatsiyada
+ * tugaydi va printer ortiqcha qog'oz chiqarmaydi. Qisqargan qism — birkaning
+ * bo'sh shapka zonasi (birka 180° aylantirilgan), ma'lumot kesilmaydi.
  *
- *  - offsetY = −15: ma'lumotni o'sha 15mm ga yuqoriga surib, birkaga to'g'ri
- *      tushiradi.
- *  - endTrim = 15: sahifani 15mm qisqartiradi, shunda u aynan perforatsiyada
- *      tugaydi va printer ortiqcha qog'oz chiqarmaydi. Qisqargan qism —
- *      birkaning bo'sh shapka zonasi (birka 180° aylantirilgan), ma'lumot
- *      kesilmaydi. Chegara: maxEndTrimMm(−15) = 15, ya'ni aynan yetadi.
+ * Shundan keyin har bir ish perforatsiyadan boshlanadi, shuning uchun vertikal
+ * tuzatish kerak emas (`offsetY = 0`). Ilgari bu yerda turgan `−15` endi
+ * ma'lumotni shapka ustiga chiqarib yuboradi.
  *
- * Chop etilgach ko'rinadigan ~15mm — printerning bosuvchi kallasi bilan uzish
- * qirrasi orasidagi masofa. U yo'qotilmaydi va behuda ketmaydi: bu keyingi
- * birka, printer uni orqaga qaytarib ustiga bosadi.
+ * `offsetX = 2`: TSC drayverining kichik gorizontal siljishi.
  *
  * MUHIM: yorliq katta miqdorda siljisa, bu yerni emas, avval DRAYVERdagi
  * qog'oz o'lchamini tekshiring (80×130mm bo'lishi shart).
  */
 export const DEFAULT_CALIBRATION: LabelCalibration = {
-    offsetXMm: 0,
-    offsetYMm: -15,
+    offsetXMm: 2,
+    offsetYMm: 0,
     rotate180: true,
     pitchMm: LABEL_HEIGHT_MM,
     endTrimMm: 15,
@@ -149,8 +145,8 @@ export const NO_CALIBRATION: LabelCalibration = {
     endTrimMm: 0,
 }
 
-// v13 — Y=-15 va sahifa oxiri 15mm qisqartirildi
-const STORAGE_KEY = "iz.rollingLabel.calibration.v13"
+// v14 — sahifa oxiri 15mm qisqartirilgach Y tuzatishi kerak emas
+const STORAGE_KEY = "iz.rollingLabel.calibration.v14"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
