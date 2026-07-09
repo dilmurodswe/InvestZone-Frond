@@ -15,6 +15,8 @@ import {
 } from "./renderRollingLabelHtml"
 import {
     DEFAULT_CALIBRATION,
+    MAX_OFFSET_X_MM,
+    MAX_OFFSET_Y_MM,
     loadCalibration,
     saveCalibration,
 } from "./rollingLabelConstants"
@@ -31,14 +33,16 @@ function OffsetField({
     label,
     hint,
     value,
+    max,
     onChange,
 }: {
     label: string
     hint: string
     value: number
+    max: number
     onChange: (v: number) => void
 }) {
-    const clamp = (v: number) => Math.max(-40, Math.min(40, v))
+    const clamp = (v: number) => Math.max(-max, Math.min(max, v))
     const btn = {
         width: 28,
         height: 28,
@@ -365,16 +369,18 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
 
                             <OffsetField
                                 label="Gorizontal (X)"
-                                hint="− chapga / + o'ngga"
+                                hint={`− chapga / + o'ngga · max ${MAX_OFFSET_X_MM}mm`}
                                 value={cal.offsetXMm}
+                                max={MAX_OFFSET_X_MM}
                                 onChange={(offsetXMm) =>
                                     setCal((c) => ({ ...c, offsetXMm }))
                                 }
                             />
                             <OffsetField
                                 label="Vertikal (Y)"
-                                hint="− yuqoriga / + pastga"
+                                hint={`− yuqoriga / + pastga · max ${MAX_OFFSET_Y_MM}mm`}
                                 value={cal.offsetYMm}
+                                max={MAX_OFFSET_Y_MM}
                                 onChange={(offsetYMm) =>
                                     setCal((c) => ({ ...c, offsetYMm }))
                                 }
@@ -428,9 +434,13 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                                     color: "#b45309",
                                 }}
                             >
-                                Printer oynasida «Kolontitullar / Headers and
-                                footers» belgisini olib tashlang va «Masshtab /
-                                Scale» = 100% qiling.
+                                <strong>Avval printer oynasini sozlang:</strong>{" "}
+                                «Kolontitullar / Колонтитулы / Headers and
+                                footers» — <strong>o'chirilgan</strong>,
+                                «Masshtab / Scale» — 100%, «Chetlari / Поля /
+                                Margins» — yo'q. Kolontitul yoqilgan bo'lsa
+                                brauzer sahifani kichraytirib suradi va hech
+                                qanday kalibrovka yordam bermaydi.
                             </p>
                         </div>
                     )}

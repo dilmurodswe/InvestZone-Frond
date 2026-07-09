@@ -21,22 +21,21 @@ export const LABEL_HEIGHT_MM = 130
  *  - LEFT/RIGHT_PADDING_MM: qizil ramkadan ichkariga chekinish.
  *
  * DIQQAT: chekinish kalibrovka siljishidan KATTA bo'lishi shart, aks holda
- * siljitilgan matn sahifa chekkasidan chiqib kesiladi. Standart offsetX = −7mm
- * bo'lgani uchun LEFT_PADDING_MM = 12 (zaxira 5mm).
+ * siljitilgan matn sahifa chekkasidan chiqib kesiladi (|offsetXMm| ≤ padding).
  */
 export const HEADER_RESERVED_MM = 32
-export const FOOTER_RESERVED_MM = 14
-export const LEFT_PADDING_MM = 12
+export const FOOTER_RESERVED_MM = 12
+export const LEFT_PADDING_MM = 6
 export const RIGHT_PADDING_MM = 6
 
 /**
- * Sertifikat matni qog'ozda ALLAQACHON bosilgan (INVEST ZONE shapkasi ichida).
- * Shu sabab uni qayta chop etmaymiz — aks holda ustma-ust tushadi.
- * Ma'lumot QR ichida baribir saqlanadi.
+ * Sertifikat matni birkaning pastida BIZ tomonimizdan chop etiladi
+ * (maket bo'yicha u qizil ramka ichidagi chop etiladigan zonaga kiradi —
+ * qog'ozda oldindan bosilgani faqat logotip, manzil va STZ belgisi).
  */
-export const SHOW_CERT_TEXT = false
+export const SHOW_CERT_TEXT = true
 
-/** Pastdagi o'zgarmas sertifikat matnlari (QR payload'i uchun). */
+/** Pastdagi o'zgarmas sertifikat matnlari (yorliqda + QR payload'ida). */
 export const LABEL_CERTIFICATIONS = [
     "ISO 9001:2015-000351/A/176-12-25",
     "UZTR.319-004:2015",
@@ -51,8 +50,11 @@ export const LABEL_CERTIFICATIONS = [
  *  - offsetYMm: musbat = PASTGA, manfiy = YUQORIGA (qog'oz ko'rinishida).
  *  - rotate180: birkani 180° aylantirib chop etish (qog'oz teskari kelsa).
  *
- * Foydalanuvchi bu qiymatlarni chop etish oynasidan o'zgartira oladi;
- * tanlovi brauzerda saqlanadi.
+ * Standart qiymat 0 — chunki `@page { margin: 0 }` bilan sahifa aynan birka
+ * o'lchamida chiqadi. Agar chop etish oynasida "Kolontitullar / Headers and
+ * footers" YOQILGAN bo'lsa, Chrome bu qoidani bekor qiladi, sahifani ~2.5%
+ * kichraytiradi va suradi — avval o'sha belgini olib tashlang, keyingina
+ * qolgan 1-2mm siljishni shu yerdan sozlang.
  */
 export type LabelCalibration = {
     offsetXMm: number
@@ -61,10 +63,17 @@ export type LabelCalibration = {
 }
 
 export const DEFAULT_CALIBRATION: LabelCalibration = {
-    offsetXMm: -7,
-    offsetYMm: -15,
+    offsetXMm: 0,
+    offsetYMm: 0,
     rotate180: true,
 }
+
+/**
+ * Siljish chegaralari: bundan oshsa matn sahifa chetidan chiqib kesiladi.
+ * X — chekinish (padding) qadar, Y — pastdagi zaxira zona qadar.
+ */
+export const MAX_OFFSET_X_MM = Math.min(LEFT_PADDING_MM, RIGHT_PADDING_MM)
+export const MAX_OFFSET_Y_MM = FOOTER_RESERVED_MM
 
 export const NO_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
@@ -72,7 +81,8 @@ export const NO_CALIBRATION: LabelCalibration = {
     rotate180: false,
 }
 
-const STORAGE_KEY = "iz.rollingLabel.calibration"
+// v2 — maket qayta o'lchangani uchun eski saqlangan qiymatlar bekor qilindi
+const STORAGE_KEY = "iz.rollingLabel.calibration.v2"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {

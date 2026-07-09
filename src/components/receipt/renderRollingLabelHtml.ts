@@ -38,45 +38,57 @@ const esc = (v: unknown): string =>
             })[c]!,
     )
 
-type FieldRow = { en: string; ru: string; value: string }
+/**
+ * Bitta qator: chapda EN/RU nomi, o'ngda qiymat(lar).
+ * `values` ikkita bo'lsa — har biri o'z nomi qatoriga to'g'rilanadi
+ * (maketdagi SPECIFICATION / СТАНДАРТ НТД qatori kabi).
+ */
+type FieldRow = { en: string; ru: string; values: string[] }
 
 function buildRows(data: RollingLabelData, pack: RollingPackData): FieldRow[] {
+    // Maketda SPECIFICATION va СТАНДАРТ НТД alohida qiymatlar (ГОСТ 13663-86 /
+    // ГОСТ 8639-82). Faqat bittasi bo'lsa — bitta qiymat markazda chiqadi.
+    const standards =
+        data.specification && data.specification !== data.standard ?
+            [data.specification, data.standard]
+        :   [data.specification || data.standard]
+
     return [
-        { en: "DATE", ru: "ДАТА", value: data.productionDate },
+        { en: "DATE", ru: "ДАТА", values: [data.productionDate] },
         {
             en: "TUBE SIZE, MM",
             ru: "РАЗМЕР ТРУБЫ, ММ",
-            value: data.tubeSize,
+            values: [data.tubeSize],
         },
         {
             en: "SPECIFICATION",
             ru: "СТАНДАРТ НТД",
-            value: data.specification || data.standard,
+            values: standards,
         },
         {
             en: "STEEL GRADE",
             ru: "МАРКА СТАЛИ",
-            value: data.steelGrade,
+            values: [data.steelGrade],
         },
         {
             en: "BATCH No.",
             ru: "ПАРТИЯ №",
-            value: data.planNumber,
+            values: [data.planNumber],
         },
         {
             en: "PACK No.",
             ru: "ПАЧКА №",
-            value: pack.packNumber,
+            values: [pack.packNumber],
         },
         {
             en: "LENGTH, M",
             ru: "ДЛИНА, М",
-            value: metersFromMm(data.length),
+            values: [metersFromMm(data.length)],
         },
         {
             en: "TOTAL LENGTH, M",
             ru: "ОБЩАЯ ДЛИНА, М",
-            value: data.totalLength != null ? String(data.totalLength) : "—",
+            values: [data.totalLength != null ? String(data.totalLength) : "—"],
         },
     ]
 }
@@ -97,7 +109,9 @@ export function renderPackLabelHtml(
             <span class="iz-en">${esc(r.en)}</span>
             <span class="iz-ru">${esc(r.ru)}</span>
           </div>
-          <div class="iz-value-cell">${esc(r.value)}</div>
+          <div class="iz-value-cell">
+            ${r.values.map((v) => `<span>${esc(v)}</span>`).join("")}
+          </div>
         </div>`,
         )
         .join("")
@@ -105,7 +119,7 @@ export function renderPackLabelHtml(
     const certHtml =
         SHOW_CERT_TEXT ?
             `<div class="iz-cert">${LABEL_CERTIFICATIONS.map(
-                (c) => `<div>${esc(c)}</div>`,
+                (c) => `<span>${esc(c)}</span>`,
             ).join("")}</div>`
         :   ""
 
@@ -266,10 +280,17 @@ export function labelStyles(cal: LabelCalibration = NO_CALIBRATION): string {
 
     .iz-value-cell {
       flex: 0 1 auto;
-      max-width: 55%;
-      text-align: right;
+      max-width: 58%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      line-height: 1.05;
       font-size: 3.4mm;
       font-weight: 800;
+    }
+    .iz-value-cell > span {
+      max-width: 100%;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -278,8 +299,8 @@ export function labelStyles(cal: LabelCalibration = NO_CALIBRATION): string {
     .iz-footer {
       flex: 0 0 auto;
       display: flex;
-      align-items: flex-end;
-      gap: 2.5mm;
+      flex-direction: column;
+      gap: 1mm;
       padding-top: 1.5mm;
     }
     .iz-qr {
@@ -288,14 +309,19 @@ export function labelStyles(cal: LabelCalibration = NO_CALIBRATION): string {
       display: block;
       image-rendering: pixelated;
     }
+    /*
+     * Sertifikatlar: chapda ISO, o'ngda UZTR (maketdagidek bitta qatorda).
+     * O'ng chekinish — qog'ozda oldindan bosilgan STZ logotipiga tegmasligi uchun.
+     */
     .iz-cert {
       display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      gap: 0.6mm;
-      font-size: 2.2mm;
+      justify-content: space-between;
+      gap: 2mm;
+      padding-right: 16mm;
+      font-size: 2.1mm;
       font-weight: 600;
       letter-spacing: 0.1px;
+      white-space: nowrap;
       color: #000;
     }
   `
