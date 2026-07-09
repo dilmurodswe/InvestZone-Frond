@@ -53,11 +53,11 @@ export const LABEL_CERTIFICATIONS = [
  *  - offsetXMm: musbat = O'NGGA, manfiy = CHAPGA (qog'oz ko'rinishida).
  *  - offsetYMm: musbat = PASTGA, manfiy = YUQORIGA (qog'oz ko'rinishida).
  *  - rotate180: birkani 180° aylantirib chop etish (qog'oz teskari kelsa).
- *  - pitchMm: qo'shni ikki birkaning boshlanishi orasidagi masofa —
- *      130mm tana + perforatsiya kesigi. Barcha birkalar BITTA uzun sahifaga
- *      shu qadam bilan joylashtiriladi, shuning uchun oraliqni printer emas,
- *      biz belgilaymiz va xato to'planmaydi. Agar keyingi birka pastga
- *      surilsa — qadamni kamaytiring, yuqoriga sursa — oshiring.
+ *  - pitchMm: qo'shni ikki birkaning perforatsiyalari orasidagi masofa.
+ *      Maket bo'yicha 130mm. Barcha birkalar BITTA uzun sahifaga shu qadam
+ *      bilan joylashtiriladi, shuning uchun oraliqni printer emas, biz
+ *      belgilaymiz va xato birkadan birkaga to'planmaydi. Agar keyingi birka
+ *      pastga surilsa — qadamni kamaytiring, yuqoriga sursa — oshiring.
  */
 export type LabelCalibration = {
     offsetXMm: number
@@ -67,16 +67,18 @@ export type LabelCalibration = {
 }
 
 /**
- * Standart qiymatlar sexdagi printerdan chiqqan birkalarni o'lchash orqali
- * topilgan: ma'lumot doim ~25mm pastga tushar edi, va har bir keyingi birka
- * yana ~15mm pastga surilardi (printer bir birka uchun perforatsiya qadamidan
- * kam qog'oz surgani uchun). Qadam = 130mm tana + ~9mm perforatsiya.
+ * Qadam = 130mm — maketdagi ("Макет бумаги") perforatsiyadan perforatsiyagacha
+ * bo'lgan o'lcham. Shu sabab bitta birka uchun sahifa aynan 130mm bo'ladi va
+ * printer perforatsiyada to'xtaydi, ortiqcha qog'oz chiqarmaydi.
+ *
+ * offsetY sexdagi printerdan chiqqan birkalarni o'lchash orqali topilgan:
+ * ma'lumot doim ~25mm pastga tushardi.
  */
 export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
     offsetYMm: -25,
     rotate180: true,
-    pitchMm: 139,
+    pitchMm: LABEL_HEIGHT_MM,
 }
 
 /** Birka qadami chegarasi (mm) — tanadan kichik bo'lolmaydi. */
@@ -106,8 +108,8 @@ export const NO_CALIBRATION: LabelCalibration = {
     pitchMm: LABEL_HEIGHT_MM,
 }
 
-// v4 — sahifa balandligi o'rniga birka qadami saqlanadi
-const STORAGE_KEY = "iz.rollingLabel.calibration.v4"
+// v5 — qadam maketdagi 130mm ga qaytarildi, eski saqlangan 139 bekor
+const STORAGE_KEY = "iz.rollingLabel.calibration.v5"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
