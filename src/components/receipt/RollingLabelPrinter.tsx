@@ -20,8 +20,7 @@ import {
     loadCalibration,
     saveCalibration,
 } from "./rollingLabelConstants"
-import { buildLabelsPdf, loadImage } from "./rollingLabelPdf"
-import { buildQrPayload, makeQrDataUrl } from "./rollingLabelQr"
+import { buildLabelsPdf } from "./rollingLabelPdf"
 import type { RollingLabelData } from "./types"
 
 type Props = {
@@ -101,11 +100,9 @@ function OffsetField({
 function LabelPreview({
     data,
     packIndex,
-    qrImages,
 }: {
     data: RollingLabelData
     packIndex: number
-    qrImages: HTMLImageElement[] | null
 }) {
     const holder = useRef<HTMLDivElement>(null)
 
@@ -117,7 +114,6 @@ function LabelPreview({
         const canvas = drawRollingLabel({
             data,
             pack,
-            qr: qrImages?.[packIndex] ?? null,
             pxPerMm: 8,
             guide: true,
             calibration: NO_CALIBRATION,
@@ -128,13 +124,12 @@ function LabelPreview({
         canvas.style.boxShadow = "0 4px 14px rgba(0,0,0,0.18)"
 
         node.replaceChildren(canvas)
-    }, [data, packIndex, qrImages])
+    }, [data, packIndex])
 
     return <div ref={holder} />
 }
 
 export function RollingLabelPrinter({ data, onFinish }: Props) {
-    const [qrImages, setQrImages] = useState<HTMLImageElement[] | null>(null)
     const [active, setActive] = useState(0)
     const [error, setError] = useState<string | null>(null)
     const [cal, setCal] = useState(loadCalibration)
@@ -146,33 +141,11 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
 
     const packs = useMemo(() => data.packs ?? [], [data])
 
-    // Har bir pachka uchun QR rasm
-    useEffect(() => {
-        let cancelled = false
-        ;(async () => {
-            try {
-                const images = await Promise.all(
-                    packs.map(async (p) =>
-                        loadImage(await makeQrDataUrl(buildQrPayload(data, p))),
-                    ),
-                )
-                if (!cancelled) setQrImages(images)
-            } catch (e) {
-                if (!cancelled) setError(`QR yaratishda xatolik: ${e}`)
-            }
-        })()
-        return () => {
-            cancelled = true
-        }
-    }, [data, packs])
-
     const doPrint = (indexes: number[]) => {
-        if (!qrImages) return
         try {
             const blob = buildLabelsPdf(
                 data,
                 indexes.map((i) => packs[i]),
-                indexes.map((i) => qrImages[i]),
                 cal,
             )
             const url = URL.createObjectURL(blob)
@@ -192,7 +165,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
 
     const printAll = () => doPrint(packs.map((_, i) => i))
     const printCurrent = () => doPrint([active])
-    const ready = qrImages !== null && packs.length > 0
+    const ready = packs.length > 0
 
     return (
         <div
@@ -262,11 +235,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                     }}
                 >
                     {ready ?
-                        <LabelPreview
-                            data={data}
-                            packIndex={active}
-                            qrImages={qrImages}
-                        />
+                        <LabelPreview data={data} packIndex={active} />
                     :   <p
                             style={{
                                 fontSize: 13,
@@ -274,7 +243,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                                 padding: "2rem",
                             }}
                         >
-                            Yorliq tayyorlanmoqda…
+                            Pachka topilmadi
                         </p>
                     }
                 </div>

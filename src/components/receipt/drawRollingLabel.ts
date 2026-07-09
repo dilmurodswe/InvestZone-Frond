@@ -11,7 +11,10 @@
  * chiqishda `rotate180` butun birkani aylantiradi.
  */
 
+import { drawCode128 } from "./code128"
 import {
+    BARCODE_HEIGHT_MM,
+    BARCODE_WIDTH_MM,
     CERT_RIGHT_INSET_MM,
     FOOTER_RESERVED_MM,
     HEADER_RESERVED_MM,
@@ -19,13 +22,13 @@ import {
     LABEL_HEIGHT_MM,
     LABEL_WIDTH_MM,
     LEFT_PADDING_MM,
-    QR_SIZE_MM,
     RIGHT_PADDING_MM,
     type LabelCalibration,
 } from "./rollingLabelConstants"
-import { metersFromMm } from "./rollingLabelQr"
+import { buildBarcodePayload, metersFromMm } from "./rollingLabelQr"
 import type { RollingLabelData, RollingPackData } from "./types"
 
+/** `en` bo'sh bo'lsa qator bir satrli bo'ladi (maketdagi ДАТА kabi). */
 type FieldRow = { en: string; ru: string; values: string[] }
 
 function buildRows(data: RollingLabelData, pack: RollingPackData): FieldRow[] {
@@ -37,7 +40,7 @@ function buildRows(data: RollingLabelData, pack: RollingPackData): FieldRow[] {
         :   [data.specification || data.standard]
 
     return [
-        { en: "DATE", ru: "ДАТА", values: [data.productionDate] },
+        { en: "", ru: "ДАТА", values: [data.productionDate] },
         {
             en: "TUBE SIZE, MM",
             ru: "РАЗМЕР ТРУБЫ, ММ",
@@ -62,19 +65,18 @@ function buildRows(data: RollingLabelData, pack: RollingPackData): FieldRow[] {
 
 const FONT = "Arial, Helvetica, sans-serif"
 
-// Qatorlar ichidagi shrift o'lchamlari (mm)
-const LABEL_FONT_MM = 2.6
-const VALUE_FONT_MM = 3.6
-const VALUE_FONT_DUAL_MM = 3.1
+// Shrift o'lchamlari (mm) — maketdagi birkaga moslangan
+const LABEL_FONT_MM = 3.0
+const VALUE_FONT_MM = 4.2
+const VALUE_FONT_DUAL_MM = 3.6
 const CERT_FONT_MM = 2.1
 
-const FOOTER_BAND_MM = QR_SIZE_MM + 4 // QR + sertifikat qatori
+/** Pastdagi blok: shtrix-kod + sertifikat qatori. */
+const FOOTER_BAND_MM = BARCODE_HEIGHT_MM + 5
 
 export type DrawOptions = {
     data: RollingLabelData
     pack: RollingPackData
-    /** QR rasmi (yuklab bo'lingan). */
-    qr: CanvasImageSource | null
     /** Nuqta/mm — 300 dpi uchun 11.81. */
     pxPerMm: number
     /** Oldindan bosilgan qog'ozni xira ko'rsatish (faqat ekran preview'i). */
@@ -84,7 +86,7 @@ export type DrawOptions = {
 
 /** Bitta yorliqni tayyor canvas qilib qaytaradi. */
 export function drawRollingLabel(opts: DrawOptions): HTMLCanvasElement {
-    const { data, pack, qr, pxPerMm, guide, calibration } = opts
+    const { data, pack, pxPerMm, guide, calibration } = opts
 
     const canvas = document.createElement("canvas")
     canvas.width = Math.round(LABEL_WIDTH_MM * pxPerMm)
@@ -96,7 +98,6 @@ export function drawRollingLabel(opts: DrawOptions): HTMLCanvasElement {
     ctx.fillStyle = "#fff"
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    // mm → piksel
     const mm = (v: number) => v * pxPerMm
     const font = (sizeMm: number, weight = "bold") =>
         `${weight} ${mm(sizeMm).toFixed(2)}px ${FONT}`
@@ -111,19 +112,25 @@ export function drawRollingLabel(opts: DrawOptions): HTMLCanvasElement {
     }
     ctx.translate(mm(calibration.offsetXMm), mm(calibration.offsetYMm))
 
-    drawContent(ctx, mm, font, buildRows(data, pack), qr)
+    drawContent(
+        ctx,
+        mm,
+        font,
+        buildRows(data, pack),
+        buildBarcodePayload(data, pack),
+    )
     ctx.restore()
 
     return canvas
 }
 
-/** Chop etiladigan ma'lumot: qatorlar + QR + sertifikatlar. */
+/** Chop etiladigan ma'lumot: qatorlar + shtrix-kod + sertifikatlar. */
 function drawContent(
     ctx: CanvasRenderingContext2D,
     mm: (v: number) => number,
     font: (sizeMm: number, weight?: string) => string,
     rows: FieldRow[],
-    qr: CanvasImageSource | null,
+    barcodeText: string,
 ) {
     const x0 = LEFT_PADDING_MM
     const x1 = LABEL_WIDTH_MM - RIGHT_PADDING_MM
@@ -144,17 +151,18 @@ function drawContent(
         ctx.stroke()
     }
 
-    rule(y0, 0.5)
+    rule(y0, 0.4)
 
     rows.forEach((row, i) => {
         const top = y0 + rowHeight * i
-        // EN yuqori qatorda, RU pastda; qiymat RU qatoriga to'g'rilanadi
-        const enBaseline = top + 3.4
-        const ruBaseline = top + 6.6
+        // Ikki satrli qator: EN tepada, RU pastda; qiymat RU satriga tekislanadi.
+        // Bir satrli qator (ДАТА): matn ham qiymat ham pastki satrda.
+        const enBaseline = top + 3.7
+        const ruBaseline = top + 7.4
 
         ctx.textAlign = "left"
         ctx.font = font(LABEL_FONT_MM)
-        ctx.fillText(row.en, mm(x0), mm(enBaseline))
+        if (row.en) ctx.fillText(row.en, mm(x0), mm(enBaseline))
         ctx.fillText(row.ru, mm(x0), mm(ruBaseline))
 
         ctx.textAlign = "right"
@@ -167,29 +175,28 @@ function drawContent(
             ctx.fillText(row.values[0], mm(x1), mm(ruBaseline))
         }
 
-        rule(top + rowHeight, 0.3)
+        rule(top + rowHeight, 0.25)
     })
 
-    if (qr) {
-        ctx.drawImage(
-            qr,
-            mm(x0),
-            mm(fieldsBottom + 1),
-            mm(QR_SIZE_MM),
-            mm(QR_SIZE_MM),
-        )
-    }
+    drawCode128(
+        ctx,
+        barcodeText,
+        mm(x0),
+        mm(fieldsBottom + 1.5),
+        mm(BARCODE_WIDTH_MM),
+        mm(BARCODE_HEIGHT_MM),
+    )
 
     // Sertifikatlar: chapda ISO, o'ngda UZTR.
     // O'ng chekinish — oldindan bosilgan STZ logotipiga tegmasligi uchun.
     ctx.font = font(CERT_FONT_MM, "600")
     ctx.textAlign = "left"
-    ctx.fillText(LABEL_CERTIFICATIONS[0], mm(x0), mm(y1 - 0.5))
+    ctx.fillText(LABEL_CERTIFICATIONS[0], mm(x0), mm(y1 - 0.3))
     ctx.textAlign = "right"
     ctx.fillText(
         LABEL_CERTIFICATIONS[1],
         mm(x1 - CERT_RIGHT_INSET_MM),
-        mm(y1 - 0.5),
+        mm(y1 - 0.3),
     )
 }
 

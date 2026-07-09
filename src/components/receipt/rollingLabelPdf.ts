@@ -22,7 +22,6 @@ const PX_PER_MM = PRINT_DPI / 25.4
 export function buildLabelsPdf(
     data: RollingLabelData,
     packs: RollingPackData[],
-    qrImages: (CanvasImageSource | null)[],
     calibration: LabelCalibration,
 ): Blob {
     // Sahifa birkadan uzunroq bo'lishi mumkin (perforatsiya qadamiga moslash
@@ -42,7 +41,6 @@ export function buildLabelsPdf(
         const canvas = drawRollingLabel({
             data,
             pack,
-            qr: qrImages[i] ?? null,
             pxPerMm: PX_PER_MM,
             guide: false,
             calibration,
@@ -61,14 +59,4 @@ export function buildLabelsPdf(
     // PDF ochilishi bilan chop etish oynasi chiqsin
     doc.autoPrint()
     return doc.output("blob")
-}
-
-/** QR data-URL'ni canvas chiza oladigan rasmga aylantiradi. */
-export function loadImage(src: string): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-        const img = new Image()
-        img.onload = () => resolve(img)
-        img.onerror = () => reject(new Error("QR rasmini yuklab bo'lmadi"))
-        img.src = src
-    })
 }

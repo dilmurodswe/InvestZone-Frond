@@ -28,8 +28,9 @@ export const FOOTER_RESERVED_MM = 12
 export const LEFT_PADDING_MM = 5
 export const RIGHT_PADDING_MM = 5
 
-/** QR tomoni (mm) — birka pastida, chap tomonda. */
-export const QR_SIZE_MM = 14
+/** Chiziqli shtrix-kod (Code 128) o'lchami — birka pastida, chap tomonda. */
+export const BARCODE_WIDTH_MM = 50
+export const BARCODE_HEIGHT_MM = 9
 
 /** Sertifikatning o'ng chekinishi — STZ logotipiga tegmasligi uchun (mm). */
 export const CERT_RIGHT_INSET_MM = 15
@@ -65,11 +66,17 @@ export type LabelCalibration = {
     pageHeightMm: number
 }
 
+/**
+ * Standart qiymatlar sexdagi printerdan chiqqan birkalarni o'lchash orqali
+ * topilgan: ma'lumot doim ~25mm pastga tushar edi, va har bir keyingi birka
+ * yana ~15mm pastga surilardi (printer bir birka uchun perforatsiya qadamidan
+ * kam qog'oz surgani uchun). Qadam = 130mm tana + ~9mm perforatsiya.
+ */
 export const DEFAULT_CALIBRATION: LabelCalibration = {
     offsetXMm: 0,
-    offsetYMm: 0,
+    offsetYMm: -25,
     rotate180: true,
-    pageHeightMm: LABEL_HEIGHT_MM,
+    pageHeightMm: 139,
 }
 
 /** Sahifa balandligi chegarasi (mm). */
@@ -99,8 +106,8 @@ export const NO_CALIBRATION: LabelCalibration = {
     pageHeightMm: LABEL_HEIGHT_MM,
 }
 
-// v2 — maket qayta o'lchangani uchun eski saqlangan qiymatlar bekor qilindi
-const STORAGE_KEY = "iz.rollingLabel.calibration.v2"
+// v3 — standart qiymatlar printerdan o'lchab topildi, eskilari bekor qilindi
+const STORAGE_KEY = "iz.rollingLabel.calibration.v3"
 
 /** Saqlangan kalibrovkani o'qiydi (bo'lmasa — standart qiymatlar). */
 export function loadCalibration(): LabelCalibration {
