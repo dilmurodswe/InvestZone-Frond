@@ -13,6 +13,11 @@ import {
     labelStyles,
     renderPackLabelHtml,
 } from "./renderRollingLabelHtml"
+import {
+    DEFAULT_CALIBRATION,
+    loadCalibration,
+    saveCalibration,
+} from "./rollingLabelConstants"
 import { buildQrPayload, makeQrDataUrl } from "./rollingLabelQr"
 import type { RollingLabelData } from "./types"
 
@@ -21,10 +26,82 @@ type Props = {
     onFinish?: () => void
 }
 
+/** Bitta kalibrovka o'qi: −1mm / qiymat / +1mm. */
+function OffsetField({
+    label,
+    hint,
+    value,
+    onChange,
+}: {
+    label: string
+    hint: string
+    value: number
+    onChange: (v: number) => void
+}) {
+    const clamp = (v: number) => Math.max(-40, Math.min(40, v))
+    const btn = {
+        width: 28,
+        height: 28,
+        borderRadius: 6,
+        border: "1px solid #d1d5db",
+        background: "#fff",
+        fontSize: 14,
+        fontWeight: 700,
+        cursor: "pointer",
+    } as const
+
+    return (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                    style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}
+                >
+                    {label}
+                </div>
+                <div style={{ fontSize: 10, color: "#9ca3af" }}>{hint}</div>
+            </div>
+            <button
+                type="button"
+                style={btn}
+                onClick={() => onChange(clamp(value - 1))}
+            >
+                −
+            </button>
+            <input
+                type="number"
+                value={value}
+                onChange={(e) => onChange(clamp(Number(e.target.value) || 0))}
+                style={{
+                    width: 58,
+                    height: 28,
+                    textAlign: "center",
+                    border: "1px solid #d1d5db",
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 700,
+                }}
+            />
+            <button
+                type="button"
+                style={btn}
+                onClick={() => onChange(clamp(value + 1))}
+            >
+                +
+            </button>
+        </div>
+    )
+}
+
 export function RollingLabelPrinter({ data, onFinish }: Props) {
     const [qrUrls, setQrUrls] = useState<string[] | null>(null)
     const [active, setActive] = useState(0)
     const [error, setError] = useState<string | null>(null)
+    const [cal, setCal] = useState(loadCalibration)
+    const [showCal, setShowCal] = useState(false)
+
+    useEffect(() => {
+        saveCalibration(cal)
+    }, [cal])
 
     const packs = data.packs?.length ? data.packs : []
 
@@ -57,7 +134,7 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
     const doPrint = (indexes: number[]) => {
         if (!labelsHtml.length) return
         const selected = indexes.map((i) => labelsHtml[i]).filter(Boolean)
-        const doc = buildPrintDocument(selected)
+        const doc = buildPrintDocument(selected, cal)
 
         const iframe = document.createElement("iframe")
         iframe.style.position = "fixed"
@@ -73,13 +150,27 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
 
         iframe.onload = () => {
             const win = iframe.contentWindow
-            if (!win) return cleanup()
-            // QR rasm(lar) yuklanib bo'lishini kutamiz, keyin print dialog
-            setTimeout(() => {
+            const doc = iframe.contentDocument
+            if (!win || !doc) return cleanup()
+
+            // QR rasm(lar) to'liq yuklanmasa, print bo'sh joy chiqaradi
+            const images = Array.from(doc.images)
+            const ready = images.map((img) =>
+                img.complete ?
+                    Promise.resolve()
+                :   img.decode().catch(
+                        () =>
+                            new Promise<void>((res) => {
+                                img.onload = img.onerror = () => res()
+                            }),
+                    ),
+            )
+
+            void Promise.all(ready).then(() => {
                 win.focus()
                 win.print()
                 cleanup()
-            }, 200)
+            })
         }
 
         iframe.srcdoc = doc
@@ -226,6 +317,124 @@ export function RollingLabelPrinter({ data, onFinish }: Props) {
                         ))}
                     </div>
                 )}
+
+                {/* Printer kalibrovkasi */}
+                <div
+                    style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "0.5rem",
+                        padding: "0.6rem 0.75rem",
+                    }}
+                >
+                    <button
+                        onClick={() => setShowCal((v) => !v)}
+                        style={{
+                            all: "unset",
+                            cursor: "pointer",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#374151",
+                        }}
+                    >
+                        {showCal ? "▾" : "▸"} Printer kalibrovkasi
+                        {cal.rotate180 ? " · 180°" : ""} · X {cal.offsetXMm}mm ·
+                        Y {cal.offsetYMm}mm
+                    </button>
+
+                    {showCal && (
+                        <div
+                            style={{
+                                marginTop: "0.6rem",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <p
+                                style={{
+                                    margin: 0,
+                                    fontSize: 11,
+                                    lineHeight: 1.4,
+                                    color: "#6b7280",
+                                }}
+                            >
+                                Faqat chop etishda qo'llanadi. Chapga surish
+                                uchun X'ni kamaytiring, yuqoriga surish uchun
+                                Y'ni kamaytiring.
+                            </p>
+
+                            <OffsetField
+                                label="Gorizontal (X)"
+                                hint="− chapga / + o'ngga"
+                                value={cal.offsetXMm}
+                                onChange={(offsetXMm) =>
+                                    setCal((c) => ({ ...c, offsetXMm }))
+                                }
+                            />
+                            <OffsetField
+                                label="Vertikal (Y)"
+                                hint="− yuqoriga / + pastga"
+                                value={cal.offsetYMm}
+                                onChange={(offsetYMm) =>
+                                    setCal((c) => ({ ...c, offsetYMm }))
+                                }
+                            />
+
+                            <label
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 8,
+                                    fontSize: 12,
+                                    fontWeight: 600,
+                                    color: "#374151",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={cal.rotate180}
+                                    onChange={(e) =>
+                                        setCal((c) => ({
+                                            ...c,
+                                            rotate180: e.target.checked,
+                                        }))
+                                    }
+                                />
+                                180° aylantirib chop etish (teskari chiqsa)
+                            </label>
+
+                            <button
+                                onClick={() => setCal(DEFAULT_CALIBRATION)}
+                                style={{
+                                    alignSelf: "flex-start",
+                                    padding: "3px 10px",
+                                    borderRadius: 6,
+                                    border: "1px solid #d1d5db",
+                                    background: "#fff",
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Standart qiymatlarga qaytarish
+                            </button>
+
+                            <p
+                                style={{
+                                    margin: 0,
+                                    fontSize: 11,
+                                    lineHeight: 1.4,
+                                    color: "#b45309",
+                                }}
+                            >
+                                Printer oynasida «Kolontitullar / Headers and
+                                footers» belgisini olib tashlang va «Masshtab /
+                                Scale» = 100% qiling.
+                            </p>
+                        </div>
+                    )}
+                </div>
 
                 {/* Amallar */}
                 <div style={{ display: "flex", gap: 8 }}>
