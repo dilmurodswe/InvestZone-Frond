@@ -12,7 +12,6 @@ import { formatDecimal } from "@/lib/utils/format-number"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
 import { useBatchStripsQuery } from "../-hooks/use-batch-strips-query"
-import { ReadyStripPrintButton } from "../../-components/ready-strip-print-button"
 import { getReadyStripCols } from "../../-components/use-ready-strip-cols"
 import { useStripBatchStore } from "../../-hooks/use-strip-batch-store"
 import ManufactureStatusBadge from "../../../manufactures/-components/status-badge"
@@ -57,9 +56,6 @@ export default function Index() {
                         <CardTitle>Reska #{manufactureId}</CardTitle>
                         {status && <ManufactureStatusBadge status={status} />}
                     </div>
-                    <ReadyStripPrintButton
-                        manufactureId={Number(manufactureId)}
-                    />
                 </div>
 
                 {/* Summary */}
