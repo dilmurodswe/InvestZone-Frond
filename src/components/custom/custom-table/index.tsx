@@ -43,6 +43,7 @@ interface DataTableProps<TData, TValue> extends IPaginationProps<TData> {
     prev?: null | string
     next?: null | string
     rowClassName?: (item: TData) => string
+    onRowClick?: (item: TData) => void
     disableNumeration?: boolean
     onEdit?: (data: Row<TData>) => void
     onDelete?: (data: Row<TData>) => void
@@ -68,6 +69,7 @@ export function CustomTable<TData, TValue>({
     pageKey = SEARCH_PARAMS.PAGE,
     pageSizeKey = SEARCH_PARAMS.PAGE_SIZE,
     rowClassName,
+    onRowClick,
     disableNumeration = false,
     onDelete,
     onEdit,
@@ -240,10 +242,17 @@ export function CustomTable<TData, TValue>({
                                             key={virtualRow.key}
                                             className={cn(
                                                 "",
+                                                onRowClick && "cursor-pointer",
                                                 rowClassName ?
                                                     rowClassName(row.original)
                                                 :   "",
                                             )}
+                                            onClick={
+                                                onRowClick ?
+                                                    () =>
+                                                        onRowClick(row.original)
+                                                :   undefined
+                                            }
                                             data-state={
                                                 row.getIsSelected() &&
                                                 "selected"
@@ -296,10 +305,16 @@ export function CustomTable<TData, TValue>({
                             :   rows.map((row, i) => (
                                     <TableRow
                                         className={cn(
+                                            onRowClick && "cursor-pointer",
                                             rowClassName ?
                                                 rowClassName(row.original)
                                             :   "",
                                         )}
+                                        onClick={
+                                            onRowClick ?
+                                                () => onRowClick(row.original)
+                                            :   undefined
+                                        }
                                         // @ts-expect-error sdf
                                         key={row.original?.id || i}
                                         data-state={

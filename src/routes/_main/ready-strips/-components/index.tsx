@@ -1,23 +1,19 @@
 import { CustomTable } from "@/components/custom/custom-table"
 import FilterInput from "@/components/filter/filter-input"
-import FilterSelect from "@/components/filter/filter-select"
 import Layout from "@/components/layouts/layout"
 import Navbar from "@/components/navbar"
 import NoData from "@/components/no-data/nodata"
 import Group from "@/components/semantic/group"
-import i18n from "@/lib/i18n/request"
-import { useReadyStripsQuery } from "../-hooks/use-ready-strips-query"
-import { getReadyStripCols } from "./use-ready-strip-cols"
+import { useNavigate } from "@tanstack/react-router"
+import { useStripBatchStore } from "../-hooks/use-strip-batch-store"
+import { useStripBatchesQuery } from "../-hooks/use-strip-batches-query"
+import { getStripBatchCols } from "./use-strip-batch-cols"
 
 export default function Index() {
-    const { readyStripList, count, isFetching } = useReadyStripsQuery()
-    const cols = getReadyStripCols()
-
-    const STATUS_OPTIONS = [
-        { id: "", name: i18n.t("common.all") },
-        { id: "active", name: i18n.t("status.inShop") },
-        { id: "used", name: i18n.t("status.used") },
-    ]
+    const { batchList, count, isFetching } = useStripBatchesQuery()
+    const cols = getStripBatchCols()
+    const { setBatch } = useStripBatchStore()
+    const navigate = useNavigate()
 
     return (
         <>
@@ -25,24 +21,25 @@ export default function Index() {
             <Layout>
                 <Group className="flex gap-3 flex-wrap items-center">
                     <FilterInput />
-                    <FilterSelect
-                        filterKey="status"
-                        placeholder={i18n.t("table.status")}
-                        options={STATUS_OPTIONS}
-                        defaultValue={STATUS_OPTIONS[1]}
-                    />
                 </Group>
 
-                {!!readyStripList.length && (
+                {!!batchList.length && (
                     <CustomTable
                         columns={cols}
-                        data={readyStripList}
+                        data={batchList}
                         count={count}
                         isLoading={isFetching}
+                        onRowClick={(batch) => {
+                            setBatch(batch)
+                            navigate({
+                                to: "/ready-strips/$manufactureId",
+                                params: { manufactureId: String(batch.id) },
+                            })
+                        }}
                     />
                 )}
 
-                {!readyStripList.length && !isFetching && <NoData />}
+                {!batchList.length && !isFetching && <NoData />}
             </Layout>
         </>
     )

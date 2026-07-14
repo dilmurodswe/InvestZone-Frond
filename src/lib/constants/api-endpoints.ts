@@ -123,6 +123,7 @@ export const API = {
         READY_PRODUCTS: "manufactures/ready-products",
         CALCULATE_AMOUNT: "manufactures/calculate-amount",
         READY_STRIPS: "manufactures/ready-strips",
+        STRIP_BATCHES: "manufactures/strip-batches",
     },
     FINANCE: {
         EXPENSE: {

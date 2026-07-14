@@ -564,7 +564,11 @@ function NewManufactureForm() {
             },
             {
                 onSuccess: () => {
-                    invalidateByExactMatch([API.MANUFACTURES.INDEX])
+                    invalidateByExactMatch([
+                        API.MANUFACTURES.INDEX,
+                        API.MANUFACTURES.STRIP_BATCHES,
+                        API.MANUFACTURES.READY_STRIPS,
+                    ])
                     closeModal()
                     toast.success("Created successfully")
                 },
