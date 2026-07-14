@@ -29,11 +29,13 @@ export default function GlobalLoader() {
     if (!show) return null
 
     return (
-        <div className="fixed bottom-5 right-5 z-[9999] flex items-center gap-2.5 rounded-full border bg-background/90 py-2 pr-4 pl-2.5 shadow-lg backdrop-blur animate-in fade-in slide-in-from-bottom-2">
-            <LogoLoader size={26} />
-            <span className="text-xs font-medium text-muted-foreground">
-                {t("common.loading")}
-            </span>
+        <div className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center">
+            <div className="pointer-events-auto flex flex-col items-center gap-4 rounded-2xl border bg-background/95 px-10 py-8 shadow-xl backdrop-blur animate-in fade-in zoom-in-95 duration-200">
+                <LogoLoader size={52} />
+                <span className="text-sm font-medium text-muted-foreground animate-pulse">
+                    {t("common.loading")}
+                </span>
+            </div>
         </div>
     )
 }
