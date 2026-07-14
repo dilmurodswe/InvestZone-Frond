@@ -80,7 +80,7 @@ export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
         id: "print_label",
         header: i18n.t("common.print"),
         cell: ({ row: { original } }) => (
-            <ReadyStripPrintButton manufactureId={original.manufacture_id} />
+            <ReadyStripPrintButton stripId={original.id} />
         ),
     },
 ]

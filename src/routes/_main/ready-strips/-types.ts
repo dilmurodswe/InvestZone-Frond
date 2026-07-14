@@ -2,6 +2,7 @@ import type { ManufactureStatus } from "../manufactures/-types"
 
 export type StripBatch = {
     id: number
+    product_id: number | null
     product_name: string | null
     products_count: number
     strip_count: number

@@ -1,21 +1,13 @@
-import {
-    ManufactureLabelPrinter,
-    type ManufactureLabelData,
-} from "@/components/receipt"
+import { StripLabelPrinter } from "@/components/receipt/StripLabelPrinter"
+import type { StripLabelData } from "@/components/receipt/renderStripLabel"
 import { BASE_URL } from "@/lib/constants/base-url"
 import { COOKIES } from "@/lib/constants/cookies"
 import Cookies from "js-cookie"
 import { Printer } from "lucide-react"
 import { useState } from "react"
 
-export function ReadyStripPrintButton({
-    manufactureId,
-}: {
-    manufactureId: number
-}) {
-    const [labelData, setLabelData] = useState<ManufactureLabelData | null>(
-        null,
-    )
+export function ReadyStripPrintButton({ stripId }: { stripId: number }) {
+    const [labelData, setLabelData] = useState<StripLabelData | null>(null)
     const [loading, setLoading] = useState(false)
 
     const handlePrint = async () => {
@@ -23,7 +15,7 @@ export function ReadyStripPrintButton({
         try {
             const token = Cookies.get(COOKIES.ACCESS_TOKEN)
             const response = await fetch(
-                `${BASE_URL}manufactures/${manufactureId}/print-label/`,
+                `${BASE_URL}manufactures/ready-strips/${stripId}/print-label/`,
                 {
                     method: "POST",
                     headers: {
@@ -63,7 +55,7 @@ export function ReadyStripPrintButton({
                 {loading ? "..." : "Печать"}
             </button>
             {labelData && (
-                <ManufactureLabelPrinter
+                <StripLabelPrinter
                     data={labelData}
                     onFinish={() => setLabelData(null)}
                 />

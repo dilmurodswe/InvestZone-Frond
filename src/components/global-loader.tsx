@@ -30,7 +30,7 @@ export default function GlobalLoader() {
 
     return (
         <div className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center">
-            <div className="pointer-events-auto flex flex-col items-center gap-4 rounded-2xl border bg-background/95 px-10 py-8 shadow-xl backdrop-blur animate-in fade-in zoom-in-95 duration-200">
+            <div className="pointer-events-auto flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-200">
                 <LogoLoader size={52} />
                 <span className="text-sm font-medium text-muted-foreground animate-pulse">
                     {t("common.loading")}

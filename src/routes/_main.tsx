@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_main")({
         [SEARCH_PARAMS.SEARCH]?: string
         [SEARCH_PARAMS.PAGE]?: number
         [SEARCH_PARAMS.PAGE_SIZE]?: number
+        product?: number
     }) => params,
 })
 

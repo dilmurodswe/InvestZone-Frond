@@ -34,6 +34,10 @@ export default function Index() {
                             navigate({
                                 to: "/ready-strips/$manufactureId",
                                 params: { manufactureId: String(batch.id) },
+                                search:
+                                    batch.product_id != null ?
+                                        { product: batch.product_id }
+                                    :   {},
                             })
                         }}
                     />
