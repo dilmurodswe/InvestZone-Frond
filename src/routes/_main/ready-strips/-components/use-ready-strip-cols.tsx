@@ -4,7 +4,6 @@ import type { ColumnDef } from "@tanstack/react-table"
 import type { ReadyStrip } from "../-types"
 import ManufactureStatusBadge from "../../manufactures/-components/status-badge"
 import { StatusBadge } from "../../raw-materials/-components/status-badge"
-import { ReadyStripPrintButton } from "./ready-strip-print-button"
 
 export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
     {
@@ -74,13 +73,6 @@ export const getReadyStripCols = (): ColumnDef<ReadyStrip>[] => [
             <span className="text-sm text-muted-foreground">
                 {new Date(original.created_at).toLocaleDateString()}
             </span>
-        ),
-    },
-    {
-        id: "print_label",
-        header: i18n.t("common.print"),
-        cell: ({ row: { original } }) => (
-            <ReadyStripPrintButton manufactureId={original.manufacture_id} />
         ),
     },
 ]
