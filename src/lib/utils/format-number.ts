@@ -35,3 +35,17 @@ export function formatDecimal(val: number | null | undefined): string {
     if (val == null) return "—"
     return formatNumber(val, { decimalScale: 3 })
 }
+
+/**
+ * Trim floating-point noise for display: round to at most 3 decimals and drop
+ * trailing zeros, without thousand separators. Integers stay untouched and
+ * non-numeric values (dates, references, empty) are returned unchanged.
+ *
+ * 41.291000000000004 → "41.291"   1250 → "1250"   3.41 → "3.41"
+ */
+export function round3(val: unknown, dash = "—"): string {
+    if (val == null || val === "") return dash
+    const n = Number(val)
+    if (!Number.isFinite(n)) return String(val)
+    return String(Number(n.toFixed(3)))
+}

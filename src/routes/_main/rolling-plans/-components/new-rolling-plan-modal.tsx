@@ -19,6 +19,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { round3 } from "@/lib/utils/format-number"
 import { cn } from "@/lib/utils/shadcn"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
@@ -355,10 +356,12 @@ function NewRollingPlanForm() {
                                                 {strip.thickness ?? "—"}
                                             </td>
                                             <td className="px-3 py-2">
-                                                {strip.strip_cut_width_mm}
+                                                {round3(
+                                                    strip.strip_cut_width_mm,
+                                                )}
                                             </td>
                                             <td className="px-3 py-2">
-                                                {strip.total_wes}
+                                                {round3(strip.total_wes)}
                                             </td>
                                             <td className="px-3 py-2 text-muted-foreground">
                                                 {new Date(
@@ -444,7 +447,9 @@ function NewRollingPlanForm() {
                                                 </td>
                                                 <td className="px-3 py-2">
                                                     <span className="inline-flex items-center justify-center bg-muted/50 rounded px-2 py-0.5 font-mono text-xs font-semibold">
-                                                        {strip.total_wes}
+                                                        {round3(
+                                                            strip.total_wes,
+                                                        )}
                                                     </span>
                                                 </td>
 

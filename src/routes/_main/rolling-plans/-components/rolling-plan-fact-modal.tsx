@@ -12,6 +12,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { round3 } from "@/lib/utils/format-number"
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -764,7 +765,7 @@ function RollingPlanFactContent() {
                                             {idx + 1}
                                         </td>
                                         <RoCell value={p.pack_number} />
-                                        <RoCell value={p.weight_tn} />
+                                        <RoCell value={round3(p.weight_tn)} />
                                         <RoCell value={shtVPachke || "—"} />
                                         <RoCell value={p.quantity} />
                                     </tr>
@@ -880,7 +881,7 @@ function RollingPlanFactContent() {
                                             value={existing.scrap_metal_tn}
                                         />
                                         <CalcBadge
-                                            value={`${existing.waste_percent}%`}
+                                            value={`${round3(existing.waste_percent)}%`}
                                             color="orange"
                                         />
                                     </>

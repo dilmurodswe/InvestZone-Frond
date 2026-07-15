@@ -2,6 +2,7 @@ import Modal from "@/components/custom/modal"
 import { CardTitle } from "@/components/ui/card"
 import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
+import { round3 } from "@/lib/utils/format-number"
 import { useManufactureStore } from "../-hooks/use-manufacture-store"
 import type { DetailItem, ManufactureDetail, RawItemDetail } from "../-types"
 import ManufactureStatusBadge from "./status-badge"
@@ -59,13 +60,19 @@ function ManufactureDetailContent() {
                             label="Count Raw Material"
                             value={data.count_raw}
                         />
-                        <Cell label="Total Netto" value={data.total_netto} />
-                        <Cell label="Total Sum" value={data.total_sum} />
+                        <Cell
+                            label="Total Netto"
+                            value={round3(data.total_netto)}
+                        />
+                        <Cell
+                            label="Total Sum"
+                            value={round3(data.total_sum)}
+                        />
                         <Cell
                             label="Total Cut Weight"
-                            value={data.total_cut_weight.toFixed(3)}
+                            value={round3(data.total_cut_weight)}
                         />
-                        <Cell label="Otxod" value={data.left_over} />
+                        <Cell label="Otxod" value={round3(data.left_over)} />
                     </div>
                 </div>
             </Section>
@@ -109,10 +116,10 @@ function ManufactureDetailContent() {
                                                 {raw.status ?? "—"}
                                             </td>
                                             <td className="px-4 py-2">
-                                                {raw.brutto ?? "—"}
+                                                {round3(raw.brutto)}
                                             </td>
                                             <td className="px-4 py-2">
-                                                {raw.netto ?? "—"}
+                                                {round3(raw.netto)}
                                             </td>
 
                                             <td className="px-4 py-2">
@@ -177,19 +184,21 @@ function ManufactureDetailContent() {
                                             {item.product.articul ?? "—"}
                                         </td>
                                         <td className="px-4 py-2">
-                                            {item.strip_width_theoretical}
+                                            {round3(
+                                                item.strip_width_theoretical,
+                                            )}
                                         </td>
                                         <td className="px-4 py-2">
-                                            {item.strip_cut_width_mm}
+                                            {round3(item.strip_cut_width_mm)}
                                         </td>
                                         <td className="px-4 py-2">
                                             {item.quantity_in_cut}
                                         </td>
                                         <td className="px-4 py-2">
-                                            {item.total_amount}
+                                            {round3(item.total_amount)}
                                         </td>
                                         <td className="px-4 py-2">
-                                            {item.weight_from_cut}
+                                            {round3(item.weight_from_cut)}
                                         </td>
                                     </tr>
                                 ))}

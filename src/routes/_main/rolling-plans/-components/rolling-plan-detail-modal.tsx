@@ -2,6 +2,7 @@ import Modal from "@/components/custom/modal"
 import { CardTitle } from "@/components/ui/card"
 import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
+import { round3 } from "@/lib/utils/format-number"
 import { useRollingPlanStore } from "../-hooks/use-rolling-plan-store"
 import type { RollingPlanDetail, RollingPlanItem } from "../-types"
 import RollingPlanStatusBadge from "./status-badge"
@@ -199,10 +200,12 @@ function RollingPlanDetailContent() {
                                                     {item.total_pcs}
                                                 </td>
                                                 <td className="px-4 py-2">
-                                                    {item.total_weight}
+                                                    {round3(item.total_weight)}
                                                 </td>
                                                 <td className="px-4 py-2">
-                                                    {item.selected_weight_ton}
+                                                    {round3(
+                                                        item.selected_weight_ton,
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-2">
                                                     {item.calculated_meters}

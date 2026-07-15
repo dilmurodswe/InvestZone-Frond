@@ -1,5 +1,6 @@
 import { useGet } from "@/hooks/react-query/use-get"
 import { useModal } from "@/hooks/use-modal"
+import { round3 } from "@/lib/utils/format-number"
 import { useParams } from "@tanstack/react-router"
 import type { CellContext, ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
@@ -230,7 +231,7 @@ export const useProductCols = (
             header: t("table.price"),
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
-                    value={original.price}
+                    value={round3(original.price)}
                     onClick={() => handleRowClick(original)}
                     maxWidth={100}
                 />
@@ -241,7 +242,7 @@ export const useProductCols = (
             header: t("table.theoreticalPrice"),
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
-                    value={original.theoretically_price}
+                    value={round3(original.theoretically_price)}
                     onClick={() => handleRowClick(original)}
                     maxWidth={100}
                 />
@@ -252,7 +253,7 @@ export const useProductCols = (
             header: t("table.factualPrice"),
             cell: ({ row: { original } }: CellContext<Product, unknown>) => (
                 <TruncatedCell
-                    value={original.factually_price}
+                    value={round3(original.factually_price)}
                     onClick={() => handleRowClick(original)}
                     maxWidth={100}
                 />

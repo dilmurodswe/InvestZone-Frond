@@ -15,7 +15,7 @@ import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import i18n from "@/lib/i18n/request"
-import { formatDecimal } from "@/lib/utils/format-number"
+import { formatDecimal, round3 } from "@/lib/utils/format-number"
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -750,7 +750,7 @@ function NewManufactureForm() {
                                             </td>
 
                                             <td className="px-3 py-2">
-                                                {r.netto ?? "—"}
+                                                {round3(r.netto)}
                                             </td>
 
                                             <td className="px-3 py-2">

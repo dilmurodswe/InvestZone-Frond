@@ -2,6 +2,7 @@ import Modal from "@/components/custom/modal"
 import { CardTitle } from "@/components/ui/card"
 import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
+import { round3 } from "@/lib/utils/format-number"
 import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
 import type { OrderDetail, OrderItemDetail, RawItemDetail } from "../-types"
@@ -79,7 +80,10 @@ function OrderDetail() {
                             </div>
 
                             <div className="grid grid-cols-3 divide-x divide-y border rounded-lg overflow-hidden">
-                                <Cell label="Price" value={item.price} />
+                                <Cell
+                                    label="Price"
+                                    value={round3(item.price)}
+                                />
                                 <Cell label="Count" value={item.count} />
                                 <Cell
                                     label="Stock"
@@ -111,7 +115,9 @@ function OrderDetail() {
                                                     />
                                                     <Cell
                                                         label="Weight"
-                                                        value={raw.weight}
+                                                        value={round3(
+                                                            raw.weight,
+                                                        )}
                                                     />
                                                     <Cell
                                                         label="Mark"

@@ -1,5 +1,6 @@
 import Modal from "@/components/custom/modal"
 import { CardTitle } from "@/components/ui/card"
+import { round3 } from "@/lib/utils/format-number"
 // import { useModal } from "@/hooks/use-modal"
 import { useProductStore } from "../-hooks/use-product-store"
 
@@ -28,7 +29,7 @@ function ProductDetail() {
             <div className="grid grid-cols-2 gap-3">
                 <DetailRow label="Code" value={product.code} />
                 <DetailRow label="SKU" value={product.articul} />
-                <DetailRow label="Price" value={product.price} />
+                <DetailRow label="Price" value={round3(product.price)} />
                 <DetailRow
                     label="Outer Dimension"
                     value={product.outer_dimension}
