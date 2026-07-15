@@ -1,4 +1,5 @@
 import Modal from "@/components/custom/modal"
+import type { StripLabelData } from "@/components/receipt/renderStripLabel"
 import { CardTitle } from "@/components/ui/card"
 import {
     Select,
@@ -16,7 +17,8 @@ import { Check, Pencil, Trash2, X } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useManufactureStore } from "../-hooks/use-manufacture-store"
-import type { ManufactureDetail } from "../-types"
+import type { ManufactureDetail, RawItemDetail } from "../-types"
+import { RollLabelPrintButton } from "./roll-label-print-button"
 
 type RawItemRow = {
     id: number
@@ -262,6 +264,42 @@ function ManufacturePlanFactContent() {
         return names?.length ? names.join(", ") : "—"
     }, [detail])
 
+    // Roll (raw item) lookup — for label fields not present on the plan-fakt
+    // row itself (wagon, steel mark).
+    const rawDetailMap = useMemo(() => {
+        const m = new Map<number, RawItemDetail>()
+        detail?.raw_item_details?.forEach((r) => m.set(r.id, r))
+        return m
+    }, [detail])
+
+    // Build a single 58x40 mm roll label entirely on the client from the
+    // already-loaded manufacture detail + the row (тележка вес → ВЕС ШТРИПСА).
+    const buildRollLabel = (opts: {
+        rawItemDetailId?: number
+        plank: string
+        referenceNumber: string
+        netto: number
+        cartWeight: string
+    }): StripLabelData => {
+        const raw =
+            opts.rawItemDetailId != null ?
+                rawDetailMap.get(opts.rawItemDetailId)
+            :   undefined
+        const ves = parseNum(opts.cartWeight) || opts.netto || 0
+        return {
+            zadanieNo: detail!.id,
+            razmerShirina: detail!.width,
+            partiyaRulon: opts.referenceNumber,
+            vagonNo: raw?.wagon ?? undefined,
+            plavka: opts.plank,
+            vesShripsa: ves,
+            dataRezki: new Date(detail!.created_at).toLocaleDateString(),
+            gotovayaProduktsiya: productNames,
+            markaStali: raw?.raw_material?.mark ?? "Ст3сп",
+            tolshchina: detail!.thickness,
+        }
+    }
+
     const updateCartWeight = (id: number, value: string) =>
         setRawItems((prev) =>
             prev.map((r) => (r.id === id ? { ...r, cart_weight: value } : r)),
@@ -493,6 +531,9 @@ function ManufacturePlanFactContent() {
                                 <th className="px-3 py-2.5 text-left text-xs font-semibold text-blue-600 whitespace-nowrap">
                                     Отходы
                                 </th>
+                                <th className="px-3 py-2.5 text-right text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                    Печать
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -514,6 +555,23 @@ function ManufacturePlanFactContent() {
                                                 item.cart_weight,
                                             )}
                                         />
+                                        <td className="px-3 py-2.5 text-right">
+                                            <RollLabelPrintButton
+                                                data={buildRollLabel({
+                                                    rawItemDetailId:
+                                                        item.raw_item_detail ||
+                                                        item.raw_item_detail_id,
+                                                    plank: item.plank,
+                                                    referenceNumber:
+                                                        item.reference_number,
+                                                    netto: parseFloat(
+                                                        item.netto,
+                                                    ),
+                                                    cartWeight:
+                                                        item.cart_weight,
+                                                })}
+                                            />
+                                        </td>
                                     </tr>
                                 ))
                             :   rawItems.map((row, idx) => (
@@ -539,6 +597,19 @@ function ManufacturePlanFactContent() {
                                                 row.cart_weight,
                                             )}
                                         />
+                                        <td className="px-3 py-2 text-right">
+                                            <RollLabelPrintButton
+                                                data={buildRollLabel({
+                                                    rawItemDetailId:
+                                                        row.raw_item_detail_id,
+                                                    plank: row.plank,
+                                                    referenceNumber:
+                                                        row.reference_number,
+                                                    netto: row.netto,
+                                                    cartWeight: row.cart_weight,
+                                                })}
+                                            />
+                                        </td>
                                     </tr>
                                 ))
                             }
