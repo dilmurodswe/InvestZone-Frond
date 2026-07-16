@@ -51,6 +51,10 @@ export function StripLabelPrinter({ data, onFinish }: Props) {
 
                 // Fallback: browser print dialog
                 setStatus("Brauzer print oynasi ochilmoqda...")
+                // Keep the paper height in sync with the rendered canvas aspect.
+                const labelHeightMm = Math.round(
+                    (canvas.height / canvas.width) * LABEL_WIDTH_MM,
+                )
                 const printWindow = window.open("", "_blank")
                 if (printWindow) {
                     printWindow.document.write(`
@@ -58,7 +62,7 @@ export function StripLabelPrinter({ data, onFinish }: Props) {
               <head>
                 <title>Strip label ${data.zadanieNo}</title>
                 <style>
-                  @page { size: ${LABEL_WIDTH_MM}mm 40mm; margin: 0; }
+                  @page { size: ${LABEL_WIDTH_MM}mm ${labelHeightMm}mm; margin: 0; }
                   body { margin: 0; padding: 0; }
                   img { width: ${LABEL_WIDTH_MM}mm; height: auto; display: block; }
                   @media print {

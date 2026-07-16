@@ -1,13 +1,10 @@
 /**
- * Render a single READY-STRIP label to canvas for a 58 x 40 mm thermal label.
+ * Render a single READY-STRIP label to canvas for a 58 mm-wide thermal label.
  *
- * Design mirrors the physical INVEST ZONE tag (bordered header + a bilingual
- * 2-column field grid). It is intentionally separate from renderManufactureLabel
- * (the "reska" / manufacture label, 72 mm) so that one is never affected.
- *
- * Data shape is identical to the manufacture label, but every value here is the
- * strip's OWN (cut width, weight, product, source roll) — so each row prints a
- * distinct label instead of one shared manufacture label.
+ * Layout is a clean vertical 2-column table (bold field name on the left, the
+ * strip's own value right-aligned) — one row per field, so every value prints
+ * distinctly. Intentionally separate from renderManufactureLabel (the "reska"
+ * label) so that one is never affected.
  */
 
 import type { ManufactureLabelData } from "./types"
@@ -15,7 +12,7 @@ import type { ManufactureLabelData } from "./types"
 export type StripLabelData = ManufactureLabelData
 
 const LABEL_W_MM = 58
-const LABEL_H_MM = 40
+const LABEL_H_MM = 74
 const DEFAULT_PX_PER_MM = 8 // 203 dpi thermal (8 dots/mm)
 const FONT = "Arial, Helvetica, sans-serif"
 
@@ -24,29 +21,26 @@ type Field = { label: string; value: string }
 const dash = (v: unknown): string =>
     v === null || v === undefined || v === "" ? "—" : String(v)
 
-function buildColumns(data: StripLabelData): [Field[], Field[]] {
-    const left: Field[] = [
-        { label: "ЗАДАНИЕ №", value: dash(data.zadanieNo) },
+function buildFields(data: StripLabelData): Field[] {
+    return [
+        { label: "Задание №", value: dash(data.zadanieNo) },
         {
-            label: "РАЗМЕР ШИРИНА",
+            label: "Размер ширина",
             value:
                 data.razmerShirina != null ? `${data.razmerShirina} мм` : "—",
         },
-        { label: "ПАРТИЯ/РУЛОН", value: dash(data.partiyaRulon) },
-        { label: "ПЛАВКА", value: dash(data.plavka) },
-        { label: "ДАТА РЕЗКИ", value: dash(data.dataRezki) },
-    ]
-    const right: Field[] = [
-        { label: "ВАГОН №", value: dash(data.vagonNo) },
-        { label: "ВЕС ШТРИПСА", value: dash(data.vesShripsa) },
+        { label: "Партия/Рулон", value: dash(data.partiyaRulon) },
+        { label: "Вагон №", value: dash(data.vagonNo) },
+        { label: "Плавка", value: dash(data.plavka) },
+        { label: "Вес штрипса", value: dash(data.vesShripsa) },
+        { label: "Дата резки", value: dash(data.dataRezki) },
+        { label: "Готовая продукция", value: dash(data.gotovayaProduktsiya) },
+        { label: "Марка стали", value: dash(data.markaStali) },
         {
-            label: "ТОЛЩИНА",
+            label: "Толщина",
             value: data.tolshchina != null ? `${data.tolshchina} мм` : "—",
         },
-        { label: "МАРКА СТАЛИ", value: dash(data.markaStali) },
-        { label: "ГОТ. ПРОДУКЦИЯ", value: dash(data.gotovayaProduktsiya) },
     ]
-    return [left, right]
 }
 
 export function renderStripLabel(
@@ -69,7 +63,7 @@ export function renderStripLabel(
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.fillStyle = "#000000"
     ctx.strokeStyle = "#000000"
-    ctx.textBaseline = "alphabetic"
+    ctx.textBaseline = "middle"
 
     // Outer border
     ctx.lineWidth = mm(0.5)
@@ -89,69 +83,58 @@ export function renderStripLabel(
 
     // Header
     ctx.textAlign = "center"
-    ctx.font = font(4.6, "800")
-    ctx.fillText("INVEST ZONE", mm(LABEL_W_MM / 2), mm(6.4))
+    ctx.textBaseline = "alphabetic"
+    ctx.font = font(4.8, "800")
+    ctx.fillText("INVEST ZONE", mm(LABEL_W_MM / 2), mm(6.6))
     ctx.font = font(1.7, "600")
-    ctx.fillText("ТРУБНЫЙ МЕТАЛЛУРГИЧЕСКИЙ ЗАВОД", mm(LABEL_W_MM / 2), mm(8.9))
+    ctx.fillText("ТРУБНЫЙ МЕТАЛЛУРГИЧЕСКИЙ ЗАВОД", mm(LABEL_W_MM / 2), mm(9.2))
+    ctx.textBaseline = "middle"
 
-    // Rule under header
     const innerX0 = 3
     const innerX1 = LABEL_W_MM - 3
-    const rule = (y: number, thickMm: number, x0 = innerX0, x1 = innerX1) => {
+    const hLine = (y: number, thickMm: number, x0 = innerX0, x1 = innerX1) => {
         ctx.lineWidth = mm(thickMm)
         ctx.beginPath()
         ctx.moveTo(mm(x0), mm(y))
         ctx.lineTo(mm(x1), mm(y))
         ctx.stroke()
     }
-    rule(10.2, 0.35)
 
-    // Field grid: 2 columns x 5 rows
-    const gridTop = 10.2
-    const gridBottom = 36
-    const rows = 5
-    const rowH = (gridBottom - gridTop) / rows
-    const midX = LABEL_W_MM / 2
+    const fields = buildFields(data)
 
-    // Column divider
-    ctx.lineWidth = mm(0.25)
-    ctx.beginPath()
-    ctx.moveTo(mm(midX), mm(gridTop))
-    ctx.lineTo(mm(midX), mm(gridBottom))
-    ctx.stroke()
+    // Table geometry — one row per field, then an emphasized quantity row.
+    const tableTop = 11
+    const qtyRowH = 6
+    const tableBottom = LABEL_H_MM - 5.5 // leave room for footer
+    const rowsAreaBottom = tableBottom - qtyRowH
+    const rowH = (rowsAreaBottom - tableTop) / fields.length
 
-    // Row separators
-    for (let i = 1; i < rows; i++) {
-        rule(gridTop + rowH * i, 0.2)
-    }
+    // Split between label column and value column.
+    const splitX = 25
+    const padX = 1.4
 
-    const [leftCol, rightCol] = buildColumns(data)
+    hLine(tableTop, 0.35) // top rule
 
-    // Draw one field cell, shrinking/truncating the value to fit the column.
-    const drawCell = (
-        field: Field,
-        cellX0: number,
-        cellX1: number,
-        top: number,
-    ) => {
-        const padX = 1.2
-        const x = cellX0 + padX
-        const maxW = mm(cellX1 - cellX0 - padX * 2)
+    fields.forEach((field, i) => {
+        const top = tableTop + rowH * i
+        const midY = top + rowH / 2
 
+        // Row separator (below each row)
+        hLine(top + rowH, 0.18)
+
+        // Label (bold)
         ctx.textAlign = "left"
-        ctx.fillStyle = "#000000"
+        ctx.font = font(1.95, "700")
+        ctx.fillText(field.label, mm(innerX0 + padX), mm(midY))
 
-        // Label (small caps)
-        ctx.font = font(1.7, "600")
-        ctx.fillText(field.label, mm(x), mm(top + 2.0))
-
-        // Value — shrink from 2.7mm down to 1.9mm, then ellipsize
-        let sizeMm = 2.7
-        const minMm = 1.9
-        ctx.font = font(sizeMm)
+        // Value (right-aligned, shrink-to-fit)
+        const maxW = mm(innerX1 - splitX - padX * 2)
+        let sizeMm = 2.4
+        const minMm = 1.6
+        ctx.font = font(sizeMm, "700")
         while (ctx.measureText(field.value).width > maxW && sizeMm > minMm) {
-            sizeMm -= 0.15
-            ctx.font = font(sizeMm)
+            sizeMm -= 0.1
+            ctx.font = font(sizeMm, "700")
         }
         let text = field.value
         if (ctx.measureText(text).width > maxW) {
@@ -163,19 +146,39 @@ export function renderStripLabel(
             }
             text += "…"
         }
-        ctx.fillText(text, mm(x), mm(top + 4.5))
-    }
+        ctx.textAlign = "right"
+        ctx.fillText(text, mm(innerX1 - padX), mm(midY))
+    })
 
-    for (let i = 0; i < rows; i++) {
-        const top = gridTop + rowH * i
-        drawCell(leftCol[i], innerX0, midX, top)
-        drawCell(rightCol[i], midX, innerX1, top)
-    }
+    // Vertical column divider across the field rows
+    ctx.lineWidth = mm(0.18)
+    ctx.beginPath()
+    ctx.moveTo(mm(splitX), mm(tableTop))
+    ctx.lineTo(mm(splitX), mm(rowsAreaBottom))
+    ctx.stroke()
 
-    // Footer: standard + certification
+    // Quantity row (emphasized)
+    const qtyTop = rowsAreaBottom
+    const qtyMidY = qtyTop + qtyRowH / 2
+    hLine(qtyTop, 0.35)
+    hLine(qtyTop + qtyRowH, 0.35)
+    ctx.textAlign = "left"
+    ctx.font = font(2.3, "800")
+    ctx.fillText("КОЛ-ВО", mm(innerX0 + padX), mm(qtyMidY))
+    ctx.textAlign = "right"
+    ctx.font = font(3.0, "800")
+    const qty = data.quantity != null ? `${data.quantity} шт` : "—"
+    ctx.fillText(qty, mm(innerX1 - padX), mm(qtyMidY))
+
+    // Footer
+    ctx.textBaseline = "alphabetic"
     ctx.textAlign = "center"
     ctx.font = font(1.7, "700")
-    ctx.fillText("ГОСТ 19523-2015   ·   ISO 9001", mm(LABEL_W_MM / 2), mm(38.6))
+    ctx.fillText(
+        "ГОСТ 19523-2015   ·   ISO 9001",
+        mm(LABEL_W_MM / 2),
+        mm(LABEL_H_MM - 1.8),
+    )
 
     return canvas
 }

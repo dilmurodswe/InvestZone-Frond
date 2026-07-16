@@ -28,6 +28,7 @@ export interface ManufactureLabelData {
     gotovayaProduktsiya: string
     markaStali: string
     tolshchina?: number | null
+    quantity?: number | null
 }
 
 // Rolling/Prokatka label data - single pack (old format, kept for compatibility)
