@@ -13,7 +13,8 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
-import { Check, Pencil, Trash2, X } from "lucide-react"
+import { useNavigate } from "@tanstack/react-router"
+import { Check, ExternalLink, Pencil, Trash2, X } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useManufactureStore } from "../-hooks/use-manufacture-store"
@@ -80,6 +81,30 @@ function RoCell({ value }: { value: string | number | null | undefined }) {
     return (
         <td className="px-3 py-2.5 text-sm">
             {value != null && value !== "" ? String(value) : "—"}
+        </td>
+    )
+}
+
+function RefCell({
+    value,
+    onClick,
+}: {
+    value: string | null | undefined
+    onClick?: () => void
+}) {
+    const has = value != null && value !== "" && value !== "—"
+    if (!has || !onClick) return <RoCell value={value} />
+    return (
+        <td className="px-3 py-2.5 text-sm">
+            <button
+                type="button"
+                onClick={onClick}
+                title="Перейти к штрипсам"
+                className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700 hover:underline underline-offset-2"
+            >
+                {String(value)}
+                <ExternalLink className="w-3 h-3" />
+            </button>
         </td>
     )
 }
@@ -186,6 +211,22 @@ function ManufacturePlanFactContent() {
     const { closeModal } = useModal("manufacture-plan-fact")
     const { invalidateByExactMatch } = useRevalidate()
     const { post, put, remove, isPending } = useRequest()
+    const navigate = useNavigate()
+
+    // Navigate to the ready-strips (штрипс) section, filtered to the strips
+    // belonging to this batch/roll (Партия/Рулон → reference_number).
+    const goToStrips = (referenceNumber: string | null | undefined) => {
+        if (!manufacture?.id) return
+        closeModal()
+        navigate({
+            to: "/ready-strips/$manufactureId",
+            params: { manufactureId: String(manufacture.id) },
+            search:
+                referenceNumber && referenceNumber !== "—" ?
+                    { search: referenceNumber }
+                :   {},
+        })
+    }
 
     const { data: detail, isLoading: detailLoading } =
         useGet<ManufactureDetail>(
@@ -547,7 +588,14 @@ function ManufacturePlanFactContent() {
                                             {idx + 1}
                                         </td>
                                         <RoCell value={item.plank} />
-                                        <RoCell value={item.reference_number} />
+                                        <RefCell
+                                            value={item.reference_number}
+                                            onClick={() =>
+                                                goToStrips(
+                                                    item.reference_number,
+                                                )
+                                            }
+                                        />
                                         <RoCell value={item.cart_weight} />
                                         <CalcBadge
                                             value={calculateWaste(
@@ -583,7 +631,12 @@ function ManufacturePlanFactContent() {
                                             {idx + 1}
                                         </td>
                                         <RoCell value={row.plank} />
-                                        <RoCell value={row.reference_number} />
+                                        <RefCell
+                                            value={row.reference_number}
+                                            onClick={() =>
+                                                goToStrips(row.reference_number)
+                                            }
+                                        />
                                         <InputCell
                                             value={row.cart_weight}
                                             onChange={(v) =>
