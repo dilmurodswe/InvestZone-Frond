@@ -16,15 +16,21 @@ const LABEL_H_MM = 74
 const DEFAULT_PX_PER_MM = 8 // 203 dpi thermal (8 dots/mm)
 const FONT = "Arial, Helvetica, sans-serif"
 
-/**
- * `stacked` fields get their own full-width block: the name sits on its own
- * line and the value wraps below it across the whole label. Used for the
- * product name, which is far too long for the narrow value column.
- */
-type Field = { label: string; value: string; stacked?: boolean }
+type Field = { label: string; value: string }
 
 const dash = (v: unknown): string =>
     v === null || v === undefined || v === "" ? "—" : String(v)
+
+/**
+ * Keep only the size part of a product name — "Труба профильная прямоугольная
+ * 100 x 50 x 3.5" prints as "100 x 50 x 3.5". The leading type words never fit
+ * the value column and the size is what the shop floor reads.
+ */
+const sizeOnly = (v: unknown): string => {
+    const text = dash(v)
+    const match = /\d.*$/.exec(text)
+    return match ? match[0].trim() : text
+}
 
 function buildFields(data: StripLabelData): Field[] {
     return [
@@ -41,8 +47,7 @@ function buildFields(data: StripLabelData): Field[] {
         { label: "Дата резки", value: dash(data.dataRezki) },
         {
             label: "Готовая продукция",
-            value: dash(data.gotovayaProduktsiya),
-            stacked: true,
+            value: sizeOnly(data.gotovayaProduktsiya),
         },
         { label: "Марка стали", value: dash(data.markaStali) },
         {
@@ -50,47 +55,6 @@ function buildFields(data: StripLabelData): Field[] {
             value: data.tolshchina != null ? `${data.tolshchina} мм` : "—",
         },
     ]
-}
-
-/** Greedy word-wrap; splits over-long words so nothing overflows. */
-function wrapText(
-    ctx: CanvasRenderingContext2D,
-    text: string,
-    maxW: number,
-): string[] {
-    const lines: string[] = []
-    let line = ""
-
-    const push = () => {
-        if (line) lines.push(line)
-        line = ""
-    }
-
-    for (const word of text.split(/\s+/).filter(Boolean)) {
-        const candidate = line ? `${line} ${word}` : word
-        if (ctx.measureText(candidate).width <= maxW) {
-            line = candidate
-            continue
-        }
-        push()
-        if (ctx.measureText(word).width <= maxW) {
-            line = word
-            continue
-        }
-        // Single word wider than the row — break it character by character.
-        let chunk = ""
-        for (const ch of word) {
-            if (ctx.measureText(chunk + ch).width > maxW && chunk) {
-                lines.push(chunk)
-                chunk = ch
-            } else {
-                chunk += ch
-            }
-        }
-        line = chunk
-    }
-    push()
-    return lines.length ? lines : [text]
 }
 
 export function renderStripLabel(
@@ -153,17 +117,11 @@ export function renderStripLabel(
     const fields = buildFields(data)
 
     // Table geometry — one row per field, then an emphasized quantity row.
-    // A stacked row is taller: it holds its name plus the wrapped value below.
     const tableTop = 11
     const qtyRowH = 6
     const tableBottom = LABEL_H_MM - 5.5 // leave room for footer
     const rowsAreaBottom = tableBottom - qtyRowH
-    const STACKED_UNITS = 2.1
-    const units = fields.reduce(
-        (sum, f) => sum + (f.stacked ? STACKED_UNITS : 1),
-        0,
-    )
-    const unitH = (rowsAreaBottom - tableTop) / units
+    const rowH = (rowsAreaBottom - tableTop) / fields.length
 
     // Split between label column and value column.
     const splitX = 25
@@ -171,103 +129,47 @@ export function renderStripLabel(
 
     hLine(tableTop, 0.35) // top rule
 
-    // Vertical column divider — drawn per row so it skips the stacked blocks.
-    const dividerRuns: [number, number][] = []
-
-    let top = tableTop
-    fields.forEach((field) => {
-        const rowH = unitH * (field.stacked ? STACKED_UNITS : 1)
-        const bottom = top + rowH
+    fields.forEach((field, i) => {
+        const top = tableTop + rowH * i
+        const midY = top + rowH / 2
 
         // Row separator (below each row)
-        hLine(bottom, 0.18)
+        hLine(top + rowH, 0.18)
 
-        if (field.stacked) {
-            // Name on its own line, value wrapped across the full width.
-            ctx.textAlign = "left"
-            ctx.textBaseline = "middle"
-            ctx.font = font(1.95, "700")
-            ctx.fillText(field.label, mm(innerX0 + padX), mm(top + rowH * 0.26))
+        // Label (bold)
+        ctx.textAlign = "left"
+        ctx.font = font(1.95, "700")
+        ctx.fillText(field.label, mm(innerX0 + padX), mm(midY))
 
-            const maxW = mm(innerX1 - innerX0 - padX * 2)
-            const maxLines = 2
-            let sizeMm = 2.4
-            const minMm = 1.5
-            let lines: string[]
-            for (;;) {
-                ctx.font = font(sizeMm, "700")
-                lines = wrapText(ctx, field.value, maxW)
-                if (lines.length <= maxLines || sizeMm <= minMm) break
-                sizeMm -= 0.1
-            }
-            if (lines.length > maxLines) {
-                lines = lines.slice(0, maxLines)
-                let last = lines[maxLines - 1]
-                while (
-                    last.length > 1 &&
-                    ctx.measureText(`${last}…`).width > maxW
-                ) {
-                    last = last.slice(0, -1)
-                }
-                lines[maxLines - 1] = `${last}…`
-            }
-
-            const lineH = sizeMm * 1.25
-            const blockTop = top + rowH * 0.5
-            lines.forEach((line, li) => {
-                ctx.fillText(
-                    line,
-                    mm(innerX0 + padX),
-                    mm(blockTop + lineH * (li + 0.5)),
-                )
-            })
-        } else {
-            const midY = top + rowH / 2
-
-            // Label (bold)
-            ctx.textAlign = "left"
-            ctx.font = font(1.95, "700")
-            ctx.fillText(field.label, mm(innerX0 + padX), mm(midY))
-
-            // Value (right-aligned, shrink-to-fit)
-            const maxW = mm(innerX1 - splitX - padX * 2)
-            let sizeMm = 2.4
-            const minMm = 1.6
+        // Value (right-aligned, shrink-to-fit)
+        const maxW = mm(innerX1 - splitX - padX * 2)
+        let sizeMm = 2.4
+        const minMm = 1.6
+        ctx.font = font(sizeMm, "700")
+        while (ctx.measureText(field.value).width > maxW && sizeMm > minMm) {
+            sizeMm -= 0.1
             ctx.font = font(sizeMm, "700")
-            while (
-                ctx.measureText(field.value).width > maxW &&
-                sizeMm > minMm
-            ) {
-                sizeMm -= 0.1
-                ctx.font = font(sizeMm, "700")
-            }
-            let text = field.value
-            if (ctx.measureText(text).width > maxW) {
-                while (
-                    text.length > 1 &&
-                    ctx.measureText(text + "…").width > maxW
-                ) {
-                    text = text.slice(0, -1)
-                }
-                text += "…"
-            }
-            ctx.textAlign = "right"
-            ctx.fillText(text, mm(innerX1 - padX), mm(midY))
-
-            dividerRuns.push([top, bottom])
         }
-
-        top = bottom
+        let text = field.value
+        if (ctx.measureText(text).width > maxW) {
+            while (
+                text.length > 1 &&
+                ctx.measureText(text + "…").width > maxW
+            ) {
+                text = text.slice(0, -1)
+            }
+            text += "…"
+        }
+        ctx.textAlign = "right"
+        ctx.fillText(text, mm(innerX1 - padX), mm(midY))
     })
 
-    // Vertical column divider across the two-column rows only
+    // Vertical column divider across the field rows
     ctx.lineWidth = mm(0.18)
-    for (const [y0, y1] of dividerRuns) {
-        ctx.beginPath()
-        ctx.moveTo(mm(splitX), mm(y0))
-        ctx.lineTo(mm(splitX), mm(y1))
-        ctx.stroke()
-    }
+    ctx.beginPath()
+    ctx.moveTo(mm(splitX), mm(tableTop))
+    ctx.lineTo(mm(splitX), mm(rowsAreaBottom))
+    ctx.stroke()
 
     // Quantity row (emphasized)
     const qtyTop = rowsAreaBottom
