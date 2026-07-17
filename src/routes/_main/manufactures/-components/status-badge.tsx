@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { ManufactureStatus } from "../-types"
 import { MANUFACTURE_STATUS_CONFIG } from "./status-config"
 
@@ -11,6 +12,7 @@ export default function ManufactureStatusBadge({
     status,
     onClick,
 }: StatusBadgeProps) {
+    const { t } = useTranslation()
     const config = MANUFACTURE_STATUS_CONFIG[status]
     if (!config)
         return (
@@ -25,7 +27,7 @@ export default function ManufactureStatusBadge({
             className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold whitespace-nowrap"
             style={{ backgroundColor: config.bg, color: config.color }}
         >
-            {config.label}
+            {t(config.labelKey as never)}
             {onClick && <ChevronDown className="size-4" />}
         </button>
     )

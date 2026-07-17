@@ -92,7 +92,7 @@ export const getManufactureCols = (
                 <ClickableCell manufacture={original}>
                     <span className="text-sm">
                         {original.raw_item_details.length > 0 ?
-                            `${original.raw_item_details.length} item(s)`
+                            `${original.raw_item_details.length} ${i18n.t("common.pieces")}`
                         :   "—"}
                     </span>
                 </ClickableCell>
@@ -127,11 +127,11 @@ export const getManufactureCols = (
                     {original.is_plan_fact ?
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-700 text-xs font-medium">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            Есть
+                            {i18n.t("common.yes")}
                         </span>
                     :   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">
                             <Clock className="w-3.5 h-3.5" />
-                            Нет
+                            {i18n.t("common.no")}
                         </span>
                     }
                 </ClickableCell>

@@ -2,6 +2,7 @@ import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { API } from "@/lib/constants/api-endpoints"
 import { useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import type { Manufacture, ManufactureStatus } from "../-types"
 import {
     ALL_MANUFACTURE_STATUSES,
@@ -22,6 +23,7 @@ export default function ManufactureStatusDropdown({
     onStatusChanged,
 }: StatusDropdownProps) {
     const ref = useRef<HTMLDivElement>(null)
+    const { t } = useTranslation()
     const { patch } = useRequest()
     const { invalidateByExactMatch } = useRevalidate()
     const rect = anchorEl.getBoundingClientRect()
@@ -77,7 +79,7 @@ export default function ManufactureStatusDropdown({
                             className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                             style={{ backgroundColor: config.bg }}
                         />
-                        {config.label}
+                        {t(config.labelKey as never)}
                     </button>
                 )
             })}

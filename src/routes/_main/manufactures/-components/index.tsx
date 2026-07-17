@@ -9,16 +9,22 @@ import { Button } from "@/components/ui/button"
 import { useModal } from "@/hooks/use-modal"
 import { Plus } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useManufacturesQuery } from "../-hooks/use-manufactures-query"
 import type { Manufacture } from "../-types"
 import ManufactureDeleteModal from "./manufacture-delete-modal"
 import ManufactureDetailModal from "./manufacture-detail-modal"
 import ManufacturePlanFactModal from "./manufacture-plan-fact-modal"
 import NewManufactureModal from "./new-manufacture-modal"
+import {
+    ALL_MANUFACTURE_STATUSES,
+    MANUFACTURE_STATUS_CONFIG,
+} from "./status-config"
 import ManufactureStatusDropdown from "./status-dropdown"
 import { getManufactureCols } from "./use-manufacture-cols"
 
 export default function Index() {
+    const { t } = useTranslation()
     const newManufactureModal = useModal("new-manufacture")
     const { manufactureList, count, isFetching } = useManufacturesQuery()
 
@@ -34,31 +40,28 @@ export default function Index() {
     // navigate va onRowClick o'chirildi
     const cols = getManufactureCols(handleStatusClick)
 
-    const roleOptions = [
-        { id: "ready", name: "Ready" },
-        { id: "request_sent", name: "Request Sent" },
-        { id: "waiting_cert", name: "Waiting for Certificate" },
-        { id: "in_progress", name: "In Progress" },
-        { id: "completed", name: "Completed" },
-    ]
+    const roleOptions = ALL_MANUFACTURE_STATUSES.map((s) => ({
+        id: s,
+        name: t(MANUFACTURE_STATUS_CONFIG[s].labelKey as never),
+    }))
 
     return (
         <>
-            <Navbar links={[{ label: "Manufactures" }]} />
+            <Navbar links={[{ label: t("nav.reskaShtrips") }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <div className="flex flex-wrap gap-x-2 gap-y-4">
                         <FilterInput />
                         <FilterSelect
                             filterKey="status"
-                            placeholder="Status"
+                            placeholder={t("table.status")}
                             options={roleOptions}
                         />
                         {/* ManufactureFilter o'chirildi */}
                     </div>
                     <Button onClick={() => newManufactureModal.openModal()}>
                         <Plus className="w-4 h-4" />
-                        New
+                        {t("common.create")}
                     </Button>
                 </Group>
 
@@ -80,7 +83,9 @@ export default function Index() {
                             className="text-primary"
                         >
                             <Plus className="w-4 h-4" />
-                            New manufacture
+                            {t("common.createEntity", {
+                                entity: t("entity.manufacture"),
+                            })}
                         </Button>
                     </NoData>
                 )}
