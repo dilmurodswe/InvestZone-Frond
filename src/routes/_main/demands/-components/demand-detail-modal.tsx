@@ -6,41 +6,39 @@ import { useGet } from "@/hooks/react-query/use-get"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { formatNumber, round3 } from "@/lib/utils/format-number"
-import { PrinterIcon, TruckIcon } from "lucide-react"
+import { PrinterIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { useOrderStore } from "../-hooks/use-order-store"
-import type { Order } from "../-types"
-import { ORDER_PRINT_MODAL } from "./order-print-modal"
-import OrderStatusBadge from "./order-status-badge"
+import { useDemandStore } from "../-hooks/use-demand-store"
+import type { Demand } from "../-types"
+import { DEMAND_PRINT_MODAL } from "./demand-print-modal"
 
 const money = (val: string | number | null | undefined) =>
     formatNumber(val, { decimalScale: 2, isShowZero: true })
 
-export default function OrderDetailModal() {
+export default function DemandDetailModal() {
     return (
         <Modal
-            modalKey="order-detail"
+            modalKey="demand-detail"
             title={null}
             wrapperClassname="md:w-[1000px]! md:max-w-none"
             className="min-w-[960px]!"
         >
-            <OrderDetail />
+            <DemandDetail />
         </Modal>
     )
 }
 
-function OrderDetail() {
+function DemandDetail() {
     const { t } = useTranslation()
-    const { order } = useOrderStore()
-    const createDemandModal = useModal("create-demand")
-    const printModal = useModal(ORDER_PRINT_MODAL)
+    const { demand } = useDemandStore()
+    const printModal = useModal(DEMAND_PRINT_MODAL)
 
-    const { data, isLoading } = useGet<Order>(
-        API.ORDERS.ID.INDEX.replace("{id}", String(order?.id ?? "")),
-        { options: { enabled: !!order?.id } },
+    const { data, isLoading } = useGet<Demand>(
+        API.DEMANDS.ID.INDEX.replace("{id}", String(demand?.id ?? "")),
+        { options: { enabled: !!demand?.id } },
     )
 
-    if (!order) return null
+    if (!demand) return null
     if (isLoading)
         return (
             <div className="py-8 text-center text-sm text-muted-foreground">
@@ -49,72 +47,32 @@ function OrderDetail() {
         )
     if (!data) return null
 
-    const remaining = data.items.reduce(
-        (acc, item) =>
-            acc + (Number(item.quantity) - Number(item.shipped) > 0 ? 1 : 0),
-        0,
-    )
-
     return (
         <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between gap-4">
                 <CardTitle>
-                    {t("entity.order")} №{data.number}
+                    {t("entity.demand")} №{data.number}
                 </CardTitle>
-                <div className="flex items-center gap-3">
-                    <OrderStatusBadge status={data.status} />
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => printModal.openModal()}
-                    >
-                        <PrinterIcon className="w-4 h-4" />
-                        {t("print.appendix")}
-                    </Button>
-                    <Button
-                        size="sm"
-                        disabled={!remaining}
-                        onClick={() => createDemandModal.openModal()}
-                    >
-                        <TruckIcon className="w-4 h-4" />
-                        {remaining ?
-                            t("common.createDemand")
-                        :   t("common.nothingToShip")}
-                    </Button>
-                </div>
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => printModal.openModal()}
+                >
+                    <PrinterIcon className="w-4 h-4" />
+                    {t("print.appendix")}
+                </Button>
             </div>
 
-            <Section title={t("table.sum")}>
-                <div className="grid grid-cols-5 divide-x">
-                    <Cell
-                        label={t("table.sum")}
-                        value={`${money(data.total_sum)} ${data.currency?.currency ?? ""}`}
-                    />
-                    <Cell label={t("table.vatSum")} value={money(data.vat_sum)} />
-                    <Cell
-                        label={t("table.totalWithVat")}
-                        value={money(data.total_with_vat)}
-                    />
-                    <Cell
-                        label={t("table.shippedAmount")}
-                        value={money(data.shipped_sum)}
-                    />
-                    <Cell
-                        label={t("table.reserved")}
-                        value={money(data.reserved_sum)}
-                    />
-                </div>
-            </Section>
-
-            <Section title={t("entity.order")}>
+            <Section title={t("entity.demand")}>
                 <div className="grid grid-cols-3 divide-x divide-y">
                     <Cell
                         label={t("table.client")}
                         value={data.client?.full_name}
                     />
+                    <Cell label={t("table.order")} value={data.order_number} />
                     <Cell
-                        label={t("table.paymentType")}
-                        value={data.payment_type}
+                        label={t("table.date")}
+                        value={data.doc_date?.slice(0, 10)}
                     />
                     <Cell
                         label={t("table.currency")}
@@ -125,33 +83,18 @@ function OrderDetail() {
                         }
                     />
                     <Cell
-                        label={t("table.clientRate")}
-                        value={data.client_currency}
+                        label={t("table.sum")}
+                        value={money(data.total_with_vat)}
                     />
                     <Cell
-                        label={t("table.date")}
-                        value={data.doc_date?.slice(0, 10)}
-                    />
-                    <Cell
-                        label={t("table.plannedShipmentDate")}
-                        value={data.delivery_planned_date}
+                        label={t("table.posted")}
+                        value={data.applicable ? t("common.yes") : t("common.no")}
                     />
                     <Cell
                         label={t("table.deliveryAddress")}
                         value={data.shipment_address}
                     />
-                    <Cell
-                        label={t("table.contractNumber")}
-                        value={data.contract_number}
-                    />
-                    <Cell
-                        label={t("table.lotNumber")}
-                        value={data.lot_number}
-                    />
-                    <Cell
-                        label={t("table.warehouse")}
-                        value={data.warehouse?.name}
-                    />
+                    <Cell label={t("table.comment")} value={data.description} />
                     <Cell
                         label={t("table.owner")}
                         value={
@@ -161,14 +104,46 @@ function OrderDetail() {
                         }
                     />
                     <Cell
-                        label={t("table.posted")}
-                        value={data.applicable ? t("common.yes") : t("common.no")}
-                    />
-                    <Cell
-                        label={t("table.comment")}
-                        value={data.description}
+                        label={t("table.vatSum")}
+                        value={money(data.vat_sum)}
                     />
                 </div>
+            </Section>
+
+            <Section title={t("table.carrier")}>
+                <div className="grid grid-cols-3 divide-x divide-y">
+                    <Cell label={t("table.carrier")} value={data.carrier} />
+                    <Cell
+                        label={t("table.transportNumber")}
+                        value={data.transport_number}
+                    />
+                    <Cell label={t("table.cargoName")} value={data.cargo_name} />
+                    <Cell
+                        label={t("table.placesCount")}
+                        value={data.places_count}
+                    />
+                    <Cell
+                        label={t("table.waybillNumber")}
+                        value={data.waybill_number}
+                    />
+                    <Cell
+                        label={t("table.waybillDate")}
+                        value={data.waybill_date}
+                    />
+                </div>
+            </Section>
+
+            <Section title={t("table.files")}>
+                <DocumentFiles
+                    listUrl={API.DEMANDS.FILES.INDEX.replace(
+                        "{id}",
+                        String(data.id),
+                    )}
+                    attachUrl={API.DEMANDS.FILES.POST}
+                    detachUrl={API.DEMANDS.FILES.DELETE}
+                    documentKey="demand_id"
+                    documentId={data.id}
+                />
             </Section>
 
             <Section title={t("table.products")}>
@@ -184,8 +159,6 @@ function OrderDetail() {
                                 <Th align="right">{t("table.discount")}</Th>
                                 <Th align="right">{t("table.vatPercent")}</Th>
                                 <Th align="right">{t("table.lineTotal")}</Th>
-                                <Th align="right">{t("table.shippedQty")}</Th>
-                                <Th align="right">{t("table.reserved")}</Th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
@@ -217,54 +190,11 @@ function OrderDetail() {
                                     <Td align="right">
                                         {money(item.line_total)}
                                     </Td>
-                                    <Td align="right">
-                                        {round3(item.shipped, "0")}
-                                    </Td>
-                                    <Td align="right">
-                                        {round3(item.active_reserve, "0")}
-                                    </Td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-            </Section>
-
-            <Section title={t("table.files")}>
-                <DocumentFiles
-                    listUrl={API.ORDERS.FILES.INDEX.replace(
-                        "{id}",
-                        String(data.id),
-                    )}
-                    attachUrl={API.ORDERS.FILES.POST}
-                    detachUrl={API.ORDERS.FILES.DELETE}
-                    documentKey="order_id"
-                    documentId={data.id}
-                />
-            </Section>
-
-            <Section title={t("common.relatedDocuments")}>
-                {data.demands.length ?
-                    <div className="flex flex-col divide-y">
-                        {data.demands.map((demand) => (
-                            <div
-                                key={demand.id}
-                                className="flex items-center justify-between px-4 py-2 text-sm"
-                            >
-                                <span className="font-medium">
-                                    {t("entity.demand")} №{demand.number}
-                                </span>
-                                <span className="text-muted-foreground">
-                                    {demand.doc_date?.slice(0, 10)}
-                                </span>
-                                <span>{money(demand.total_sum)}</span>
-                            </div>
-                        ))}
-                    </div>
-                :   <p className="px-4 py-3 text-sm text-muted-foreground">
-                        {t("common.noData")}
-                    </p>
-                }
             </Section>
         </div>
     )
@@ -317,10 +247,7 @@ function Th({
     align?: "left" | "right"
 }) {
     return (
-        <th
-            className="px-3 py-2 font-semibold"
-            style={{ textAlign: align }}
-        >
+        <th className="px-3 py-2 font-semibold" style={{ textAlign: align }}>
             {children}
         </th>
     )

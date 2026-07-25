@@ -1,32 +1,59 @@
 import FormAction from "@/components/custom/form-action"
 import Modal from "@/components/custom/modal"
+import DatepickerField from "@/components/form/datepicker-field"
+import NumberField from "@/components/form/number-field"
+import PaginatedSelectField from "@/components/form/paginated-select-field"
 import SelectField from "@/components/form/select-field"
+import SwitchField from "@/components/form/switch-field"
 import UncontrolledInput from "@/components/form/uncontrolled-input"
+import UncontrolledTextarea from "@/components/form/uncontrolled-textarea"
 import { Button } from "@/components/ui/button"
 import { CardTitle } from "@/components/ui/card"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
+import {
+    useSaleClientsQuery,
+    useSaleCurrenciesQuery,
+    useSalePaymentTypesQuery,
+} from "@/hooks/react-query/use-sale-refs"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
-import { formatDecimal } from "@/lib/utils/format-number"
+import { formatNumber } from "@/lib/utils/format-number"
 import { PlusIcon, Trash2 } from "lucide-react"
 import { useFieldArray, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import { useClientsQuery } from "../-hooks/use-clients-query"
-import { useCurrenciesQuery } from "../-hooks/use-currencies-query"
+import type { ReadyProduct } from "@/routes/_main/ready-products/-types"
 import { useOrderStore } from "../-hooks/use-order-store"
-import { usePaymentTypesQuery } from "../-hooks/use-payment-types-query"
-import { useReadyProductsQuery } from "../-hooks/use-ready-products-query"
-import type { OrderForm } from "../-types"
+import type { OrderForm, OrderItemForm, SaleProduct } from "../-types"
+import { useOrderStatusOptions } from "./status-config"
+
+/** Ready-product label — matches the "Ready Products" screen: `thickness x width`. */
+const readyProductLabel = (rp: Pick<ReadyProduct, "id" | "thickness" | "width">) =>
+    [rp.thickness, rp.width].filter(Boolean).join(" x ") || `#${rp.id}`
+
+const EMPTY_ITEM: OrderItemForm = {
+    product_id: null,
+    price: null,
+    quantity: null,
+    discount: 0,
+    vat: 0,
+    reserve: 0,
+}
+
+/** price × quantity with the discount applied — mirrors OrderItem.line_total. */
+const lineTotal = (item: OrderItemForm) => {
+    const gross = Number(item.price || 0) * Number(item.quantity || 0)
+    return gross * (1 - Number(item.discount || 0) / 100)
+}
 
 export default function OrderAddEditModal() {
     return (
         <Modal
             modalKey="add-order"
             title={null}
-            wrapperClassname="md:w-[900px]! md:max-w-none"
-            className="min-w-[860px]!"
+            wrapperClassname="md:w-[1000px]! md:max-w-none"
+            className="min-w-[960px]!"
         >
             <OrderAddEdit />
         </Modal>
@@ -39,70 +66,78 @@ function OrderAddEdit() {
     const { invalidateByExactMatch } = useRevalidate()
     const { order } = useOrderStore()
     const { post, patch, isPending } = useRequest()
+    const statusOptions = useOrderStatusOptions()
 
-    const { clientList } = useClientsQuery()
-    const { paymentTypeList } = usePaymentTypesQuery()
-    const { currencyList } = useCurrenciesQuery()
-    const { readyProductList } = useReadyProductsQuery()
-    const statusOptions = [
-        { id: "new", name: "New" },
-        { id: "in_processing", name: "In Processing" },
-        { id: "completed", name: "Completed" },
-    ]
+    const { clientList } = useSaleClientsQuery()
+    const { paymentTypeList } = useSalePaymentTypesQuery()
+    const { currencyList } = useSaleCurrenciesQuery()
     const clientOptions = clientList.map((c) => ({
         id: c.id,
         name: c.full_name,
     }))
-
     const paymentTypeOptions = paymentTypeList.map((p) => ({
         id: p.id,
         name: p.name,
     }))
-
     const currencyOptions = currencyList.map((c) => ({
         id: c.id,
         name: `${c.currency} (${c.current_rate})`,
     }))
 
-    const productOptions = readyProductList.flatMap((rp) =>
-        rp.detail_items
-            .filter((item) => item.product != null)
-            .map((item) => ({
-                id: item.product.id,
-                name: `${item.product.name} — ${formatDecimal(Number(item.product.price))}`,
-            })),
-    )
-
     const form = useForm<OrderForm>({
         defaultValues: {
-            client: null,
-            payment_type: null,
-            currency: null,
+            client_id: null,
+            payment_type_id: null,
+            currency_id: null,
             client_currency: null,
-            items: [{ product: null, price: null, count: null }],
+            contract_number: "",
+            lot_number: "",
+            warehouse_id: null,
+            doc_date: null,
+            delivery_planned_date: null,
+            shipment_address: "",
+            description: "",
             status: "new",
+            vat_enabled: false,
+            vat_included: true,
+            applicable: false,
+            items: [{ ...EMPTY_ITEM }],
         },
         values:
             order ?
                 {
-                    client:
-                        clientList.find((c) => c.full_name === order.client)
+                    client_id: order.client?.id ?? null,
+                    payment_type_id:
+                        paymentTypeList.find((p) => p.name === order.payment_type)
                             ?.id ?? null,
-                    payment_type:
-                        paymentTypeList.find(
-                            (p) => p.name === order.payment_type,
-                        )?.id ?? null,
-                    currency: order.currency?.id ?? null,
-                    client_currency: order.client_currency,
+                    currency_id: order.currency?.id ?? null,
+                    client_currency:
+                        order.client_currency ?
+                            Number(order.client_currency)
+                        :   null,
+                    contract_number: order.contract_number ?? "",
+                    lot_number: order.lot_number ?? "",
+                    warehouse_id: order.warehouse?.id ?? null,
+                    doc_date: order.doc_date?.slice(0, 10) ?? null,
+                    delivery_planned_date: order.delivery_planned_date,
+                    shipment_address: order.shipment_address ?? "",
+                    description: order.description ?? "",
                     status: order.status ?? "new",
+                    vat_enabled: order.vat_enabled,
+                    vat_included: order.vat_included,
+                    applicable: order.applicable,
                     items:
                         order.items?.length ?
                             order.items.map((item) => ({
-                                product: item.product,
-                                price: item.price,
-                                count: item.count,
+                                id: item.id,
+                                product_id: item.product?.id ?? null,
+                                price: Number(item.price),
+                                quantity: Number(item.quantity),
+                                discount: Number(item.discount),
+                                vat: item.vat,
+                                reserve: Number(item.reserve),
                             }))
-                        :   [{ product: null, price: null, count: null }],
+                        :   [{ ...EMPTY_ITEM }],
                 }
             :   undefined,
     })
@@ -112,21 +147,41 @@ function OrderAddEdit() {
         name: "items",
     })
 
+    const watchedItems = form.watch("items")
+    const total = (watchedItems ?? []).reduce(
+        (acc, item) => acc + lineTotal(item),
+        0,
+    )
+
     const onSuccess = () => {
         invalidateByExactMatch([API.ORDERS.INDEX])
+        if (order) {
+            // The detail query is keyed by its own url, not by the list url.
+            invalidateByExactMatch([
+                API.ORDERS.ID.INDEX.replace("{id}", String(order.id)),
+            ])
+        }
         closeModal()
         toast.success(
-            order ? "Updated successfully" : "Order added successfully",
+            order ?
+                t("common.updatedSuccessfully")
+            :   t("common.addedSuccessfully"),
         )
     }
 
     const onSubmit = form.handleSubmit((vals) => {
+        const payload = {
+            ...vals,
+            items: vals.items.filter((item) => item.product_id != null),
+        }
         if (order) {
-            patch(API.ORDERS.ID.INDEX.replace("{id}", String(order.id)), vals, {
-                onSuccess,
-            })
+            patch(
+                API.ORDERS.ID.INDEX.replace("{id}", String(order.id)),
+                payload,
+                { onSuccess },
+            )
         } else {
-            post(API.ORDERS.INDEX, vals, { onSuccess })
+            post(API.ORDERS.INDEX, payload, { onSuccess })
         }
     })
 
@@ -137,68 +192,146 @@ function OrderAddEdit() {
         >
             <CardTitle>
                 {order ?
-                    t("common.editEntity", { entity: t("entity.order") })
+                    `${t("common.editEntity", { entity: t("entity.order") })} — ${order.number}`
                 :   t("common.addEntity", { entity: t("entity.order") })}
             </CardTitle>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
                 <SelectField
                     methods={form}
-                    name="client"
+                    name="client_id"
                     options={clientOptions}
-                    label="Client"
-                    placeholder="Select client"
+                    label={t("table.client")}
                 />
-
                 <SelectField
                     methods={form}
-                    name="payment_type"
+                    name="payment_type_id"
                     options={paymentTypeOptions}
-                    label="Payment Type"
-                    placeholder="Select payment type"
+                    label={t("table.paymentType")}
+                />
+                <DatepickerField
+                    methods={form}
+                    name="doc_date"
+                    label={t("table.date")}
+                    optional
                 />
             </div>
-            <div
-                className={`grid gap-4 ${order ? "grid-cols-3" : "grid-cols-2"}`}
-            >
+
+            <div className="grid grid-cols-3 gap-4">
                 <SelectField
                     methods={form}
-                    name="currency"
+                    name="currency_id"
                     options={currencyOptions}
-                    label="Currency"
-                    placeholder="Select currency"
+                    label={t("table.currency")}
                 />
-
-                <UncontrolledInput
+                <NumberField
                     methods={form}
                     name="client_currency"
-                    label="Client Currency Rate"
+                    label={t("table.clientRate")}
+                    optional
+                />
+                <DatepickerField
+                    methods={form}
+                    name="delivery_planned_date"
+                    label={t("table.plannedShipmentDate")}
+                    optional
+                />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+                <UncontrolledInput
+                    methods={form}
+                    name="contract_number"
+                    label={t("table.contractNumber")}
+                    optional
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="lot_number"
+                    label={t("table.lotNumber")}
+                    optional
+                />
+                <PaginatedSelectField<OrderForm, ReadyProduct>
+                    methods={form}
+                    name="warehouse_id"
+                    url={API.MANUFACTURES.READY_PRODUCTS}
+                    mapOption={(rp) => ({
+                        id: rp.id,
+                        name: readyProductLabel(rp),
+                    })}
+                    label={t("table.warehouse")}
+                    optional
+                    selectedOption={
+                        order?.warehouse ?
+                            {
+                                id: order.warehouse.id,
+                                name: order.warehouse.name,
+                            }
+                        :   null
+                    }
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <UncontrolledInput
+                    methods={form}
+                    name="shipment_address"
+                    label={t("table.deliveryAddress")}
+                    optional
                 />
                 {order && (
                     <SelectField
                         methods={form}
                         name="status"
                         options={statusOptions}
-                        label="Status"
-                        placeholder="Select status"
+                        label={t("table.status")}
                     />
                 )}
             </div>
 
-            {/* Items */}
+            <UncontrolledTextarea
+                methods={form}
+                name="description"
+                label={t("table.comment")}
+                rows={2}
+                optional
+            />
+
+            <div className="flex flex-wrap gap-6">
+                <SwitchField
+                    methods={form}
+                    name="vat_enabled"
+                    label={t("common.vatEnabled")}
+                    wrapperClassName="w-auto"
+                />
+                <SwitchField
+                    methods={form}
+                    name="vat_included"
+                    label={t("common.vatIncluded")}
+                    wrapperClassName="w-auto"
+                />
+                <SwitchField
+                    methods={form}
+                    name="applicable"
+                    label={t("table.posted")}
+                    wrapperClassName="w-auto"
+                />
+            </div>
+
+            {/* Positions */}
             <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold">Products</span>
+                    <span className="text-sm font-semibold">
+                        {t("table.products")}
+                    </span>
                     <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                            append({ product: null, price: null, count: null })
-                        }
+                        onClick={() => append({ ...EMPTY_ITEM })}
                     >
                         <PlusIcon className="w-4 h-4 mr-1" />
-                        Add Product
+                        {t("common.addProduct")}
                     </Button>
                 </div>
 
@@ -209,7 +342,11 @@ function OrderAddEdit() {
                     >
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-medium text-muted-foreground">
-                                Product #{index + 1}
+                                #{index + 1} ·{" "}
+                                {formatNumber(
+                                    lineTotal(watchedItems?.[index] ?? EMPTY_ITEM),
+                                    { decimalScale: 2, isShowZero: true },
+                                )}
                             </span>
                             {fields.length > 1 && (
                                 <button
@@ -222,29 +359,69 @@ function OrderAddEdit() {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3">
-                            <SelectField
+                        <div className="grid grid-cols-6 gap-3">
+                            <PaginatedSelectField<OrderForm, SaleProduct>
                                 methods={form}
-                                name={`items.${index}.product`}
-                                options={productOptions}
-                                label="Product"
-                                placeholder="Select product"
+                                name={`items.${index}.product_id`}
+                                url={API.EXTRA.PRODUCTS.INDEX}
+                                mapOption={(p) => ({
+                                    id: p.id,
+                                    name:
+                                        p.articul ?
+                                            `${p.name} — ${p.articul}`
+                                        :   p.name,
+                                })}
+                                label={t("table.productName")}
+                                wrapperClassName="col-span-2"
+                                selectedOption={
+                                    order?.items?.[index]?.product ?
+                                        {
+                                            id: order.items[index].product.id,
+                                            name:
+                                                order.items[index].product
+                                                    .articul ?
+                                                    `${order.items[index].product.name} — ${order.items[index].product.articul}`
+                                                :   order.items[index].product
+                                                        .name,
+                                        }
+                                    :   null
+                                }
                             />
-
-                            <UncontrolledInput
+                            <NumberField
                                 methods={form}
                                 name={`items.${index}.price`}
-                                label="Price"
+                                label={t("table.price")}
                             />
-
-                            <UncontrolledInput
+                            <NumberField
                                 methods={form}
-                                name={`items.${index}.count`}
-                                label="Count"
+                                name={`items.${index}.quantity`}
+                                label={t("table.quantity")}
+                            />
+                            <NumberField
+                                methods={form}
+                                name={`items.${index}.discount`}
+                                label={t("table.discount")}
+                                optional
+                                allowZero
+                            />
+                            <NumberField
+                                methods={form}
+                                name={`items.${index}.reserve`}
+                                label={t("table.reserved")}
+                                optional
+                                allowZero
                             />
                         </div>
                     </div>
                 ))}
+
+                <div className="flex justify-end text-sm font-semibold">
+                    {t("table.sum")}:{" "}
+                    {formatNumber(total, {
+                        decimalScale: 2,
+                        isShowZero: true,
+                    })}
+                </div>
             </div>
 
             <FormAction

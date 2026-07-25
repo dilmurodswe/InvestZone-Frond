@@ -11,41 +11,41 @@ import { PlusIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
 import { useOrdersQuery } from "../-hooks/use-orders-query"
+import CreateDemandModal from "./create-demand-modal"
 import { getOrderCols } from "./get-order-cols"
 import OrderAddEditModal from "./order-add-edit"
 import OrderDeleteModal from "./order-delete-modal"
 import OrderDetailModal from "./order-detail-modal"
+import OrderPrintModal from "./order-print-modal"
+import { useOrderStatusOptions } from "./status-config"
 
 export default function OrdersPage() {
-    const { orderList, isFetching } = useOrdersQuery()
+    const { orderList, count, isFetching } = useOrdersQuery()
     const { setOrder } = useOrderStore()
     const addModal = useModal("add-order")
     const cols = getOrderCols()
     const { t } = useTranslation()
-    const roleOptions = [
-        { id: "new", name: "New" },
-        { id: "in_processing", name: "In Processing" },
-        { id: "completed", name: "Completed" },
-    ]
+    const statusOptions = useOrderStatusOptions()
+
+    const openAdd = () => {
+        setOrder(null)
+        addModal.openModal()
+    }
+
     return (
         <>
-            <Navbar links={[{ label: t("nav.orders") }]} />
+            <Navbar links={[{ label: t("nav.sales") }]} />
             <Layout>
                 <Group className="flex gap-4 flex-wrap justify-between">
                     <div className="flex flex-wrap gap-x-2 gap-y-4">
                         <FilterInput />
                         <FilterSelect
                             filterKey="status"
-                            placeholder="Status"
-                            options={roleOptions}
+                            placeholder={t("table.status")}
+                            options={statusOptions}
                         />
                     </div>
-                    <Button
-                        onClick={() => {
-                            setOrder(null)
-                            addModal.openModal()
-                        }}
-                    >
+                    <Button onClick={openAdd}>
                         <PlusIcon />
                         {t("common.addEntity", { entity: t("entity.order") })}
                     </Button>
@@ -55,6 +55,7 @@ export default function OrdersPage() {
                     <CustomTable
                         columns={cols}
                         data={orderList}
+                        count={count}
                         isLoading={isFetching}
                     />
                 )}
@@ -62,10 +63,7 @@ export default function OrdersPage() {
                 {!orderList.length && !isFetching && (
                     <NoData>
                         <Button
-                            onClick={() => {
-                                setOrder(null)
-                                addModal.openModal()
-                            }}
+                            onClick={openAdd}
                             variant="ghost"
                             className="text-primary"
                         >
@@ -77,7 +75,9 @@ export default function OrdersPage() {
                     </NoData>
                 )}
                 <OrderDetailModal />
+                <OrderPrintModal />
                 <OrderAddEditModal />
+                <CreateDemandModal />
                 <OrderDeleteModal key="delete-order" />
             </Layout>
         </>

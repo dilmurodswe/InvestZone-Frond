@@ -188,6 +188,12 @@
     [data-vc] {
         z-index: 111;
     }
+    /* The datepicker popup is appended to <body>, but Radix dialogs set
+       pointer-events: none on <body> while open — without this the clicks
+       fall through to the overlay and close the modal. */
+    [data-vc="calendar"]:not([data-vc-calendar-hidden]) {
+        pointer-events: auto;
+    }
     [data-radix-popper-content-wrapper] {
         @apply min-w-[unset]!;
     }

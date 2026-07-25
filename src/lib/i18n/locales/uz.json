@@ -27,7 +27,19 @@
         "deleteEntity": "{{entity}}ni o'chirish",
         "createEntity": "{{entity}} yaratish",
         "newEntity": "Yangi {{entity}}",
-        "deleteConfirm": "Rostdan ham o'chirmoqchimisiz?"
+        "deleteConfirm": "Rostdan ham o'chirmoqchimisiz?",
+        "createDemand": "Otgruzka yaratish",
+        "relatedDocuments": "Bog'liq hujjatlar",
+        "addProduct": "Mahsulot qo'shish",
+        "nothingToShip": "Jo'natish uchun qoldiq yo'q",
+        "addedSuccessfully": "Muvaffaqiyatli qo'shildi",
+        "updatedSuccessfully": "Muvaffaqiyatli yangilandi",
+        "deletedSuccessfully": "Muvaffaqiyatli o'chirildi",
+        "vatEnabled": "NDS hisoblanadi",
+        "vatIncluded": "NDS narxga kiritilgan",
+        "shipAll": "Butun qoldiqni jo'natish",
+        "noDataTitle": "Ma'lumot topilmadi",
+        "noDataDescription": "Hozircha hech narsa yo'q"
     },
     "entity": {
         "client": "Mijoz",
@@ -48,7 +60,8 @@
         "manufacture": "Ishlab chiqarish",
         "rollingPlan": "Prokatka rejasi",
         "machine": "Stanok",
-        "readyStrip": "Tayyor shtrips"
+        "readyStrip": "Tayyor shtrips",
+        "demand": "Otgruzka"
     },
     "nav": {
         "finance": "Moliya",
@@ -75,7 +88,8 @@
         "products": "Mahsulotlar",
         "currency": "Valyuta",
         "paymentTypes": "To'lov turlari",
-        "machine": "Stanok"
+        "machine": "Stanok",
+        "demands": "Otgruzkalar"
     },
     "table": {
         "active": "Faol",
@@ -91,7 +105,7 @@
         "code": "Kod",
         "comment": "Izoh",
         "company": "Kompaniya",
-        "contractNumber": "Shartnoma raqami",
+        "contractNumber": "Shartnoma №",
         "currency": "Valyuta",
         "currentRate": "Joriy kurs",
         "customRate": "Maxsus kurs",
@@ -156,7 +170,35 @@
         "shippedQty": "Jo'natilgan miqdor",
         "lineTotal": "Jami summa",
         "shippedAmount": "Jo'natilgan summa",
-        "present": "Foiz (%)"
+        "present": "Foiz (%)",
+        "docNumber": "Hujjat №",
+        "sum": "Summa",
+        "vatSum": "NDS summasi",
+        "totalWithVat": "Jami (NDS bilan)",
+        "reserved": "Rezerv",
+        "remaining": "Qoldiq",
+        "plannedShipmentDate": "Rejadagi jo'natish sanasi",
+        "discount": "Chegirma %",
+        "vat": "NDS %",
+        "carrier": "Tashuvchi",
+        "cargoName": "Yuk nomi",
+        "placesCount": "Joylar soni",
+        "transportNumber": "Avtomobil raqami",
+        "waybillNumber": "Yuk hujjati №",
+        "waybillDate": "Yuk hujjati sanasi",
+        "order": "Buyurtma",
+        "deliveryAddress": "Yetkazish manzili",
+        "posted": "Rasmiylashtirilgan",
+        "lotNumber": "Lot №",
+        "warehouse": "Ombor",
+        "unit": "O'lchov birligi",
+        "vatPercent": "NDS %",
+        "owner": "Mas'ul",
+        "files": "Fayllar",
+        "addFile": "Fayl qo'shish",
+        "fileUploaded": "Fayl yuklandi",
+        "fileUploadFailed": "Faylni yuklab bo'lmadi",
+        "fileDeleted": "Fayl o'chirildi"
     },
     "status": {
         "shipped": "Jo'natildi",
@@ -181,7 +223,8 @@
         "factory": "Zavod",
         "onRoad": "Yo'lda",
         "accepted": "Qabul qilingan",
-        "station": "Stansiya"
+        "station": "Stansiya",
+        "reserved": "Rezervda"
     },
     "rmr": {
         "tolerancePercent": "Dopusk (%)",
@@ -218,5 +261,19 @@
         "failedUploadFile": "Faylni yuklab bo'lmadi",
         "failedRemoveFile": "Faylni o'chirib bo'lmadi",
         "failedRefreshItems": "Elementlarni yangilab bo'lmadi"
+    },
+    "print": {
+        "appendix": "Ilova (Приложение)",
+        "print": "Chop etish",
+        "download": "PDF yuklab olish",
+        "resetTemplate": "Shablonni tiklash",
+        "templateReset": "Shablon standart holatga qaytarildi",
+        "failed": "Hujjat yasalmadi",
+        "sectionDocument": "Hujjat",
+        "sectionParties": "Tomonlar",
+        "sectionDelivery": "Yetkazib berish",
+        "sectionGoods": "Tovar",
+        "sectionTerms": "Shartlar",
+        "specsHint": "Har bir qator «Nomi: Qiymati» ko'rinishida."
     }
 }

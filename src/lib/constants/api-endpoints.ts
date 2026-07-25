@@ -64,10 +64,33 @@ export const API = {
             INDEX: "extra/payment-type",
             ID: { INDEX: "extra/payment-type/{id}" },
         },
+        WAREHOUSE: {
+            INDEX: "extra/warehouses",
+            ID: { INDEX: "extra/warehouses/{id}" },
+        },
     },
     ORDERS: {
         INDEX: "orders",
-        ID: { INDEX: "orders/{id}" },
+        ID: {
+            INDEX: "orders/{id}",
+            CREATE_DEMAND: "orders/{id}/create-demand",
+        },
+        // Xomashyo so'rovlaridagi `request-files` bilan bir xil sxema:
+        // fayl `common/uploads` ga yuklanadi, keyin hujjatga bog'lanadi.
+        FILES: {
+            INDEX: "orders/order-files/{id}",
+            POST: "orders/order-files",
+            DELETE: "orders/order-files/delete/{id}",
+        },
+    },
+    DEMANDS: {
+        INDEX: "demands",
+        ID: { INDEX: "demands/{id}" },
+        FILES: {
+            INDEX: "demands/demand-files/{id}",
+            POST: "demands/demand-files",
+            DELETE: "demands/demand-files/delete/{id}",
+        },
     },
     RAW_MATERIAL_REQUESTS: {
         INDEX: "raw-material/requests",

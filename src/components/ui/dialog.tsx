@@ -46,6 +46,19 @@ function DialogOverlay({
     )
 }
 
+/**
+ * Popups that render into <body> instead of into the dialog (the
+ * vanilla-calendar datepicker) look like an outside click to Radix, which
+ * would close the dialog the moment a date is picked.
+ */
+function isInsidePortalledPopup(
+    event: CustomEvent<{ originalEvent: Event }>,
+): boolean {
+    const target = event.detail?.originalEvent?.target
+    if (!(target instanceof Element)) return false
+    return !!target.closest('[data-vc="calendar"]')
+}
+
 export type TDialogContent = React.ComponentProps<
     typeof DialogPrimitive.Content
 > & {
@@ -73,7 +86,7 @@ function DialogContent({
                     wrapperClassname,
                 )}
                 onInteractOutside={(e) => {
-                    if (disableInteractOutside) {
+                    if (disableInteractOutside || isInsidePortalledPopup(e)) {
                         e.preventDefault()
                     }
                 }}

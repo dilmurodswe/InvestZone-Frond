@@ -3,16 +3,22 @@ import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import i18n from "@/lib/i18n/request"
+import { formatNumber } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
 import type { Order, OrderStatus } from "../-types"
 import OrderStatusBadge from "./order-status-badge"
 import { ORDER_STATUS_CONFIG } from "./status-config"
 import { OrderActions } from "./use-order-cols"
 
+const money = (val: string | number | null | undefined) =>
+    formatNumber(val, { decimalScale: 2, isShowZero: true })
+
 export const getOrderCols = (): ColumnDef<Order>[] => {
     function StatusCell({ order }: { order: Order }) {
+        const { t } = useTranslation()
         const [open, setOpen] = useState(false)
         const [pos, setPos] = useState({ top: 0, left: 0 })
         const ref = useRef<HTMLDivElement>(null)
@@ -79,7 +85,7 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
                                 }}
                                 className="flex items-center gap-2 text-xs font-semibold hover:bg-muted"
                             >
-                                {cfg.label}
+                                {t(cfg.labelKey)}
                             </button>
                         ))}
                     </div>
@@ -113,11 +119,35 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
 
     return [
         {
+            accessorKey: "number",
+            header: i18n.t("table.docNumber"),
+            cell: ({ row: { original } }) => (
+                <ClickableCell order={original}>
+                    <span className="text-sm font-medium">
+                        {original.number}
+                    </span>
+                </ClickableCell>
+            ),
+        },
+        {
+            accessorKey: "doc_date",
+            header: i18n.t("table.date"),
+            cell: ({ row: { original } }) => (
+                <ClickableCell order={original}>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                        {original.doc_date?.slice(0, 10) ?? "—"}
+                    </span>
+                </ClickableCell>
+            ),
+        },
+        {
             accessorKey: "client",
             header: i18n.t("table.client"),
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
-                    <span className="text-sm">{original.client}</span>
+                    <span className="text-sm">
+                        {original.client?.full_name ?? "—"}
+                    </span>
                 </ClickableCell>
             ),
         },
@@ -127,55 +157,57 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
             cell: ({ row: { original } }) => <StatusCell order={original} />,
         },
         {
+            accessorKey: "total_with_vat",
+            header: i18n.t("table.sum"),
+            cell: ({ row: { original } }) => (
+                <ClickableCell order={original}>
+                    <span className="text-sm font-medium whitespace-nowrap">
+                        {money(original.total_with_vat)}{" "}
+                        {original.currency?.currency}
+                    </span>
+                </ClickableCell>
+            ),
+        },
+        {
+            accessorKey: "shipped_sum",
+            header: i18n.t("table.shippedAmount"),
+            cell: ({ row: { original } }) => (
+                <ClickableCell order={original}>
+                    <span className="text-sm whitespace-nowrap">
+                        {money(original.shipped_sum)}
+                    </span>
+                </ClickableCell>
+            ),
+        },
+        {
+            accessorKey: "reserved_sum",
+            header: i18n.t("table.reserved"),
+            cell: ({ row: { original } }) => (
+                <ClickableCell order={original}>
+                    <span className="text-sm whitespace-nowrap">
+                        {money(original.reserved_sum)}
+                    </span>
+                </ClickableCell>
+            ),
+        },
+        {
+            accessorKey: "delivery_planned_date",
+            header: i18n.t("table.plannedShipmentDate"),
+            cell: ({ row: { original } }) => (
+                <ClickableCell order={original}>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                        {original.delivery_planned_date ?? "—"}
+                    </span>
+                </ClickableCell>
+            ),
+        },
+        {
             accessorKey: "payment_type",
             header: i18n.t("table.paymentType"),
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
-                    <span className="text-sm">{original.payment_type}</span>
-                </ClickableCell>
-            ),
-        },
-        {
-            accessorKey: "currency",
-            header: i18n.t("table.currency"),
-            cell: ({ row: { original } }) => (
-                <ClickableCell order={original}>
                     <span className="text-sm">
-                        {original.currency?.currency} (
-                        {original.currency?.current_rate})
-                    </span>
-                </ClickableCell>
-            ),
-        },
-        {
-            accessorKey: "client_currency",
-            header: i18n.t("table.clientRate"),
-            cell: ({ row: { original } }) => (
-                <ClickableCell order={original}>
-                    <span className="text-sm">
-                        {original.client_currency ?? "—"}
-                    </span>
-                </ClickableCell>
-            ),
-        },
-        {
-            accessorKey: "items",
-            header: i18n.t("table.products"),
-            cell: ({ row: { original } }) => (
-                <ClickableCell order={original}>
-                    <span className="text-sm">
-                        {original.items?.length ?? 0} item
-                    </span>
-                </ClickableCell>
-            ),
-        },
-        {
-            accessorKey: "created_at",
-            header: i18n.t("table.date"),
-            cell: ({ row: { original } }) => (
-                <ClickableCell order={original}>
-                    <span className="text-sm text-muted-foreground">
-                        {original.created_at}
+                        {original.payment_type ?? "—"}
                     </span>
                 </ClickableCell>
             ),

@@ -24,6 +24,7 @@ import { Route as MainOrdersIndexRouteImport } from './routes/_main/orders/index
 import { Route as MainManufacturesIndexRouteImport } from './routes/_main/manufactures/index'
 import { Route as MainFinanceIndexRouteImport } from './routes/_main/finance/index'
 import { Route as MainExtraIndexRouteImport } from './routes/_main/extra/index'
+import { Route as MainDemandsIndexRouteImport } from './routes/_main/demands/index'
 import { Route as MainDashboardIndexRouteImport } from './routes/_main/dashboard/index'
 import { Route as MainClientsIndexRouteImport } from './routes/_main/clients/index'
 import { Route as MainAdminsIndexRouteImport } from './routes/_main/admins/index'
@@ -112,6 +113,11 @@ const MainFinanceIndexRoute = MainFinanceIndexRouteImport.update({
 const MainExtraIndexRoute = MainExtraIndexRouteImport.update({
   id: '/extra/',
   path: '/extra/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainDemandsIndexRoute = MainDemandsIndexRouteImport.update({
+  id: '/demands/',
+  path: '/demands/',
   getParentRoute: () => MainRoute,
 } as any)
 const MainDashboardIndexRoute = MainDashboardIndexRouteImport.update({
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/admins': typeof MainAdminsIndexRoute
   '/clients': typeof MainClientsIndexRoute
   '/dashboard': typeof MainDashboardIndexRoute
+  '/demands': typeof MainDemandsIndexRoute
   '/extra': typeof MainExtraIndexRoute
   '/finance': typeof MainFinanceIndexRoute
   '/manufactures': typeof MainManufacturesIndexRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/admins': typeof MainAdminsIndexRoute
   '/clients': typeof MainClientsIndexRoute
   '/dashboard': typeof MainDashboardIndexRoute
+  '/demands': typeof MainDemandsIndexRoute
   '/extra': typeof MainExtraIndexRoute
   '/finance': typeof MainFinanceIndexRoute
   '/manufactures': typeof MainManufacturesIndexRoute
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/_main/admins/': typeof MainAdminsIndexRoute
   '/_main/clients/': typeof MainClientsIndexRoute
   '/_main/dashboard/': typeof MainDashboardIndexRoute
+  '/_main/demands/': typeof MainDemandsIndexRoute
   '/_main/extra/': typeof MainExtraIndexRoute
   '/_main/finance/': typeof MainFinanceIndexRoute
   '/_main/manufactures/': typeof MainManufacturesIndexRoute
@@ -300,6 +309,7 @@ export interface FileRouteTypes {
     | '/admins'
     | '/clients'
     | '/dashboard'
+    | '/demands'
     | '/extra'
     | '/finance'
     | '/manufactures'
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/admins'
     | '/clients'
     | '/dashboard'
+    | '/demands'
     | '/extra'
     | '/finance'
     | '/manufactures'
@@ -362,6 +373,7 @@ export interface FileRouteTypes {
     | '/_main/admins/'
     | '/_main/clients/'
     | '/_main/dashboard/'
+    | '/_main/demands/'
     | '/_main/extra/'
     | '/_main/finance/'
     | '/_main/manufactures/'
@@ -499,6 +511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainExtraIndexRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/demands/': {
+      id: '/_main/demands/'
+      path: '/demands'
+      fullPath: '/demands'
+      preLoaderRoute: typeof MainDemandsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/dashboard/': {
       id: '/_main/dashboard/'
       path: '/dashboard'
@@ -622,6 +641,7 @@ interface MainRouteChildren {
   MainAdminsIndexRoute: typeof MainAdminsIndexRoute
   MainClientsIndexRoute: typeof MainClientsIndexRoute
   MainDashboardIndexRoute: typeof MainDashboardIndexRoute
+  MainDemandsIndexRoute: typeof MainDemandsIndexRoute
   MainExtraIndexRoute: typeof MainExtraIndexRoute
   MainFinanceIndexRoute: typeof MainFinanceIndexRoute
   MainManufacturesIndexRoute: typeof MainManufacturesIndexRoute
@@ -652,6 +672,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainAdminsIndexRoute: MainAdminsIndexRoute,
   MainClientsIndexRoute: MainClientsIndexRoute,
   MainDashboardIndexRoute: MainDashboardIndexRoute,
+  MainDemandsIndexRoute: MainDemandsIndexRoute,
   MainExtraIndexRoute: MainExtraIndexRoute,
   MainFinanceIndexRoute: MainFinanceIndexRoute,
   MainManufacturesIndexRoute: MainManufacturesIndexRoute,

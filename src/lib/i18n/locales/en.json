@@ -27,7 +27,19 @@
         "deleteEntity": "Delete {{entity}}",
         "createEntity": "Create {{entity}}",
         "newEntity": "New {{entity}}",
-        "deleteConfirm": "Are you sure you want to delete this?"
+        "deleteConfirm": "Are you sure you want to delete this?",
+        "createDemand": "Create shipment",
+        "relatedDocuments": "Related documents",
+        "addProduct": "Add product",
+        "nothingToShip": "Nothing left to ship",
+        "addedSuccessfully": "Added successfully",
+        "updatedSuccessfully": "Updated successfully",
+        "deletedSuccessfully": "Deleted successfully",
+        "vatEnabled": "VAT is accounted for",
+        "vatIncluded": "VAT included in price",
+        "shipAll": "Ship the whole remainder",
+        "noDataTitle": "Information not found",
+        "noDataDescription": "No anything at the moment"
     },
     "entity": {
         "client": "Client",
@@ -48,7 +60,8 @@
         "manufacture": "Manufacture",
         "rollingPlan": "Rolling Plan",
         "machine": "Machine",
-        "readyStrip": "Ready Strip"
+        "readyStrip": "Ready Strip",
+        "demand": "Shipment"
     },
     "nav": {
         "finance": "Finance",
@@ -75,7 +88,8 @@
         "products": "Products",
         "currency": "Currency",
         "paymentTypes": "Payment Types",
-        "machine": "Machine"
+        "machine": "Machine",
+        "demands": "Shipments"
     },
     "table": {
         "active": "Active",
@@ -91,7 +105,7 @@
         "code": "Code",
         "comment": "Comment",
         "company": "Company",
-        "contractNumber": "Contract Number",
+        "contractNumber": "Contract №",
         "currency": "Currency",
         "currentRate": "Current Rate",
         "customRate": "Custom Rate",
@@ -156,7 +170,35 @@
         "shippedQty": "Shipped Qty",
         "lineTotal": "Line Total",
         "shippedAmount": "Shipped Amount",
-        "present": "Present (%)"
+        "present": "Present (%)",
+        "docNumber": "Doc №",
+        "sum": "Sum",
+        "vatSum": "VAT amount",
+        "totalWithVat": "Total with VAT",
+        "reserved": "Reserved",
+        "remaining": "Remaining",
+        "plannedShipmentDate": "Planned shipment date",
+        "discount": "Discount %",
+        "vat": "VAT %",
+        "carrier": "Carrier",
+        "cargoName": "Cargo name",
+        "placesCount": "Total places",
+        "transportNumber": "Vehicle number",
+        "waybillNumber": "Waybill number",
+        "waybillDate": "Waybill date",
+        "order": "Order",
+        "deliveryAddress": "Delivery address",
+        "posted": "Posted",
+        "lotNumber": "Lot №",
+        "warehouse": "Warehouse",
+        "unit": "Unit",
+        "vatPercent": "VAT %",
+        "owner": "Responsible",
+        "files": "Files",
+        "addFile": "Add file",
+        "fileUploaded": "File uploaded",
+        "fileUploadFailed": "Could not upload the file",
+        "fileDeleted": "File deleted"
     },
     "status": {
         "shipped": "Shipped",
@@ -181,7 +223,8 @@
         "factory": "Factory",
         "onRoad": "On road",
         "accepted": "Accepted",
-        "station": "Station"
+        "station": "Station",
+        "reserved": "Reserved"
     },
     "rmr": {
         "tolerancePercent": "Tolerants (%)",
@@ -218,5 +261,19 @@
         "failedUploadFile": "Failed to upload file",
         "failedRemoveFile": "Failed to remove file",
         "failedRefreshItems": "Failed to refresh items"
+    },
+    "print": {
+        "appendix": "Appendix",
+        "print": "Print",
+        "download": "Download PDF",
+        "resetTemplate": "Reset template",
+        "templateReset": "Template reset to defaults",
+        "failed": "Could not build the document",
+        "sectionDocument": "Document",
+        "sectionParties": "Parties",
+        "sectionDelivery": "Delivery",
+        "sectionGoods": "Goods",
+        "sectionTerms": "Terms",
+        "specsHint": "One row per line in the «Name: Value» format."
     }
 }

@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { OrderStatus } from "../-types"
 import { ORDER_STATUS_CONFIG } from "./status-config"
 
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function OrderStatusBadge({ status, onClick }: Props) {
+    const { t } = useTranslation()
     const config = ORDER_STATUS_CONFIG[status]
     if (!config)
         return (
@@ -22,7 +24,7 @@ export default function OrderStatusBadge({ status, onClick }: Props) {
             className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold whitespace-nowrap"
             style={{ backgroundColor: config.bg, color: config.color }}
         >
-            {config.label}
+            {t(config.labelKey)}
             {onClick && <ChevronDown className="size-4" />}
         </button>
     )

@@ -27,7 +27,19 @@
         "deleteEntity": "Удалить {{entity}}",
         "createEntity": "Создать {{entity}}",
         "newEntity": "Новый {{entity}}",
-        "deleteConfirm": "Вы уверены, что хотите удалить?"
+        "deleteConfirm": "Вы уверены, что хотите удалить?",
+        "createDemand": "Создать отгрузку",
+        "relatedDocuments": "Связанные документы",
+        "addProduct": "Добавить товар",
+        "nothingToShip": "Нечего отгружать",
+        "addedSuccessfully": "Успешно добавлено",
+        "updatedSuccessfully": "Успешно обновлено",
+        "deletedSuccessfully": "Успешно удалено",
+        "vatEnabled": "Учитывать НДС",
+        "vatIncluded": "НДС включён в цену",
+        "shipAll": "Отгрузить весь остаток",
+        "noDataTitle": "Информация не найдена",
+        "noDataDescription": "На данный момент ничего нет"
     },
     "entity": {
         "client": "Клиент",
@@ -48,7 +60,8 @@
         "manufacture": "Производство",
         "rollingPlan": "План прокатки",
         "machine": "Станок",
-        "readyStrip": "Готовый штрипс"
+        "readyStrip": "Готовый штрипс",
+        "demand": "Отгрузка"
     },
     "nav": {
         "finance": "Финансы",
@@ -75,7 +88,8 @@
         "products": "Продукты",
         "currency": "Валюта",
         "paymentTypes": "Типы оплаты",
-        "machine": "Станок"
+        "machine": "Станок",
+        "demands": "Отгрузки"
     },
     "table": {
         "active": "Активный",
@@ -91,7 +105,7 @@
         "code": "Код",
         "comment": "Комментарий",
         "company": "Компания",
-        "contractNumber": "Номер договора",
+        "contractNumber": "Договор №",
         "currency": "Валюта",
         "currentRate": "Текущий курс",
         "customRate": "Свой курс",
@@ -156,7 +170,35 @@
         "shippedQty": "Отгружено (кол-во)",
         "lineTotal": "Сумма по строке",
         "shippedAmount": "Отгруженная сумма",
-        "present": "Процент (%)"
+        "present": "Процент (%)",
+        "docNumber": "Документ №",
+        "sum": "Сумма",
+        "vatSum": "Сумма НДС",
+        "totalWithVat": "Итого с НДС",
+        "reserved": "Резерв",
+        "remaining": "Остаток",
+        "plannedShipmentDate": "Планируемая дата отгрузки",
+        "discount": "Скидка %",
+        "vat": "НДС %",
+        "carrier": "Перевозчик",
+        "cargoName": "Наименование груза",
+        "placesCount": "Всего мест",
+        "transportNumber": "Номер автомобиля",
+        "waybillNumber": "Номер перевозочного документа",
+        "waybillDate": "Дата перевозочного документа",
+        "order": "Заказ",
+        "deliveryAddress": "Адрес доставки",
+        "posted": "Проведён",
+        "lotNumber": "Лот №",
+        "warehouse": "Склад",
+        "unit": "Ед. изм",
+        "vatPercent": "НДС %",
+        "owner": "Ответственный",
+        "files": "Файлы",
+        "addFile": "Добавить файл",
+        "fileUploaded": "Файл загружен",
+        "fileUploadFailed": "Не удалось загрузить файл",
+        "fileDeleted": "Файл удалён"
     },
     "status": {
         "shipped": "Отгружено",
@@ -181,7 +223,8 @@
         "factory": "Завод",
         "onRoad": "В пути",
         "accepted": "Принято",
-        "station": "Станция"
+        "station": "Станция",
+        "reserved": "В резерве"
     },
     "rmr": {
         "tolerancePercent": "Допуск (%)",
@@ -218,5 +261,19 @@
         "failedUploadFile": "Не удалось загрузить файл",
         "failedRemoveFile": "Не удалось удалить файл",
         "failedRefreshItems": "Не удалось обновить элементы"
+    },
+    "print": {
+        "appendix": "Приложение",
+        "print": "Печать",
+        "download": "Скачать PDF",
+        "resetTemplate": "Сбросить шаблон",
+        "templateReset": "Шаблон сброшен",
+        "failed": "Не удалось сформировать документ",
+        "sectionDocument": "Документ",
+        "sectionParties": "Стороны",
+        "sectionDelivery": "Поставка",
+        "sectionGoods": "Товар",
+        "sectionTerms": "Условия",
+        "specsHint": "Каждая строка в формате «Название: Значение»."
     }
 }

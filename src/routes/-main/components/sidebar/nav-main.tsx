@@ -136,6 +136,11 @@ export function NavMain() {
                     enabled: isAdmin,
                     title: t("nav.sales"),
                 }),
+                linkOptions({
+                    to: "/demands",
+                    enabled: isAdmin,
+                    title: t("nav.demands"),
+                }),
             ],
         }),
         linkOptions({
