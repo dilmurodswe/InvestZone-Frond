@@ -8,7 +8,7 @@ import {
 import { usePaginatedSelect } from "@/hooks/react-query/use-paginated-select"
 import { cn } from "@/lib/utils/shadcn"
 import { Check, ChevronDown, Loader2, X } from "lucide-react"
-import { type MouseEvent, type UIEvent, useMemo, useState } from "react"
+import { useMemo, useState, type MouseEvent, type UIEvent } from "react"
 import {
     useController,
     type FieldValues,
@@ -37,6 +37,7 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
     wrapperClassName,
     optional = false,
     selectedOption,
+    onPick,
 }: {
     methods: UseFormReturn<IForm>
     name: Path<IForm>
@@ -44,11 +45,14 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
     url: string
     /** Turns one API row into a `{ id, name }` option. */
     mapOption: (item: T) => Option
-    label: string
+    /** Omitted inside table-style rows, where the column header is the label. */
+    label?: string
     wrapperClassName?: string
     optional?: boolean
     /** Currently-selected row, so its label shows before its page loads. */
     selectedOption?: Option | null
+    /** The whole API row behind the pick — for fields derived from it. */
+    onPick?: (item: T | null) => void
 }) {
     const { t } = useTranslation()
     const { control } = methods
@@ -77,16 +81,26 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
         [items],
     )
 
+    /** Option id → the API row it came from, so `onPick` can hand it back. */
+    const rowsById = useMemo(() => {
+        const map = new Map<number, T>()
+        items.forEach((item) => map.set(mapOption(item).id, item))
+        return map
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [items])
+
     const selected =
-        value == null ? null
-        : ((pinned?.id === value ?
-            pinned
-        :   options.find((o) => o.id === value)) ?? null)
+        value == null ? null : (
+            ((pinned?.id === value ?
+                pinned
+            :   options.find((o) => o.id === value)) ?? null)
+        )
     const selectedLabel = selected?.name ?? null
 
     const pick = (opt: Option) => {
         setPinned(opt)
         onChange(opt.id)
+        onPick?.(rowsById.get(opt.id) ?? null)
         setOpen(false)
     }
 
@@ -94,26 +108,30 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
         e.preventDefault()
         e.stopPropagation()
         onChange(null)
+        onPick?.(null)
     }
 
     const onScroll = (e: UIEvent<HTMLDivElement>) => {
         const el = e.currentTarget
-        const nearBottom =
-            el.scrollHeight - el.scrollTop - el.clientHeight < 48
+        const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 48
         if (nearBottom && hasNextPage && !isFetchingNextPage) {
             fetchNextPage()
         }
     }
 
     return (
-        <fieldset className={cn("flex flex-col gap-2 w-full", wrapperClassName)}>
-            <Label
-                htmlFor={name}
-                className={cn(!!error && "text-destructive")}
-                required={!optional}
-            >
-                {label}
-            </Label>
+        <fieldset
+            className={cn("flex flex-col gap-2 w-full", wrapperClassName)}
+        >
+            {label && (
+                <Label
+                    htmlFor={name}
+                    className={cn(!!error && "text-destructive")}
+                    required={!optional}
+                >
+                    {label}
+                </Label>
+            )}
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <button

@@ -1,6 +1,6 @@
 import { useModal } from "@/hooks/use-modal"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 import {
     Dialog,
     DialogContent,
@@ -15,6 +15,11 @@ type Props = {
     children?: ReactNode
     className?: string
     wrapperClassname?: string
+    closeButtonClassName?: string
+    overlayClassName?: string
+    /** Render into this element instead of <body> (e.g. the page content area). */
+    container?: HTMLElement | null
+    style?: CSSProperties
     size?: string
     onClose?: () => void
 }
@@ -26,6 +31,10 @@ const Modal = ({
     modalKey = "default",
     className = "",
     wrapperClassname = "",
+    closeButtonClassName,
+    overlayClassName,
+    container,
+    style,
     onClose,
 }: Props) => {
     const { isOpen, closeModal } = useModal(modalKey)
@@ -44,6 +53,10 @@ const Modal = ({
                     className={`max-w-lg ` + className}
                     aria-describedby=""
                     wrapperClassname={wrapperClassname}
+                    closeButtonClassName={closeButtonClassName}
+                    overlayClassName={overlayClassName}
+                    container={container}
+                    style={style}
                 >
                     {title && <DialogTitle>{title}</DialogTitle>}
                     {!title && (

@@ -1,10 +1,19 @@
 export type OrderStatus =
     | "new"
-    | "in_processing"
-    | "reserved"
+    | "contract_drafting"
+    | "payment"
+    | "financier_signature"
+    | "shipment_request"
+    | "position_change"
+    | "shipping_documents"
     | "shipped"
-    | "completed"
+    | "returned"
     | "cancelled"
+    | "shipped_check"
+
+export type SaleItemUnit = "meter" | "pack" | "ton"
+export type SaleWeightMode = "theoretical" | "actual"
+export type DeliveryMode = "in_total" | "split"
 
 export type SaleProduct = {
     id: number
@@ -13,6 +22,11 @@ export type SaleProduct = {
     articul: string
     price: string
     outer_dimension: string | null
+    /** кг/м — вес, тн и цена за тонну считаются из него. */
+    theoretical_weight?: string | number | null
+    actual_weight?: string | number | null
+    /** Метров в пачке — «Кол-во б. ед.» для пачек. */
+    meters_per_pack?: string | number | null
     /** O'lchov birligi («тн», «шт»…). Backend qo'shguncha bo'sh kelishi mumkin. */
     unit?: string | null
 }
@@ -28,6 +42,10 @@ export type SaleClient = {
     full_name: string
     company_name: string
     company_phone: string
+    /** Address parts — prefill the order's delivery address. */
+    region_address?: string | null
+    exact_address?: string | null
+    legal_address?: string | null
 }
 
 export type SaleCurrency = {
@@ -47,9 +65,18 @@ export type OrderItem = {
     product: SaleProduct
     price: string
     quantity: string
+    unit: SaleItemUnit
+    weight_mode: SaleWeightMode
+    price_per_ton: string
     discount: string
     vat: number
     reserve: string
+    /** Кол-во, переведённое в метры */
+    quantity_base: string
+    weight_tn: string
+    unit_price: string
+    delivery_share: string
+    line_total_with_delivery: string
     /** price × quantity with the discount applied */
     line_total: string
     vat_amount: string
@@ -87,10 +114,14 @@ export type Order = {
     vat_enabled: boolean
     vat_included: boolean
     applicable: boolean
+    delivery_cost: string
+    delivery_mode: DeliveryMode
     items: OrderItem[]
     total_sum: string
     vat_sum: string
     total_with_vat: string
+    weight_sum: string
+    grand_total: string
     shipped_sum: string
     reserved_sum: string
     demands: OrderDemandLink[]
@@ -102,9 +133,17 @@ export type OrderItemForm = {
     product_id: number | null
     price: number | null
     quantity: number | null
+    unit: SaleItemUnit
+    weight_mode: SaleWeightMode
+    price_per_ton: number | null
     discount: number | null
     vat: number | null
     reserve: number | null
+    /** Snapshot of the picked product — the row maths runs on it locally. */
+    product?: Pick<
+        SaleProduct,
+        "theoretical_weight" | "actual_weight" | "meters_per_pack"
+    > | null
 }
 
 export type OrderForm = {
@@ -123,6 +162,8 @@ export type OrderForm = {
     vat_enabled: boolean
     vat_included: boolean
     applicable: boolean
+    delivery_cost: number | null
+    delivery_mode: DeliveryMode
     items: OrderItemForm[]
 }
 

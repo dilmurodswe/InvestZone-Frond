@@ -65,6 +65,9 @@ export type TDialogContent = React.ComponentProps<
     disableInteractOutside?: boolean
     closeButtonClassName?: string
     wrapperClassname?: string
+    overlayClassName?: string
+    /** Render into this element instead of <body> (e.g. the page content area). */
+    container?: HTMLElement | null
 }
 
 function DialogContent({
@@ -73,11 +76,13 @@ function DialogContent({
     disableInteractOutside = false,
     closeButtonClassName,
     wrapperClassname,
+    overlayClassName,
+    container,
     ...props
 }: TDialogContent) {
     return (
-        <DialogPortal data-slot="dialog-portal">
-            <DialogOverlay />
+        <DialogPortal data-slot="dialog-portal" container={container}>
+            <DialogOverlay className={overlayClassName} />
             <DialogPrimitive.Content
                 data-slot="dialog-content"
                 className={cn(

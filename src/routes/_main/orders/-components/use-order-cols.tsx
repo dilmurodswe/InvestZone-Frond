@@ -1,5 +1,5 @@
 import { useModal } from "@/hooks/use-modal"
-import { MoreHorizontal, Pencil, Printer, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Printer, Trash2, Truck } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
@@ -16,6 +16,7 @@ export function OrderActions({ order }: { order: Order }) {
     const addModal = useModal("add-order")
     const deleteModal = useModal("delete-order")
     const printModal = useModal(ORDER_PRINT_MODAL)
+    const createDemandModal = useModal("create-demand")
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -83,6 +84,18 @@ export function OrderActions({ order }: { order: Order }) {
                         }}
                     >
                         <Printer className="w-4 h-4" /> {t("print.appendix")}
+                    </button>
+                    <button
+                        style={{ width: 180, height: 40, padding: "0 12px" }}
+                        className="flex items-center gap-2 text-sm hover:bg-muted"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setOrder(order)
+                            createDemandModal.openModal()
+                            setOpen(false)
+                        }}
+                    >
+                        <Truck className="w-4 h-4" /> {t("common.createDemand")}
                     </button>
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}

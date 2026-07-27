@@ -314,6 +314,9 @@ function ProductAddEdit() {
             price: 0,
             theoretically_price: 0,
             factually_price: 0,
+            theoretical_weight: 0,
+            actual_weight: 0,
+            meters_per_pack: 0,
             description: "",
             extra_fields: [],
             outer_dimension: "",
@@ -330,6 +333,9 @@ function ProductAddEdit() {
                     price: product.price,
                     theoretically_price: product.theoretically_price,
                     factually_price: product.factually_price,
+                    theoretical_weight: product.theoretical_weight ?? 0,
+                    actual_weight: product.actual_weight ?? 0,
+                    meters_per_pack: product.meters_per_pack ?? 0,
                     description: product.description ?? "",
                     extra_fields: extraFieldsDefault,
                     outer_dimension: product.outer_dimension ?? "",
@@ -366,6 +372,9 @@ function ProductAddEdit() {
             price: vals.price,
             theoretically_price: vals.theoretically_price,
             factually_price: vals.factually_price,
+            theoretical_weight: vals.theoretical_weight,
+            actual_weight: vals.actual_weight,
+            meters_per_pack: vals.meters_per_pack,
             description: vals.description,
             extra_fields,
             outer_dimension: vals.outer_dimension || null,
@@ -411,6 +420,29 @@ function ProductAddEdit() {
                 methods={form}
                 name="theoretically_price"
                 label="Theoretically Price"
+                type="number"
+                step="any"
+            />
+
+            {/* Weights feed the order lines: вес, тн and цена за тонну. */}
+            <UncontrolledInput
+                methods={form}
+                name="theoretical_weight"
+                label={t("table.theoreticalWeight")}
+                type="number"
+                step="any"
+            />
+            <UncontrolledInput
+                methods={form}
+                name="actual_weight"
+                label={t("table.actualWeight")}
+                type="number"
+                step="any"
+            />
+            <UncontrolledInput
+                methods={form}
+                name="meters_per_pack"
+                label={t("table.metersPerPack")}
                 type="number"
                 step="any"
             />

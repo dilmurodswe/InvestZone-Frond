@@ -43,6 +43,18 @@ export default function OrdersPage() {
                             filterKey="status"
                             placeholder={t("table.status")}
                             options={statusOptions}
+                            wrapperClassname="min-w-[220px]"
+                            formatOptionLabel={(option) => (
+                                <span
+                                    className="inline-block px-2 py-1 rounded text-xs font-semibold"
+                                    style={{
+                                        backgroundColor: option.bg,
+                                        color: option.color,
+                                    }}
+                                >
+                                    {option.name}
+                                </span>
+                            )}
                         />
                     </div>
                     <Button onClick={openAdd}>

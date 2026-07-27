@@ -17,15 +17,18 @@ export default function OrderStatusBadge({ status, onClick }: Props) {
                 {status ?? "—"}
             </span>
         )
+    const label = t(config.labelKey)
+
     return (
         <button
             type="button"
             onClick={onClick}
-            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold whitespace-nowrap"
+            title={label}
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold max-w-[190px]"
             style={{ backgroundColor: config.bg, color: config.color }}
         >
-            {t(config.labelKey)}
-            {onClick && <ChevronDown className="size-4" />}
+            <span className="truncate">{label}</span>
+            {onClick && <ChevronDown className="size-4 shrink-0" />}
         </button>
     )
 }

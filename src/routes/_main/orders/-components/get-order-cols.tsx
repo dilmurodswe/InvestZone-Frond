@@ -77,13 +77,8 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
                                 key={key}
                                 type="button"
                                 onClick={() => handleSelect(key)}
-                                style={{
-                                    width: 160,
-                                    height: 36,
-                                    padding: "0 12px",
-                                    color: cfg.color,
-                                }}
-                                className="flex items-center gap-2 text-xs font-semibold hover:bg-muted"
+                                style={{ color: cfg.color }}
+                                className="flex items-center gap-2 min-w-[240px] px-3 py-2 text-left text-xs font-semibold leading-snug whitespace-normal hover:bg-muted"
                             >
                                 {t(cfg.labelKey)}
                             </button>
