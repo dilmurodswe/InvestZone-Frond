@@ -61,29 +61,18 @@ export function unitPrice(item: OrderItemForm) {
 }
 
 /**
- * «Сумма» of the line, discount applied. Priced by weight — вес, тн × цена за
- * тонну — whatever unit the quantity was entered in; a line without a price
- * per ton falls back to the typed price per base unit.
+ * «Сумма» of the line — цена × кол-во, exactly as in the sheet: the rounded
+ * price per running metre times the base quantity, or the price per ton times
+ * the tons when the line is entered in tons. The discount is ours, applied on
+ * top.
  */
 export function lineTotal(item: OrderItemForm) {
     const perTon = num(item.price_per_ton)
     const gross =
-        perTon > 0 ?
-            weightTn(item) * perTon
-        :   num(item.price) * quantityBase(item)
+        perTon <= 0 ? num(item.price) * quantityBase(item)
+        : item.unit === "ton" ? perTon * num(item.quantity)
+        : unitPrice(item) * quantityBase(item)
     return gross * (1 - num(item.discount) / 100)
-}
-
-/**
- * «Резерв» of the line in money. The reserve is entered in the line's own unit,
- * so the reserved money is its share of the line total; more than the quantity
- * cannot be promised.
- */
-export function lineReserved(item: OrderItemForm) {
-    const quantity = num(item.quantity)
-    if (quantity <= 0) return 0
-    const reserved = Math.min(num(item.reserve), quantity)
-    return (lineTotal(item) * reserved) / quantity
 }
 
 export type OrderTotals = {
@@ -93,8 +82,6 @@ export type OrderTotals = {
     vat: number
     /** Вес отгрузки, тн */
     weight: number
-    /** В резерве — сумма зарезервированных позиций */
-    reserved: number
     /** Доставка */
     delivery: number
     /** Итого */
@@ -106,7 +93,6 @@ export function orderTotals(values: OrderForm): OrderTotals {
     const items = values.items ?? []
     const subtotal = items.reduce((acc, item) => acc + lineTotal(item), 0)
     const weight = items.reduce((acc, item) => acc + weightTn(item), 0)
-    const reserved = items.reduce((acc, item) => acc + lineReserved(item), 0)
 
     const vat =
         values.vat_enabled ?
@@ -131,7 +117,6 @@ export function orderTotals(values: OrderForm): OrderTotals {
         subtotal,
         vat,
         weight,
-        reserved,
         delivery,
         grandTotal: withVat + delivery,
     }

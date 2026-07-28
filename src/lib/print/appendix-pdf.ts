@@ -48,6 +48,13 @@ const money = (val: number) =>
         isShowZero: true,
     })
 
+/**
+ * Narx uch xonagacha — u metr uchun hisoblanganda (вес × цена за тонну / 1000)
+ * ikki xona yetmaydi va qog'ozda «кол-во × цена» summaga to'g'ri kelmay qoladi.
+ */
+const price = (val: number) =>
+    formatNumber(val, { decimalScale: 3, isShowZero: true })
+
 /** `2026-07-23` → `23.07.2026`; noto'g'ri qiymat bo'lsa bo'sh qatorga aylanadi. */
 function ruDate(value: string | null | undefined): string {
     if (!value) return ""
@@ -113,10 +120,16 @@ function drawCell(doc: jsPDF, cell: Cell, x: number, y: number, width: number) {
                 style: "bold",
             })
         }
-        drawText(doc, cell.value ?? "", x + PAD + (cell.label ? labelW : 0), cursor, {
-            size: BODY,
-            maxWidth: inner - (cell.label ? labelW : 0),
-        })
+        drawText(
+            doc,
+            cell.value ?? "",
+            x + PAD + (cell.label ? labelW : 0),
+            cursor,
+            {
+                size: BODY,
+                maxWidth: inner - (cell.label ? labelW : 0),
+            },
+        )
         return
     }
 
@@ -297,7 +310,10 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
         ],
         [
             "ПРИЛОЖЕНИЕ №:",
-            [data.appendixNumber, data.appendixVersion && `(${data.appendixVersion})`]
+            [
+                data.appendixNumber,
+                data.appendixVersion && `(${data.appendixVersion})`,
+            ]
                 .filter(Boolean)
                 .join(" "),
         ],
@@ -348,7 +364,10 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
 
     /* ---- Texnik xususiyatlar (chegarasiz, ikki ustun) ---- */
     y += 4
-    const specColumns = [parseSpecs(data.specsLeft), parseSpecs(data.specsRight)]
+    const specColumns = [
+        parseSpecs(data.specsLeft),
+        parseSpecs(data.specsRight),
+    ]
     const specTop = y
 
     specColumns.forEach((rows, columnIndex) => {
@@ -370,7 +389,9 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
 
     y =
         specTop +
-        Math.max(...specColumns.map((rows) => (rows.length + 1) * lineHeight(BODY))) +
+        Math.max(
+            ...specColumns.map((rows) => (rows.length + 1) * lineHeight(BODY)),
+        ) +
         6
 
     /* ---- Tovarlar jadvali ---- */
@@ -382,7 +403,7 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
             item.name,
             item.unit,
             formatNumber(item.quantity, { decimalScale: 3, isShowZero: true }),
-            money(item.price),
+            price(item.price),
             money(item.total),
         ]
         // Qator sahifaga sig'masa — yangi sahifa va jadval sarlavhasi qaytadan.
@@ -437,7 +458,13 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
 
     const conditionsTop = y
     const columns: [number, number, string, string, string][] = [
-        [LEFT, HALF - 2, "Условие оплаты", data.paymentTermsTitle, data.paymentTermsText],
+        [
+            LEFT,
+            HALF - 2,
+            "Условие оплаты",
+            data.paymentTermsTitle,
+            data.paymentTermsText,
+        ],
         [LEFT + HALF, HALF, "Особые условия", "", data.specialTerms],
     ]
     let conditionsBottom = conditionsTop
@@ -466,7 +493,10 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
     /* ---- Imzo joylari ---- */
     y += 14
     drawText(doc, "ПРОДАВЕЦ", LEFT + 10, y, { size: 10, style: "bold" })
-    drawText(doc, "ПОКУПАТЕЛЬ", LEFT + HALF + 20, y, { size: 10, style: "bold" })
+    drawText(doc, "ПОКУПАТЕЛЬ", LEFT + HALF + 20, y, {
+        size: 10,
+        style: "bold",
+    })
 
     stampPageNumbers(doc)
     return doc

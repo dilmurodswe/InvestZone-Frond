@@ -189,6 +189,8 @@
         "totalWithVat": "Total with VAT",
         "reserved": "Reserved",
         "remaining": "Remaining",
+        "available": "Available",
+        "stockFromBackend": "Warehouse stock — shows up once the backend returns per-product stock",
         "plannedShipmentDate": "Planned shipment date",
         "discount": "Discount %",
         "vat": "VAT %",
@@ -216,6 +218,9 @@
         "theoreticalWeight": "Theoretical weight, kg/m",
         "actualWeight": "Actual weight, kg/m",
         "metersPerPack": "Meters per pack",
+        "nomenclature": "Name",
+        "qty": "Qty",
+        "shipped": "Shipped",
         "quantityBase": "Qty in base units",
         "weightTn": "Weight, t",
         "pricePerTon": "Price per ton",
@@ -225,7 +230,8 @@
         "delivery": "Delivery",
         "grandTotal": "Total",
         "weightMode": "Weight",
-        "weightMissing": "The product card has no weight set"
+        "weightMissing": "The product card has no weight set",
+        "packMetersMissing": "The product card has no «meters per pack» set"
     },
     "status": {
         "shipped": "Shipped",

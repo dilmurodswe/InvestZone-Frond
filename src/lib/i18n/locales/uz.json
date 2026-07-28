@@ -189,6 +189,8 @@
         "totalWithVat": "Jami (NDS bilan)",
         "reserved": "Rezerv",
         "remaining": "Qoldiq",
+        "available": "Mavjud",
+        "stockFromBackend": "Ombor qoldig'i — backend tovar qoldig'ini bera boshlagach ko'rinadi",
         "plannedShipmentDate": "Rejadagi jo'natish sanasi",
         "discount": "Chegirma %",
         "vat": "NDS %",
@@ -216,7 +218,10 @@
         "theoreticalWeight": "Teoretik og'irlik, kg/m",
         "actualWeight": "Faktik og'irlik, kg/m",
         "metersPerPack": "Pachkadagi metr",
-        "quantityBase": "Miqdor (asosiy birlik)",
+        "nomenclature": "Nomlanishi",
+        "qty": "Miqdor",
+        "shipped": "Jo'natilgan",
+        "quantityBase": "Miqdor (a.b.)",
         "weightTn": "Og'irlik, tn",
         "pricePerTon": "Tonna narxi",
         "subtotal": "Oraliq jami",
@@ -225,7 +230,8 @@
         "delivery": "Yetkazib berish",
         "grandTotal": "Jami",
         "weightMode": "Og'irlik",
-        "weightMissing": "Mahsulot kartasida og'irlik to'ldirilmagan"
+        "weightMissing": "Mahsulot kartasida og'irlik to'ldirilmagan",
+        "packMetersMissing": "Mahsulot kartasida «Pachkadagi metr» to'ldirilmagan"
     },
     "status": {
         "shipped": "Jo'natildi",

@@ -17,6 +17,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useGet } from "@/hooks/react-query/use-get"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import {
@@ -40,7 +41,12 @@ import {
     TruckIcon,
 } from "lucide-react"
 import { useEffect, useRef } from "react"
-import { useFieldArray, useForm, useWatch } from "react-hook-form"
+import {
+    useFieldArray,
+    useForm,
+    useWatch,
+    type UseFormReturn,
+} from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useOrderStore } from "../-hooks/use-order-store"
@@ -83,6 +89,50 @@ const EMPTY_ITEM: OrderItemForm = {
 
 /** The client modal opened from inside the order form. */
 const ORDER_CLIENT_MODAL = "add-client-from-order"
+
+/**
+ * The line maths runs on three numbers of the product card — теор. вес, факт.
+ * вес and метров в пачке. A row restored from a saved order (or picked from a
+ * list that trims them) may carry only some of them, and then «кол-во б. ед.»
+ * of a pack line stays empty. This reads the product itself and fills the
+ * snapshot in; it renders nothing.
+ */
+function ProductFacts({
+    form,
+    index,
+    productId,
+    snapshot,
+}: {
+    form: UseFormReturn<OrderForm>
+    index: number
+    productId: number | null
+    snapshot: OrderItemForm["product"]
+}) {
+    const incomplete =
+        !!productId &&
+        (snapshot?.theoretical_weight == null ||
+            snapshot?.actual_weight == null ||
+            snapshot?.meters_per_pack == null)
+
+    const { data } = useGet<SaleProduct>(
+        API.EXTRA.PRODUCTS.ID.INDEX.replace("{id}", String(productId ?? "")),
+        { options: { enabled: incomplete } },
+    )
+
+    useEffect(() => {
+        if (!data || !incomplete) return
+        form.setValue(`items.${index}.product`, {
+            theoretical_weight: data.theoretical_weight ?? null,
+            actual_weight: data.actual_weight ?? null,
+            meters_per_pack: data.meters_per_pack ?? null,
+        })
+        // `incomplete` is what triggered the fetch — reacting to it as well
+        // would rewrite the snapshot on every keystroke.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data, index, form])
+
+    return null
+}
 
 /** Delivery address as written on the client card. */
 const clientAddress = (client: SaleClient) =>
@@ -386,7 +436,10 @@ function OrderAddEdit() {
 
             {/* Document fields — one compact block across the top */}
             <div className="flex flex-col gap-3 border-b pb-4">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 [&_input]:h-9 [&_button]:h-9 [&_label]:text-sm">
+                {/* Every cell is a label over a control of the same height, and
+                    the labels reserve two lines — so however long a caption is,
+                    the whole block stays on two straight rows. */}
+                <div className="grid grid-cols-2 items-end gap-x-4 gap-y-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 [&_button]:h-9 [&_input]:h-9 [&_label]:flex [&_label]:min-h-9 [&_label]:items-end [&_label]:text-sm [&_label]:leading-tight">
                     <div className="flex items-end gap-1.5">
                         <SelectField
                             methods={form}
@@ -480,7 +533,7 @@ function OrderAddEdit() {
                     )}
                 </div>
 
-                <div className="grid gap-x-6 gap-y-3 items-end lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+                <div className="grid gap-x-4 gap-y-3 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
                     <UncontrolledTextarea
                         methods={form}
                         name="description"
@@ -490,7 +543,9 @@ function OrderAddEdit() {
                         className="h-16 min-h-0 text-sm"
                     />
 
-                    <div className="flex flex-wrap gap-x-6 gap-y-3 pb-2">
+                    {/* The document flags read as one strip, level with the
+                        comment box next to them. */}
+                    <div className="flex h-full flex-wrap items-center gap-x-8 gap-y-3 rounded-lg border bg-muted/30 px-4 py-3 [&_label]:whitespace-nowrap">
                         <SwitchField
                             methods={form}
                             name="vat_enabled"
@@ -548,58 +603,93 @@ function OrderAddEdit() {
                 </span>
 
                 <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full min-w-[1020px] border-collapse text-sm">
+                    <table className="w-full min-w-[1180px] border-collapse text-sm">
                         <thead>
-                            <tr className="bg-muted/60 text-xs text-muted-foreground">
-                                <th className="w-[24%] px-3 py-2 text-left font-medium">
-                                    {t("table.productName")}
+                            {/* Column order of the sales sheet: наименование →
+                                кол-во → ед. изм. → кол-во б. ед. → отгружено →
+                                вес → цена за вес → цена → сумма. */}
+                            <tr className="bg-muted/60 text-xs text-muted-foreground [&_th]:px-2 [&_th]:py-2 [&_th]:font-medium [&_th]:align-bottom">
+                                <th className="w-[22%] pl-3! text-left">
+                                    {t("table.nomenclature")}
                                 </th>
-                                <th className="w-[9%] px-2 py-2 text-left font-medium">
-                                    {t("table.quantity")}
+                                <th className="w-[8%] text-left">
+                                    {t("table.qty")}
                                 </th>
-                                <th className="w-[10%] px-2 py-2 text-left font-medium">
+                                <th className="w-[9%] text-left">
                                     {t("table.unit")}
                                 </th>
-                                <th className="w-[10%] px-2 py-2 text-left font-medium">
-                                    {t("table.pricePerTon")}
-                                </th>
-                                <th className="w-[8%] px-2 py-2 text-left font-medium">
-                                    {t("table.discount")}
-                                </th>
-                                <th
-                                    className="w-[8%] px-2 py-2 text-left font-medium"
-                                    title={t("common.reserveHint")}
-                                >
-                                    {t("table.reserved")}
-                                </th>
-                                <th className="w-[10%] bg-muted/40 px-2 py-2 text-right font-medium">
+                                <th className="w-[9%] text-right">
                                     {t("table.quantityBase")}
                                 </th>
-                                <th className="w-[7%] bg-muted/40 px-2 py-2 text-right font-medium">
+                                <th className="w-[7%] text-right">
+                                    {t("table.shipped")}
+                                </th>
+                                <th
+                                    className="w-[7%] text-right"
+                                    title={t("table.stockFromBackend")}
+                                >
+                                    {t("table.available")}
+                                </th>
+                                <th
+                                    className="w-[7%] text-right"
+                                    title={t("table.stockFromBackend")}
+                                >
+                                    {t("table.remaining")}
+                                </th>
+                                <th className="w-[7%] text-right">
                                     {t("table.weightTn")}
                                 </th>
-                                <th className="w-[7%] bg-muted/40 px-2 py-2 text-right font-medium">
+                                <th className="w-[10%] text-left">
+                                    {t("table.pricePerTon")}
+                                </th>
+                                <th className="w-[7%] text-right">
                                     {t("table.price")}
                                 </th>
-                                <th className="w-[9%] bg-muted/40 px-2 py-2 text-right font-medium">
+                                <th className="w-[8%] text-right">
                                     {t("table.sum")}
                                 </th>
-                                <th className="w-10 bg-muted/40" />
+                                <th className="w-10" />
                             </tr>
                         </thead>
                         <tbody className="[&_input]:h-9 [&_button]:h-9 [&_td]:px-2 [&_td]:py-2 [&_td]:align-middle">
                             {fields.map((field, index) => {
                                 const item = watchedItems?.[index] ?? EMPTY_ITEM
                                 const base = quantityBase(item)
-                                const noWeight =
-                                    !!item.product_id &&
-                                    weightPerMeter(item) <= 0
+                                // A line converts to metres through the product
+                                // card: packs need «Метров в пачке», tons and
+                                // metres need the weight. Say which one is
+                                // missing instead of showing a bare dash.
+                                const missing =
+                                    !item.product_id ? null
+                                    : (
+                                        item.unit === "pack" &&
+                                        !Number(item.product?.meters_per_pack)
+                                    ) ?
+                                        t("table.packMetersMissing")
+                                    : weightPerMeter(item) <= 0 ?
+                                        t("table.weightMissing")
+                                    :   null
+                                // «Отгружено» is kept by the backend on the
+                                // saved line — a row added here has nothing
+                                // shipped yet.
+                                const shipped = Number(
+                                    order?.items?.find((i) => i.id === item.id)
+                                        ?.shipped ?? 0,
+                                )
                                 return (
                                     <tr
                                         key={field.id}
                                         className="border-t align-middle"
                                     >
                                         <td className="pl-3!">
+                                            <ProductFacts
+                                                form={form}
+                                                index={index}
+                                                productId={
+                                                    item.product_id ?? null
+                                                }
+                                                snapshot={item.product ?? null}
+                                            />
                                             <PaginatedSelectField<
                                                 OrderForm,
                                                 SaleProduct
@@ -677,6 +767,57 @@ function OrderAddEdit() {
                                                 }
                                             />
                                         </td>
+                                        {/* Calculated — never typed */}
+                                        <td className="text-right tabular-nums">
+                                            {base > 0 ?
+                                                `${formatNumber(base, {
+                                                    decimalScale: 3,
+                                                    isShowZero: true,
+                                                })} ${t("common.meter")}`
+                                            : missing ?
+                                                <span
+                                                    className="cursor-help text-amber-600"
+                                                    title={missing}
+                                                >
+                                                    !
+                                                </span>
+                                            :   <span className="text-muted-foreground">
+                                                    —
+                                                </span>
+                                            }
+                                        </td>
+                                        <td className="text-right tabular-nums">
+                                            {shipped > 0 ?
+                                                formatNumber(shipped, {
+                                                    decimalScale: 3,
+                                                })
+                                            :   <span className="text-muted-foreground">
+                                                    0
+                                                </span>
+                                            }
+                                        </td>
+                                        {/* «Доступно» и «Остаток» — складские
+                                            числа товара; бэкенд их пока не
+                                            отдаёт, колонки стоят на месте. */}
+                                        <td
+                                            className="text-right text-muted-foreground"
+                                            title={t("table.stockFromBackend")}
+                                        >
+                                            —
+                                        </td>
+                                        <td
+                                            className="text-right text-muted-foreground"
+                                            title={t("table.stockFromBackend")}
+                                        >
+                                            —
+                                        </td>
+                                        <td className="text-right tabular-nums">
+                                            {formatNumber(weightTn(item), {
+                                                decimalScale: 3,
+                                                isShowZero: true,
+                                            })}
+                                        </td>
+
                                         <td>
                                             <NumberField
                                                 methods={form}
@@ -685,63 +826,19 @@ function OrderAddEdit() {
                                                 allowZero
                                             />
                                         </td>
-                                        <td>
-                                            <NumberField
-                                                methods={form}
-                                                name={`items.${index}.discount`}
-                                                optional
-                                                allowZero
-                                            />
-                                        </td>
-                                        <td>
-                                            <NumberField
-                                                methods={form}
-                                                name={`items.${index}.reserve`}
-                                                optional
-                                                allowZero
-                                            />
-                                        </td>
-
-                                        {/* Calculated — never typed */}
-                                        <td className="bg-muted/30 text-right tabular-nums">
-                                            {base > 0 ?
-                                                `${formatNumber(base, {
-                                                    decimalScale: 3,
-                                                    isShowZero: true,
-                                                })} ${t("common.meter")}`
-                                            :   <span
-                                                    className="text-muted-foreground"
-                                                    title={
-                                                        noWeight ?
-                                                            t(
-                                                                "table.weightMissing",
-                                                            )
-                                                        :   undefined
-                                                    }
-                                                >
-                                                    —
-                                                </span>
-                                            }
-                                        </td>
-                                        <td className="bg-muted/30 text-right tabular-nums">
-                                            {formatNumber(weightTn(item), {
-                                                decimalScale: 3,
-                                                isShowZero: true,
-                                            })}
-                                        </td>
-                                        <td className="bg-muted/30 text-right tabular-nums">
+                                        <td className="text-right tabular-nums">
                                             {formatNumber(unitPrice(item), {
                                                 decimalScale: 3,
                                                 isShowZero: true,
                                             })}
                                         </td>
-                                        <td className="bg-muted/30 text-right font-semibold tabular-nums">
+                                        <td className="text-right font-semibold tabular-nums">
                                             {formatNumber(lineTotal(item), {
                                                 decimalScale: 2,
                                                 isShowZero: true,
                                             })}
                                         </td>
-                                        <td className="bg-muted/30 text-center">
+                                        <td className="text-center">
                                             {fields.length > 1 && (
                                                 <button
                                                     type="button"
@@ -787,10 +884,6 @@ function OrderAddEdit() {
                             label={t("table.shipmentWeight")}
                             value={totals.weight}
                             scale={3}
-                        />
-                        <Total
-                            label={t("status.reserved")}
-                            value={totals.reserved}
                         />
 
                         <div className="flex items-end gap-2 pt-1">

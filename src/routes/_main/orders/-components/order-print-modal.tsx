@@ -54,19 +54,53 @@ function buildSeed(order: Order, client?: Client): AppendixSeed {
         consignee: consigneeOf(buyerName, client),
         paymentTermsTitle: order.payment_type ?? "",
         executor: owner ? `${owner.first_name} ${owner.last_name}`.trim() : "",
-        items: (order.items ?? []).map((item) => ({
-            name:
-                item.product?.articul ?
-                    `${item.product.name} — ${item.product.articul}`
-                :   (item.product?.name ?? ""),
-            // Bo'sh bo'lsa chop etish oynasidagi standart birlik qo'yiladi.
-            unit: item.product?.unit ?? "",
-            quantity: Number(item.quantity),
-            price: Number(item.price),
-            total: Number(item.line_total),
-        })),
+        // Chop etilgan jadvalda «Кол-во × Цена = Сумма» bo'lishi shart, shuning
+        // uchun narx qaysi birlikka tegishli bo'lsa, miqdor ham o'shanda
+        // yoziladi: tonnada — тонна, qolganida — hisoblangan metr.
+        items: (order.items ?? [])
+            .map((item) => {
+                const isTon = item.unit === "ton"
+                return {
+                    name:
+                        item.product?.articul ?
+                            `${item.product.name} — ${item.product.articul}`
+                        :   (item.product?.name ?? ""),
+                    unit: isTon ? "тн" : "м",
+                    quantity: Number(
+                        isTon ? item.quantity : item.quantity_base,
+                    ),
+                    price: Number(item.price),
+                    total: Number(
+                        order.delivery_mode === "split" ?
+                            item.line_total_with_delivery
+                        :   item.line_total,
+                    ),
+                }
+            })
+            .concat(
+                // Yetkazib berish summaga qo'shilgan bo'lsa, u alohida qator
+                // bo'lib chiqadi — shundagina qatorlar yig'indisi «Итого» ga
+                // teng bo'ladi. «Разбить по товарам» rejimida u pozitsiyalar
+                // ichiga tarqalgan, alohida qator kerak emas.
+                (
+                    order.delivery_mode === "in_total" &&
+                        Number(order.delivery_cost) > 0
+                ) ?
+                    [
+                        {
+                            name: "Доставка",
+                            unit: "",
+                            quantity: 1,
+                            price: Number(order.delivery_cost),
+                            total: Number(order.delivery_cost),
+                        },
+                    ]
+                :   [],
+            ),
+        // Mijoz to'laydigan yakuniy summa — NDS va yetkazib berish bilan.
         total: Number(
-            order.vat_enabled ? order.total_with_vat : order.total_sum,
+            order.grand_total ||
+                (order.vat_enabled ? order.total_with_vat : order.total_sum),
         ),
         currency: order.currency?.currency ?? "",
     }
@@ -82,7 +116,10 @@ export default function OrderPrintModal() {
         { options: { enabled: isOpen && !!order?.id } },
     )
     const { data: client } = useGet<Client>(
-        API.CLIENT.USERS.ID.INDEX.replace("{id}", String(order?.client?.id ?? "")),
+        API.CLIENT.USERS.ID.INDEX.replace(
+            "{id}",
+            String(order?.client?.id ?? ""),
+        ),
         { options: { enabled: isOpen && !!order?.client?.id } },
     )
 
