@@ -139,7 +139,12 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
                     <span className="text-sm text-muted-foreground whitespace-nowrap">
-                        {original.doc_date?.slice(0, 10) ?? "—"}
+                        {/* The form no longer asks for a date — the day the
+                            order was created stands in for it. */}
+                        {(original.doc_date ?? original.created_at)?.slice(
+                            0,
+                            10,
+                        ) || "—"}
                     </span>
                 </ClickableCell>
             ),

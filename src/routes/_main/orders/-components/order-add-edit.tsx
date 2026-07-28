@@ -28,7 +28,10 @@ import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { contentAreaElement } from "@/lib/utils/content-area"
 import { formatNumber } from "@/lib/utils/format-number"
+import ClientAddEditModal from "@/routes/_main/clients/-components/client-add-edit"
+import { useClientStore } from "@/routes/_main/clients/-hooks/use-client-store"
 import type { ReadyProduct } from "@/routes/_main/ready-products/-types"
+import { format } from "date-fns"
 import {
     CircleHelpIcon,
     PlusIcon,
@@ -77,6 +80,9 @@ const EMPTY_ITEM: OrderItemForm = {
     reserve: 0,
     product: null,
 }
+
+/** The client modal opened from inside the order form. */
+const ORDER_CLIENT_MODAL = "add-client-from-order"
 
 /** Delivery address as written on the client card. */
 const clientAddress = (client: SaleClient) =>
@@ -138,6 +144,15 @@ function OrderAddEdit() {
     const statusOptions = useOrderStatusOptions()
     const printModal = useModal(ORDER_PRINT_MODAL)
     const createDemandModal = useModal("create-demand")
+    const clientModal = useModal(ORDER_CLIENT_MODAL)
+    const { setClient } = useClientStore()
+
+    // A client missing from the list can be created without leaving the order:
+    // the card opens empty (no `client` in the store means "add", not "edit").
+    const openClientModal = () => {
+        setClient(null)
+        clientModal.openModal()
+    }
 
     // Sheet dictionaries: unit of the line, which weight prices it, and what
     // the delivery cost does to the total.
@@ -176,7 +191,8 @@ function OrderAddEdit() {
             contract_number: "",
             lot_number: "",
             warehouse_id: null,
-            doc_date: null,
+            // Not asked for — the document is dated by the day it is created.
+            doc_date: format(new Date(), "yyyy-MM-dd"),
             delivery_planned_date: null,
             shipment_address: "",
             description: "",
@@ -204,7 +220,9 @@ function OrderAddEdit() {
                     contract_number: order.contract_number ?? "",
                     lot_number: order.lot_number ?? "",
                     warehouse_id: order.warehouse?.id ?? null,
-                    doc_date: order.doc_date?.slice(0, 10) ?? null,
+                    doc_date:
+                        (order.doc_date ?? order.created_at)?.slice(0, 10) ??
+                        null,
                     delivery_planned_date: order.delivery_planned_date,
                     shipment_address: order.shipment_address ?? "",
                     description: order.description ?? "",
@@ -369,23 +387,32 @@ function OrderAddEdit() {
             {/* Document fields — one compact block across the top */}
             <div className="flex flex-col gap-3 border-b pb-4">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 [&_input]:h-9 [&_button]:h-9 [&_label]:text-sm">
-                    <SelectField
-                        methods={form}
-                        name="client_id"
-                        options={clientOptions}
-                        label={t("table.client")}
-                    />
+                    <div className="flex items-end gap-1.5">
+                        <SelectField
+                            methods={form}
+                            name="client_id"
+                            options={clientOptions}
+                            label={t("table.client")}
+                            wrapperClassName="min-w-0 flex-1"
+                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="shrink-0"
+                            title={t("common.addEntity", {
+                                entity: t("entity.client"),
+                            })}
+                            onClick={openClientModal}
+                        >
+                            <PlusIcon className="h-4 w-4" />
+                        </Button>
+                    </div>
                     <SelectField
                         methods={form}
                         name="payment_type_id"
                         options={paymentTypeOptions}
                         label={t("table.paymentType")}
-                    />
-                    <DatepickerField
-                        methods={form}
-                        name="doc_date"
-                        label={t("table.date")}
-                        optional
                     />
                     <SelectField
                         methods={form}
@@ -434,11 +461,14 @@ function OrderAddEdit() {
                             :   null
                         }
                     />
+                    {/* The address is a long line — it gets the room of two
+                        (three on a wide screen) ordinary fields. */}
                     <UncontrolledInput
                         methods={form}
                         name="shipment_address"
                         label={t("table.deliveryAddress")}
                         optional
+                        wrapperClassName="col-span-2 lg:col-span-2 xl:col-span-3"
                     />
                     {order && (
                         <SelectField
@@ -816,6 +846,17 @@ function OrderAddEdit() {
                 submitName={order ? t("common.save") : t("common.add")}
                 loading={isPending}
                 className="mt-auto max-w-md ml-auto w-full"
+            />
+
+            {/* Opens over the order (its own key, so the order stays put) and
+                the saved client lands in the field right away. */}
+            <ClientAddEditModal
+                modalKey={ORDER_CLIENT_MODAL}
+                onCreated={(created) =>
+                    form.setValue("client_id", created.id, {
+                        shouldDirty: true,
+                    })
+                }
             />
         </form>
     )

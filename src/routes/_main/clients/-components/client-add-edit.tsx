@@ -15,13 +15,24 @@ import { toast } from "sonner"
 import { useClientStore } from "../-hooks/use-client-store"
 import type { Client, CustomerType } from "../-types"
 
-export default function ClientAddEditModal() {
+type Props = {
+    /** Own modal key — lets another screen (e.g. the order form) open it. */
+    modalKey?: string
+    /** The freshly created client, so the caller can pick it up right away. */
+    onCreated?: (client: Client) => void
+}
+
+export default function ClientAddEditModal({
+    modalKey,
+    onCreated,
+}: Props = {}) {
     return (
         <Modal
+            modalKey={modalKey}
             wrapperClassname="md:w-[900px]! md:max-w-none"
             className="min-w-[860px]!"
         >
-            <Content />
+            <Content modalKey={modalKey} onCreated={onCreated} />
         </Modal>
     )
 }
@@ -36,8 +47,8 @@ const customerTypeOptions: { id: CustomerType; name: string }[] = [
     { id: "sp", name: "SP" },
 ]
 
-function Content() {
-    const { closeModal } = useModal()
+function Content({ modalKey, onCreated }: Props) {
+    const { closeModal } = useModal(modalKey)
     const { invalidateByExactMatch } = useRevalidate()
     const { client } = useClientStore()
     const { post, patch, isPending } = useRequest()
@@ -70,12 +81,13 @@ function Content() {
         values: client ? { ...client } : undefined,
     })
 
-    const onSuccess = () => {
+    const onSuccess = (created?: Client) => {
         invalidateByExactMatch([API.CLIENT.USERS.INDEX])
         closeModal()
         toast.success(
             client ? "Updated successfully" : "Client added successfully",
         )
+        if (!client && created?.id) onCreated?.(created)
     }
 
     const onSubmit = form.handleSubmit((vals) => {
@@ -84,10 +96,12 @@ function Content() {
             patch(
                 API.CLIENT.USERS.ID.INDEX.replace("{id}", String(client.id)),
                 payload,
-                { onSuccess },
+                { onSuccess: () => onSuccess() },
             )
         } else {
-            post(API.CLIENT.USERS.INDEX, payload, { onSuccess })
+            post(API.CLIENT.USERS.INDEX, payload, {
+                onSuccess: (data) => onSuccess(data as Client),
+            })
         }
     })
 
