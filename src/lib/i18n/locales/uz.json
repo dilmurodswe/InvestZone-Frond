@@ -50,7 +50,8 @@
         "deliveryInTotal": "Umumiy summaga qo'shish",
         "deliverySplit": "Tovarlarga taqsimlash",
         "saveFirst": "Avval buyurtmani saqlang",
-        "filesAfterSave": "Fayllarni buyurtma saqlangandan keyin biriktirish mumkin"
+        "filesAfterSave": "Fayllarni buyurtma saqlangandan keyin biriktirish mumkin",
+        "reserveHint": "Rezerv — shu buyurtma bo'yicha mijozga va'da qilingan tovar. U ombordagi mavjud qoldiqni kamaytiradi, lekin hisobdan chiqarmaydi: hisobdan chiqarish otgruzkada bo'ladi va o'shanda rezerv bo'shaydi. Kalit barcha pozitsiyani to'liq rezervlaydi, alohida qatorni «Rezerv» ustunida qisman rezervlash mumkin."
     },
     "entity": {
         "client": "Mijoz",

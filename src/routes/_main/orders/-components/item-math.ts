@@ -74,6 +74,18 @@ export function lineTotal(item: OrderItemForm) {
     return gross * (1 - num(item.discount) / 100)
 }
 
+/**
+ * «Резерв» of the line in money. The reserve is entered in the line's own unit,
+ * so the reserved money is its share of the line total; more than the quantity
+ * cannot be promised.
+ */
+export function lineReserved(item: OrderItemForm) {
+    const quantity = num(item.quantity)
+    if (quantity <= 0) return 0
+    const reserved = Math.min(num(item.reserve), quantity)
+    return (lineTotal(item) * reserved) / quantity
+}
+
 export type OrderTotals = {
     /** Промежуточный итог */
     subtotal: number
@@ -81,6 +93,8 @@ export type OrderTotals = {
     vat: number
     /** Вес отгрузки, тн */
     weight: number
+    /** В резерве — сумма зарезервированных позиций */
+    reserved: number
     /** Доставка */
     delivery: number
     /** Итого */
@@ -92,6 +106,7 @@ export function orderTotals(values: OrderForm): OrderTotals {
     const items = values.items ?? []
     const subtotal = items.reduce((acc, item) => acc + lineTotal(item), 0)
     const weight = items.reduce((acc, item) => acc + weightTn(item), 0)
+    const reserved = items.reduce((acc, item) => acc + lineReserved(item), 0)
 
     const vat =
         values.vat_enabled ?
@@ -112,5 +127,12 @@ export function orderTotals(values: OrderForm): OrderTotals {
     const withVat =
         values.vat_enabled && !values.vat_included ? subtotal + vat : subtotal
 
-    return { subtotal, vat, weight, delivery, grandTotal: withVat + delivery }
+    return {
+        subtotal,
+        vat,
+        weight,
+        reserved,
+        delivery,
+        grandTotal: withVat + delivery,
+    }
 }

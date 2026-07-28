@@ -10,6 +10,13 @@ import UncontrolledInput from "@/components/form/uncontrolled-input"
 import UncontrolledTextarea from "@/components/form/uncontrolled-textarea"
 import { Button } from "@/components/ui/button"
 import { CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import {
@@ -22,7 +29,13 @@ import { API } from "@/lib/constants/api-endpoints"
 import { contentAreaElement } from "@/lib/utils/content-area"
 import { formatNumber } from "@/lib/utils/format-number"
 import type { ReadyProduct } from "@/routes/_main/ready-products/-types"
-import { PlusIcon, PrinterIcon, Trash2, TruckIcon } from "lucide-react"
+import {
+    CircleHelpIcon,
+    PlusIcon,
+    PrinterIcon,
+    Trash2,
+    TruckIcon,
+} from "lucide-react"
 import { useEffect, useRef } from "react"
 import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
@@ -231,6 +244,31 @@ function OrderAddEdit() {
     const values = useWatch({ control: form.control }) as OrderForm
     const watchedItems = values.items
     const totals = orderTotals(values)
+
+    // «Резерв» of the document — the same switch as in МойСклад: the goods of
+    // this order are promised to the client, so they stop being available for
+    // other orders while staying on the warehouse until the shipment. Ticking
+    // it reserves every filled position in full, unticking releases them; a
+    // single line can still be reserved partly in its own «Резерв» column.
+    const filledItems = (watchedItems ?? []).filter(
+        (item) => item.product_id != null && Number(item.quantity ?? 0) > 0,
+    )
+    const allReserved =
+        filledItems.length > 0 &&
+        filledItems.every(
+            (item) => Number(item.reserve ?? 0) >= Number(item.quantity ?? 0),
+        )
+    const toggleReserveAll = (checked: boolean) => {
+        ;(watchedItems ?? []).forEach((item, index) => {
+            const reserve =
+                checked && item.product_id != null ?
+                    Number(item.quantity ?? 0)
+                :   0
+            form.setValue(`items.${index}.reserve`, reserve, {
+                shouldDirty: true,
+            })
+        })
+    }
 
     // Picking a client fills the delivery address from their card; typing over
     // it afterwards is kept — only a new pick (or an empty field) refills it.
@@ -441,6 +479,33 @@ function OrderAddEdit() {
                             label={t("table.posted")}
                             wrapperClassName="w-auto"
                         />
+
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                id="reserve-all"
+                                checked={allReserved}
+                                onCheckedChange={toggleReserveAll}
+                                disabled={!filledItems.length}
+                                className="h-4 w-9 [&_span]:w-3 [&_span]:h-3"
+                            />
+                            <Label htmlFor="reserve-all">
+                                {t("table.reserved")}
+                            </Label>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        aria-label={t("common.reserveHint")}
+                                        className="text-muted-foreground hover:text-foreground"
+                                    >
+                                        <CircleHelpIcon className="h-4 w-4" />
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs">
+                                    {t("common.reserveHint")}
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -471,7 +536,10 @@ function OrderAddEdit() {
                                 <th className="w-[8%] px-2 py-2 text-left font-medium">
                                     {t("table.discount")}
                                 </th>
-                                <th className="w-[8%] px-2 py-2 text-left font-medium">
+                                <th
+                                    className="w-[8%] px-2 py-2 text-left font-medium"
+                                    title={t("common.reserveHint")}
+                                >
                                     {t("table.reserved")}
                                 </th>
                                 <th className="w-[10%] bg-muted/40 px-2 py-2 text-right font-medium">
@@ -689,6 +757,10 @@ function OrderAddEdit() {
                             label={t("table.shipmentWeight")}
                             value={totals.weight}
                             scale={3}
+                        />
+                        <Total
+                            label={t("status.reserved")}
+                            value={totals.reserved}
                         />
 
                         <div className="flex items-end gap-2 pt-1">

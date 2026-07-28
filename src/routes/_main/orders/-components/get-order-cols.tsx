@@ -5,6 +5,7 @@ import { API } from "@/lib/constants/api-endpoints"
 import i18n from "@/lib/i18n/request"
 import { formatNumber } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
+import { CheckIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
@@ -15,6 +16,14 @@ import { OrderActions } from "./use-order-cols"
 
 const money = (val: string | number | null | undefined) =>
     formatNumber(val, { decimalScale: 2, isShowZero: true })
+
+const num = (val: string | number | null | undefined) => Number(val ?? 0) || 0
+
+/** Money columns line up on the right and share one numeric type face. */
+const numericMeta = {
+    thClassName: "text-right",
+    tdClassName: "text-right tabular-nums whitespace-nowrap",
+}
 
 export const getOrderCols = (): ColumnDef<Order>[] => {
     function StatusCell({ order }: { order: Order }) {
@@ -154,6 +163,7 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
         {
             accessorKey: "total_with_vat",
             header: i18n.t("table.sum"),
+            meta: numericMeta,
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
                     <span className="text-sm font-medium whitespace-nowrap">
@@ -166,6 +176,7 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
         {
             accessorKey: "shipped_sum",
             header: i18n.t("table.shippedAmount"),
+            meta: numericMeta,
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
                     <span className="text-sm whitespace-nowrap">
@@ -177,10 +188,64 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
         {
             accessorKey: "reserved_sum",
             header: i18n.t("table.reserved"),
+            meta: numericMeta,
+            cell: ({ row: { original } }) => {
+                const reserved = num(original.reserved_sum)
+                return (
+                    <ClickableCell order={original}>
+                        <span
+                            className={`text-sm whitespace-nowrap ${reserved > 0 ? "" : "text-muted-foreground"}`}
+                            title={i18n.t("common.reserveHint")}
+                        >
+                            {money(original.reserved_sum)}
+                        </span>
+                    </ClickableCell>
+                )
+            },
+        },
+        {
+            // «Остаток» — what is still to be shipped on this order.
+            id: "remaining",
+            header: i18n.t("table.remaining"),
+            meta: numericMeta,
+            cell: ({ row: { original } }) => {
+                const remaining = Math.max(
+                    0,
+                    num(original.total_with_vat) - num(original.shipped_sum),
+                )
+                return (
+                    <ClickableCell order={original}>
+                        <span
+                            className={`text-sm whitespace-nowrap ${remaining > 0 ? "" : "text-muted-foreground"}`}
+                        >
+                            {money(remaining)}
+                        </span>
+                    </ClickableCell>
+                )
+            },
+        },
+        {
+            accessorKey: "weight_sum",
+            header: i18n.t("table.shipmentWeight"),
+            meta: numericMeta,
             cell: ({ row: { original } }) => (
                 <ClickableCell order={original}>
                     <span className="text-sm whitespace-nowrap">
-                        {money(original.reserved_sum)}
+                        {formatNumber(original.weight_sum, {
+                            decimalScale: 3,
+                            isShowZero: true,
+                        })}
+                    </span>
+                </ClickableCell>
+            ),
+        },
+        {
+            accessorKey: "warehouse",
+            header: i18n.t("table.warehouse"),
+            cell: ({ row: { original } }) => (
+                <ClickableCell order={original}>
+                    <span className="text-sm">
+                        {original.warehouse?.name ?? "—"}
                     </span>
                 </ClickableCell>
             ),
@@ -204,6 +269,48 @@ export const getOrderCols = (): ColumnDef<Order>[] => {
                     <span className="text-sm">
                         {original.payment_type ?? "—"}
                     </span>
+                </ClickableCell>
+            ),
+        },
+        {
+            accessorKey: "contract_number",
+            header: i18n.t("table.contractNumber"),
+            cell: ({ row: { original } }) => (
+                <ClickableCell order={original}>
+                    <span className="text-sm whitespace-nowrap">
+                        {original.contract_number || "—"}
+                    </span>
+                </ClickableCell>
+            ),
+        },
+        {
+            accessorKey: "owner",
+            header: i18n.t("table.owner"),
+            cell: ({ row: { original } }) => (
+                <ClickableCell order={original}>
+                    <span className="text-sm whitespace-nowrap">
+                        {original.owner ?
+                            [
+                                original.owner.first_name,
+                                original.owner.last_name,
+                            ]
+                                .filter(Boolean)
+                                .join(" ")
+                        :   "—"}
+                    </span>
+                </ClickableCell>
+            ),
+        },
+        {
+            accessorKey: "applicable",
+            header: i18n.t("table.posted"),
+            meta: { thClassName: "text-center", tdClassName: "text-center" },
+            cell: ({ row: { original } }) => (
+                <ClickableCell order={original}>
+                    {original.applicable ?
+                        <CheckIcon className="mx-auto h-4 w-4 text-emerald-600" />
+                    :   <span className="text-sm text-muted-foreground">—</span>
+                    }
                 </ClickableCell>
             ),
         },
