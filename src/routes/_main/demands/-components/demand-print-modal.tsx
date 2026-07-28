@@ -51,18 +51,50 @@ function buildSeed(demand: Demand, client?: Client): AppendixSeed {
         consignee: consigneeOf(buyerName, client),
         paymentTermsTitle: "",
         executor: owner ? `${owner.first_name} ${owner.last_name}`.trim() : "",
-        items: (demand.items ?? []).map((item) => ({
-            name:
-                item.product?.articul ?
-                    `${item.product.name} — ${item.product.articul}`
-                :   (item.product?.name ?? ""),
-            unit: item.product?.unit ?? "",
-            quantity: Number(item.quantity),
-            price: Number(item.price),
-            total: Number(item.line_total),
-        })),
+        // Buyurtmadagi kabi: «Кол-во × Цена = Сумма» bo'lishi uchun narx qaysi
+        // birlikka tegishli bo'lsa, miqdor ham o'shanda yoziladi — tonnada
+        // тонна, qolganida hisoblangan metr.
+        items: (demand.items ?? [])
+            .map((item) => {
+                const isTon = item.unit === "ton"
+                return {
+                    name:
+                        item.product?.articul ?
+                            `${item.product.name} — ${item.product.articul}`
+                        :   (item.product?.name ?? ""),
+                    unit: isTon ? "тн" : "м",
+                    quantity: Number(
+                        isTon ? item.quantity : item.quantity_base,
+                    ),
+                    price: Number(item.unit_price ?? item.price),
+                    total: Number(
+                        demand.delivery_mode === "split" ?
+                            item.line_total_with_delivery
+                        :   item.line_total,
+                    ),
+                }
+            })
+            .concat(
+                // Yetkazib berish summaga qo'shilgan bo'lsa — alohida qator,
+                // shundagina qatorlar yig'indisi «Итого» ga teng bo'ladi.
+                (
+                    demand.delivery_mode === "in_total" &&
+                        Number(demand.delivery_cost) > 0
+                ) ?
+                    [
+                        {
+                            name: "Доставка",
+                            unit: "",
+                            quantity: 1,
+                            price: Number(demand.delivery_cost),
+                            total: Number(demand.delivery_cost),
+                        },
+                    ]
+                :   [],
+            ),
         total: Number(
-            demand.vat_enabled ? demand.total_with_vat : demand.total_sum,
+            demand.grand_total ||
+                (demand.vat_enabled ? demand.total_with_vat : demand.total_sum),
         ),
         currency: demand.currency?.currency ?? "",
     }

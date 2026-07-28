@@ -1,4 +1,13 @@
-import type { OrderForm, OrderItemForm } from "../-types"
+import type { OrderForm, OrderItemForm, SaleItemUnit } from "../-types"
+
+/**
+ * «Ед. изм.» строки — метр, пачка или тонна. Берётся с самой позиции, а не из
+ * карточки товара: один и тот же товар продаётся и в метрах, и в тоннах.
+ */
+export const unitKey = (unit: SaleItemUnit | null | undefined) =>
+    unit === "pack" ? ("common.pack" as const)
+    : unit === "ton" ? ("common.ton" as const)
+    : ("common.meter" as const)
 
 /**
  * Line maths of the sales spreadsheet, mirrored from the backend
@@ -21,12 +30,24 @@ export function weightMode(item: OrderItemForm) {
     return item.unit === "ton" ? "actual" : "theoretical"
 }
 
-/** кг/м of the picked product, theoretical or actual. */
+/**
+ * кг/м of the picked product, theoretical or actual.
+ *
+ * Бэкенд отдаёт `*_weight_used` — вес, по которому он сам считает строку: из
+ * карточки, а пока она пуста, рассчитанный по геометрии трубы. Форма берёт
+ * его же, иначе числа на экране разошлись бы с сохранёнными. Сырые поля
+ * карточки остаются запасным вариантом для строк, снятых со старого ответа.
+ */
 export function weightPerMeter(item: OrderItemForm) {
     if (!item.product) return 0
+    const theoretical =
+        num(item.product.theoretical_weight_used) ||
+        num(item.product.theoretical_weight)
+    const actual =
+        num(item.product.actual_weight_used) || num(item.product.actual_weight)
     return weightMode(item) === "actual" ?
-            num(item.product.actual_weight)
-        :   num(item.product.theoretical_weight)
+            actual || theoretical
+        :   theoretical || actual
 }
 
 /** «Кол-во б. ед.» — the entered quantity converted to metres. */

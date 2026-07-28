@@ -53,6 +53,7 @@ import { useOrderStore } from "../-hooks/use-order-store"
 import type {
     OrderForm,
     OrderItemForm,
+    ProductStock,
     SaleClient,
     SaleProduct,
 } from "../-types"
@@ -91,6 +92,17 @@ const EMPTY_ITEM: OrderItemForm = {
 const ORDER_CLIENT_MODAL = "add-client-from-order"
 
 /**
+ * The sales sheet colours its columns: what the seller types stays white
+ * (наименование, кол-во, ед. изм., цена за вес) and everything the sheet
+ * derives sits on a tint (кол-во б. ед., отгружено, доступно, остаток, вес,
+ * цена, сумма). The table below repeats that, so a row reads as
+ * «typed → derived → typed → derived» at a glance instead of eleven equal cells.
+ */
+const CALC = "bg-muted/40"
+/** Where the sheet switches between a typed and a derived block. */
+const GROUP = "border-l"
+
+/**
  * The line maths runs on three numbers of the product card — теор. вес, факт.
  * вес and метров в пачке. A row restored from a saved order (or picked from a
  * list that trims them) may carry only some of them, and then «кол-во б. ед.»
@@ -110,8 +122,8 @@ function ProductFacts({
 }) {
     const incomplete =
         !!productId &&
-        (snapshot?.theoretical_weight == null ||
-            snapshot?.actual_weight == null ||
+        (snapshot?.theoretical_weight_used == null ||
+            snapshot?.actual_weight_used == null ||
             snapshot?.meters_per_pack == null)
 
     const { data } = useGet<SaleProduct>(
@@ -124,6 +136,8 @@ function ProductFacts({
         form.setValue(`items.${index}.product`, {
             theoretical_weight: data.theoretical_weight ?? null,
             actual_weight: data.actual_weight ?? null,
+            theoretical_weight_used: data.theoretical_weight_used ?? null,
+            actual_weight_used: data.actual_weight_used ?? null,
             meters_per_pack: data.meters_per_pack ?? null,
         })
         // `incomplete` is what triggered the fetch — reacting to it as well
@@ -139,6 +153,24 @@ const clientAddress = (client: SaleClient) =>
     [client.region_address, client.exact_address].filter(Boolean).join(", ") ||
     client.legal_address ||
     ""
+
+/**
+ * Колонка, которой не хватило числа из карточки товара. Ноль на её месте
+ * выглядел бы посчитанным, поэтому вместо него — знак с подсказкой, чего
+ * именно не хватает.
+ */
+function Missing({ hint }: { hint: string }) {
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <span className="cursor-help font-semibold text-amber-600">
+                    !
+                </span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">{hint}</TooltipContent>
+        </Tooltip>
+    )
+}
 
 /** One line of the totals block. */
 function Total({
@@ -312,6 +344,24 @@ function OrderAddEdit() {
     const values = useWatch({ control: form.control }) as OrderForm
     const watchedItems = values.items
     const totals = orderTotals(values)
+
+    // «Доступно» и «Остаток» приходят одной ручкой на все выбранные товары —
+    // строка их только показывает. Список id отсортирован, чтобы порядок
+    // позиций не плодил новые ключи кэша.
+    const pickedProductIds = [
+        ...new Set(
+            (watchedItems ?? [])
+                .map((item) => item.product_id)
+                .filter((id): id is number => id != null),
+        ),
+    ].sort((a, b) => a - b)
+    const { data: stockRows } = useGet<ProductStock[]>(API.PRODUCT_STOCK, {
+        params: { product_ids: pickedProductIds.join(",") },
+        options: { enabled: pickedProductIds.length > 0 },
+    })
+    const stockByProduct = new Map(
+        (stockRows ?? []).map((row) => [row.product_id, row]),
+    )
 
     // «Резерв» of the document — the same switch as in МойСклад: the goods of
     // this order are promised to the client, so they stop being available for
@@ -607,8 +657,9 @@ function OrderAddEdit() {
                         <thead>
                             {/* Column order of the sales sheet: наименование →
                                 кол-во → ед. изм. → кол-во б. ед. → отгружено →
-                                вес → цена за вес → цена → сумма. */}
-                            <tr className="bg-muted/60 text-xs text-muted-foreground [&_th]:px-2 [&_th]:py-2 [&_th]:font-medium [&_th]:align-bottom">
+                                доступно → остаток → вес, тн → цена за вес, Т →
+                                цена → сумма. */}
+                            <tr className="border-b bg-muted/20 text-xs text-muted-foreground [&_th]:px-2 [&_th]:py-2 [&_th]:font-medium [&_th]:align-bottom">
                                 <th className="w-[22%] pl-3! text-left">
                                     {t("table.nomenclature")}
                                 </th>
@@ -618,34 +669,38 @@ function OrderAddEdit() {
                                 <th className="w-[9%] text-left">
                                     {t("table.unit")}
                                 </th>
-                                <th className="w-[9%] text-right">
+                                <th
+                                    className={`w-[9%] text-right ${CALC} ${GROUP}`}
+                                >
                                     {t("table.quantityBase")}
                                 </th>
-                                <th className="w-[7%] text-right">
+                                <th className={`w-[7%] text-right ${CALC}`}>
                                     {t("table.shipped")}
                                 </th>
                                 <th
-                                    className="w-[7%] text-right"
+                                    className={`w-[7%] text-right ${CALC}`}
                                     title={t("table.stockFromBackend")}
                                 >
                                     {t("table.available")}
                                 </th>
                                 <th
-                                    className="w-[7%] text-right"
+                                    className={`w-[7%] text-right ${CALC}`}
                                     title={t("table.stockFromBackend")}
                                 >
                                     {t("table.remaining")}
                                 </th>
-                                <th className="w-[7%] text-right">
+                                <th className={`w-[7%] text-right ${CALC}`}>
                                     {t("table.weightTn")}
                                 </th>
-                                <th className="w-[10%] text-left">
+                                <th className={`w-[10%] text-left ${GROUP}`}>
                                     {t("table.pricePerTon")}
                                 </th>
-                                <th className="w-[7%] text-right">
+                                <th
+                                    className={`w-[7%] text-right ${CALC} ${GROUP}`}
+                                >
                                     {t("table.price")}
                                 </th>
-                                <th className="w-[8%] text-right">
+                                <th className={`w-[8%] text-right ${CALC}`}>
                                     {t("table.sum")}
                                 </th>
                                 <th className="w-10" />
@@ -655,18 +710,29 @@ function OrderAddEdit() {
                             {fields.map((field, index) => {
                                 const item = watchedItems?.[index] ?? EMPTY_ITEM
                                 const base = quantityBase(item)
-                                // A line converts to metres through the product
-                                // card: packs need «Метров в пачке», tons and
-                                // metres need the weight. Say which one is
-                                // missing instead of showing a bare dash.
-                                const missing =
-                                    !item.product_id ? null
-                                    : (
-                                        item.unit === "pack" &&
-                                        !Number(item.product?.meters_per_pack)
-                                    ) ?
-                                        t("table.packMetersMissing")
-                                    : weightPerMeter(item) <= 0 ?
+                                // Строка считается по карточке товара: пачки
+                                // переводятся в метры через «Метров в пачке»,
+                                // а вес, цена и сумма — через вес (кг/м).
+                                // Пустая карточка обнуляет ровно те колонки,
+                                // которым не хватило числа, и каждая из них
+                                // говорит, чего именно не хватает, — молчаливый
+                                // ноль читается как «программа не считает».
+                                const picked = !!item.product_id
+                                const packMissing =
+                                    picked &&
+                                    item.unit === "pack" &&
+                                    !Number(item.product?.meters_per_pack)
+                                const weightMissing =
+                                    picked && weightPerMeter(item) <= 0
+                                // Тонны знают свой вес и цену без карточки:
+                                // «Вес, тн» — это само кол-во, а «Цена» —
+                                // цена за тонну. В метры они всё же не
+                                // переводятся.
+                                const moneyBlocked =
+                                    weightMissing && item.unit !== "ton"
+                                const baseWarning =
+                                    packMissing ? t("table.packMetersMissing")
+                                    : weightMissing && item.unit !== "meter" ?
                                         t("table.weightMissing")
                                     :   null
                                 // «Отгружено» is kept by the backend on the
@@ -676,6 +742,10 @@ function OrderAddEdit() {
                                     order?.items?.find((i) => i.id === item.id)
                                         ?.shipped ?? 0,
                                 )
+                                const stock =
+                                    item.product_id != null ?
+                                        stockByProduct.get(item.product_id)
+                                    :   undefined
                                 return (
                                     <tr
                                         key={field.id}
@@ -713,6 +783,10 @@ function OrderAddEdit() {
                                                                     picked.theoretical_weight,
                                                                 actual_weight:
                                                                     picked.actual_weight,
+                                                                theoretical_weight_used:
+                                                                    picked.theoretical_weight_used,
+                                                                actual_weight_used:
+                                                                    picked.actual_weight_used,
                                                                 meters_per_pack:
                                                                     picked.meters_per_pack,
                                                             }
@@ -768,25 +842,24 @@ function OrderAddEdit() {
                                             />
                                         </td>
                                         {/* Calculated — never typed */}
-                                        <td className="text-right tabular-nums">
+                                        <td
+                                            className={`text-right tabular-nums ${CALC} ${GROUP}`}
+                                        >
                                             {base > 0 ?
                                                 `${formatNumber(base, {
                                                     decimalScale: 3,
                                                     isShowZero: true,
                                                 })} ${t("common.meter")}`
-                                            : missing ?
-                                                <span
-                                                    className="cursor-help text-amber-600"
-                                                    title={missing}
-                                                >
-                                                    !
-                                                </span>
+                                            : baseWarning ?
+                                                <Missing hint={baseWarning} />
                                             :   <span className="text-muted-foreground">
                                                     —
                                                 </span>
                                             }
                                         </td>
-                                        <td className="text-right tabular-nums">
+                                        <td
+                                            className={`text-right tabular-nums ${CALC}`}
+                                        >
                                             {shipped > 0 ?
                                                 formatNumber(shipped, {
                                                     decimalScale: 3,
@@ -796,29 +869,54 @@ function OrderAddEdit() {
                                                 </span>
                                             }
                                         </td>
-                                        {/* «Доступно» и «Остаток» — складские
-                                            числа товара; бэкенд их пока не
-                                            отдаёт, колонки стоят на месте. */}
+                                        {/* «Доступно» и «Остаток» — склад
+                                            готовой продукции по этому товару,
+                                            в метрах. */}
                                         <td
-                                            className="text-right text-muted-foreground"
+                                            className={`text-right tabular-nums ${CALC}`}
                                             title={t("table.stockFromBackend")}
                                         >
-                                            —
+                                            {stock ?
+                                                formatNumber(stock.available, {
+                                                    decimalScale: 3,
+                                                    isShowZero: true,
+                                                })
+                                            :   <span className="text-muted-foreground">
+                                                    —
+                                                </span>
+                                            }
                                         </td>
                                         <td
-                                            className="text-right text-muted-foreground"
+                                            className={`text-right tabular-nums ${CALC}`}
                                             title={t("table.stockFromBackend")}
                                         >
-                                            —
+                                            {stock ?
+                                                formatNumber(stock.remaining, {
+                                                    decimalScale: 3,
+                                                    isShowZero: true,
+                                                })
+                                            :   <span className="text-muted-foreground">
+                                                    —
+                                                </span>
+                                            }
                                         </td>
-                                        <td className="text-right tabular-nums">
-                                            {formatNumber(weightTn(item), {
-                                                decimalScale: 3,
-                                                isShowZero: true,
-                                            })}
+                                        <td
+                                            className={`text-right tabular-nums ${CALC}`}
+                                        >
+                                            {moneyBlocked ?
+                                                <Missing
+                                                    hint={t(
+                                                        "table.weightMissing",
+                                                    )}
+                                                />
+                                            :   formatNumber(weightTn(item), {
+                                                    decimalScale: 3,
+                                                    isShowZero: true,
+                                                })
+                                            }
                                         </td>
 
-                                        <td>
+                                        <td className={GROUP}>
                                             <NumberField
                                                 methods={form}
                                                 name={`items.${index}.price_per_ton`}
@@ -826,17 +924,35 @@ function OrderAddEdit() {
                                                 allowZero
                                             />
                                         </td>
-                                        <td className="text-right tabular-nums">
-                                            {formatNumber(unitPrice(item), {
-                                                decimalScale: 3,
-                                                isShowZero: true,
-                                            })}
+                                        <td
+                                            className={`text-right tabular-nums ${CALC} ${GROUP}`}
+                                        >
+                                            {moneyBlocked ?
+                                                <Missing
+                                                    hint={t(
+                                                        "table.weightMissing",
+                                                    )}
+                                                />
+                                            :   formatNumber(unitPrice(item), {
+                                                    decimalScale: 3,
+                                                    isShowZero: true,
+                                                })
+                                            }
                                         </td>
-                                        <td className="text-right font-semibold tabular-nums">
-                                            {formatNumber(lineTotal(item), {
-                                                decimalScale: 2,
-                                                isShowZero: true,
-                                            })}
+                                        <td
+                                            className={`text-right font-semibold tabular-nums ${CALC}`}
+                                        >
+                                            {moneyBlocked ?
+                                                <Missing
+                                                    hint={t(
+                                                        "table.weightMissing",
+                                                    )}
+                                                />
+                                            :   formatNumber(lineTotal(item), {
+                                                    decimalScale: 2,
+                                                    isShowZero: true,
+                                                })
+                                            }
                                         </td>
                                         <td className="text-center">
                                             {fields.length > 1 && (

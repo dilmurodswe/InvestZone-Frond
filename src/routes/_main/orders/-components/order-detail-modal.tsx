@@ -9,7 +9,8 @@ import { formatNumber, round3 } from "@/lib/utils/format-number"
 import { PrinterIcon, TruckIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
-import type { Order } from "../-types"
+import type { Order, ProductStock } from "../-types"
+import { unitKey } from "./item-math"
 import { ORDER_PRINT_MODAL } from "./order-print-modal"
 import OrderStatusBadge from "./order-status-badge"
 
@@ -38,6 +39,20 @@ function OrderDetail() {
     const { data, isLoading } = useGet<Order>(
         API.ORDERS.ID.INDEX.replace("{id}", String(order?.id ?? "")),
         { options: { enabled: !!order?.id } },
+    )
+
+    // Склад по товарам заказа — те же «Доступно» и «Остаток», что в форме.
+    const productIds = [
+        ...new Set((data?.items ?? []).map((item) => item.product?.id)),
+    ]
+        .filter((id): id is number => id != null)
+        .sort((a, b) => a - b)
+    const { data: stockRows } = useGet<ProductStock[]>(API.PRODUCT_STOCK, {
+        params: { product_ids: productIds.join(",") },
+        options: { enabled: productIds.length > 0 },
+    })
+    const stockByProduct = new Map(
+        (stockRows ?? []).map((row) => [row.product_id, row]),
     )
 
     if (!order) return null
@@ -84,24 +99,29 @@ function OrderDetail() {
                 </div>
             </div>
 
+            {/* Итоговый блок продажного листа: промежуточный итог → НДС →
+                вес отгрузки → доставка → итого. */}
             <Section title={t("table.sum")}>
                 <div className="grid grid-cols-5 divide-x">
                     <Cell
-                        label={t("table.sum")}
+                        label={t("table.subtotal")}
                         value={`${money(data.total_sum)} ${data.currency?.currency ?? ""}`}
                     />
-                    <Cell label={t("table.vatSum")} value={money(data.vat_sum)} />
                     <Cell
-                        label={t("table.totalWithVat")}
-                        value={money(data.total_with_vat)}
+                        label={t("table.vatIncludedSum")}
+                        value={money(data.vat_sum)}
                     />
                     <Cell
-                        label={t("table.shippedAmount")}
-                        value={money(data.shipped_sum)}
+                        label={t("table.shipmentWeight")}
+                        value={round3(data.weight_sum, "0")}
                     />
                     <Cell
-                        label={t("table.reserved")}
-                        value={money(data.reserved_sum)}
+                        label={t("table.delivery")}
+                        value={money(data.delivery_cost)}
+                    />
+                    <Cell
+                        label={t("table.grandTotal")}
+                        value={money(data.grand_total)}
                     />
                 </div>
             </Section>
@@ -162,69 +182,95 @@ function OrderDetail() {
                     />
                     <Cell
                         label={t("table.posted")}
-                        value={data.applicable ? t("common.yes") : t("common.no")}
+                        value={
+                            data.applicable ? t("common.yes") : t("common.no")
+                        }
                     />
                     <Cell
-                        label={t("table.comment")}
-                        value={data.description}
+                        label={t("table.shippedAmount")}
+                        value={money(data.shipped_sum)}
                     />
+                    <Cell
+                        label={t("table.reserved")}
+                        value={money(data.reserved_sum)}
+                    />
+                    <Cell label={t("table.comment")} value={data.description} />
                 </div>
             </Section>
 
             <Section title={t("table.products")}>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
+                        {/* Колонки продажного листа: наименование → кол-во →
+                            ед. изм. → кол-во б. ед. → отгружено → доступно →
+                            остаток → вес → цена за вес → цена → сумма. */}
                         <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
                             <tr>
-                                <Th>#</Th>
-                                <Th>{t("table.productName")}</Th>
+                                <Th>{t("table.nomenclature")}</Th>
+                                <Th align="right">{t("table.qty")}</Th>
                                 <Th>{t("table.unit")}</Th>
+                                <Th align="right">{t("table.quantityBase")}</Th>
+                                <Th align="right">{t("table.shipped")}</Th>
+                                <Th align="right">{t("table.available")}</Th>
+                                <Th align="right">{t("table.remaining")}</Th>
+                                <Th align="right">{t("table.weightTn")}</Th>
+                                <Th align="right">{t("table.pricePerTon")}</Th>
                                 <Th align="right">{t("table.price")}</Th>
-                                <Th align="right">{t("table.quantity")}</Th>
-                                <Th align="right">{t("table.discount")}</Th>
-                                <Th align="right">{t("table.vatPercent")}</Th>
-                                <Th align="right">{t("table.lineTotal")}</Th>
-                                <Th align="right">{t("table.shippedQty")}</Th>
-                                <Th align="right">{t("table.reserved")}</Th>
+                                <Th align="right">{t("table.sum")}</Th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {data.items.map((item, i) => (
-                                <tr key={item.id}>
-                                    <Td>{i + 1}</Td>
-                                    <Td>
-                                        <span className="font-medium">
-                                            {item.product?.name}
-                                        </span>
-                                        {item.product?.articul && (
-                                            <span className="text-muted-foreground">
-                                                {" "}
-                                                · {item.product.articul}
+                            {data.items.map((item) => {
+                                const stock = stockByProduct.get(
+                                    item.product?.id ?? -1,
+                                )
+                                return (
+                                    <tr key={item.id}>
+                                        <Td>
+                                            <span className="font-medium">
+                                                {item.product?.name}
                                             </span>
-                                        )}
-                                    </Td>
-                                    <Td>{item.product?.unit || "—"}</Td>
-                                    <Td align="right">{money(item.price)}</Td>
-                                    <Td align="right">
-                                        {round3(item.quantity)}
-                                    </Td>
-                                    <Td align="right">
-                                        {round3(item.discount, "0")}%
-                                    </Td>
-                                    <Td align="right">
-                                        {round3(item.vat, "0")}%
-                                    </Td>
-                                    <Td align="right">
-                                        {money(item.line_total)}
-                                    </Td>
-                                    <Td align="right">
-                                        {round3(item.shipped, "0")}
-                                    </Td>
-                                    <Td align="right">
-                                        {round3(item.active_reserve, "0")}
-                                    </Td>
-                                </tr>
-                            ))}
+                                            {item.product?.articul && (
+                                                <span className="text-muted-foreground">
+                                                    {" "}
+                                                    · {item.product.articul}
+                                                </span>
+                                            )}
+                                        </Td>
+                                        <Td align="right">
+                                            {round3(item.quantity)}
+                                        </Td>
+                                        <Td>{t(unitKey(item.unit))}</Td>
+                                        <Td align="right">
+                                            {round3(item.quantity_base)}
+                                        </Td>
+                                        <Td align="right">
+                                            {round3(item.shipped, "0")}
+                                        </Td>
+                                        {/* Склад готовой продукции по товару. */}
+                                        <Td align="right">
+                                            {round3(stock?.available)}
+                                        </Td>
+                                        <Td align="right">
+                                            {round3(stock?.remaining)}
+                                        </Td>
+                                        <Td align="right">
+                                            {round3(item.weight_tn, "0")}
+                                        </Td>
+                                        <Td align="right">
+                                            {money(item.price_per_ton)}
+                                        </Td>
+                                        <Td align="right">
+                                            {round3(
+                                                item.unit_price ?? item.price,
+                                            )}
+                                        </Td>
+                                        <Td align="right">
+                                            {money(item.line_total)}
+                                        </Td>
+                                    </tr>
+                                )
+                            })}
                         </tbody>
                     </table>
                 </div>
@@ -317,10 +363,7 @@ function Th({
     align?: "left" | "right"
 }) {
     return (
-        <th
-            className="px-3 py-2 font-semibold"
-            style={{ textAlign: align }}
-        >
+        <th className="px-3 py-2 font-semibold" style={{ textAlign: align }}>
             {children}
         </th>
     )

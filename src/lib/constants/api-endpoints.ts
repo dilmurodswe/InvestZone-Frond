@@ -83,6 +83,8 @@ export const API = {
             DELETE: "orders/order-files/delete/{id}",
         },
     },
+    // «Доступно» и «Остаток» по товарам: прокатано − отгружено − резерв.
+    PRODUCT_STOCK: "product-stock",
     DEMANDS: {
         INDEX: "demands",
         ID: { INDEX: "demands/{id}" },

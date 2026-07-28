@@ -190,7 +190,7 @@
         "reserved": "Rezerv",
         "remaining": "Qoldiq",
         "available": "Mavjud",
-        "stockFromBackend": "Ombor qoldig'i — backend tovar qoldig'ini bera boshlagach ko'rinadi",
+        "stockFromBackend": "Остаток — ishlab chiqarilgan minus otgruzka. Доступно — qoldiq minus rezerv. Metrda, «Кол-во б. ед.» kabi",
         "plannedShipmentDate": "Rejadagi jo'natish sanasi",
         "discount": "Chegirma %",
         "vat": "NDS %",
@@ -230,8 +230,8 @@
         "delivery": "Yetkazib berish",
         "grandTotal": "Jami",
         "weightMode": "Og'irlik",
-        "weightMissing": "Mahsulot kartasida og'irlik to'ldirilmagan",
-        "packMetersMissing": "Mahsulot kartasida «Pachkadagi metr» to'ldirilmagan"
+        "weightMissing": "Tovar kartochkasida vazn (кг/м) to'ldirilmagan. Usiz «Вес, тн», «Цена» va «Сумма» hisoblanmaydi — Настройки → Продукты da «Теор. вес, кг/м» ni to'ldiring",
+        "packMetersMissing": "Tovar kartochkasida «Метров в пачке» to'ldirilmagan. Usiz pachka metrga o'girilmaydi — Настройки → Продукты da to'ldiring"
     },
     "status": {
         "shipped": "Jo'natildi",

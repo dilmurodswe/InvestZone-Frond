@@ -69,7 +69,9 @@ function buildSeed(order: Order, client?: Client): AppendixSeed {
                     quantity: Number(
                         isTon ? item.quantity : item.quantity_base,
                     ),
-                    price: Number(item.price),
+                    // «Цена» продажного листа, а не сырое поле строки: только
+                    // она даёт Кол-во × Цена = Сумма для позиции в тоннах.
+                    price: Number(item.unit_price ?? item.price),
                     total: Number(
                         order.delivery_mode === "split" ?
                             item.line_total_with_delivery

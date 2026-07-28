@@ -25,10 +25,27 @@ export type SaleProduct = {
     /** кг/м — вес, тн и цена за тонну считаются из него. */
     theoretical_weight?: string | number | null
     actual_weight?: string | number | null
+    /**
+     * Вес, по которому строка считается на самом деле: из карточки, а пока
+     * она пуста — рассчитанный бэкендом по геометрии трубы. Форма считает
+     * по этим полям, поэтому её числа совпадают с сохранёнными.
+     */
+    theoretical_weight_used?: string | number | null
+    actual_weight_used?: string | number | null
     /** Метров в пачке — «Кол-во б. ед.» для пачек. */
     meters_per_pack?: string | number | null
     /** O'lchov birligi («тн», «шт»…). Backend qo'shguncha bo'sh kelishi mumkin. */
     unit?: string | null
+}
+
+/**
+ * «Доступно» и «Остаток» товара — склад готовой продукции: прокатано минус
+ * отгружено, а доступное ещё и минус резерв. В метрах, как «Кол-во б. ед.».
+ */
+export type ProductStock = {
+    product_id: number
+    remaining: string
+    available: string
 }
 
 /** Buyurtma qaysi ombordan bajarilishi. */
@@ -142,7 +159,11 @@ export type OrderItemForm = {
     /** Snapshot of the picked product — the row maths runs on it locally. */
     product?: Pick<
         SaleProduct,
-        "theoretical_weight" | "actual_weight" | "meters_per_pack"
+        | "theoretical_weight"
+        | "actual_weight"
+        | "theoretical_weight_used"
+        | "actual_weight_used"
+        | "meters_per_pack"
     > | null
 }
 

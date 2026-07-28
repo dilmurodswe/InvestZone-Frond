@@ -190,7 +190,7 @@
         "reserved": "Reserved",
         "remaining": "Remaining",
         "available": "Available",
-        "stockFromBackend": "Warehouse stock — shows up once the backend returns per-product stock",
+        "stockFromBackend": "Remaining — rolled minus shipped. Available — remaining minus reserve. In metres, like the base quantity",
         "plannedShipmentDate": "Planned shipment date",
         "discount": "Discount %",
         "vat": "VAT %",
@@ -230,8 +230,8 @@
         "delivery": "Delivery",
         "grandTotal": "Total",
         "weightMode": "Weight",
-        "weightMissing": "The product card has no weight set",
-        "packMetersMissing": "The product card has no «meters per pack» set"
+        "weightMissing": "The product card has no weight (kg/m). Without it the weight, price and sum stay empty — fill in “Theoretical weight, kg/m” in Settings → Products",
+        "packMetersMissing": "The product card has no “Metres per pack”. Without it packs cannot be converted to metres — fill it in under Settings → Products"
     },
     "status": {
         "shipped": "Shipped",

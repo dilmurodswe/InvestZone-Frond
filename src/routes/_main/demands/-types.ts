@@ -1,8 +1,11 @@
 import type {
+    DeliveryMode,
     SaleClient,
     SaleCurrency,
+    SaleItemUnit,
     SaleOwner,
     SaleProduct,
+    SaleWeightMode,
 } from "../orders/-types"
 
 export type DemandItem = {
@@ -12,8 +15,17 @@ export type DemandItem = {
     order_item: number | null
     price: string
     quantity: string
+    unit: SaleItemUnit
+    weight_mode: SaleWeightMode
+    price_per_ton: string
     discount: string
     vat: number
+    /** Кол-во, переведённое в метры */
+    quantity_base: string
+    weight_tn: string
+    unit_price: string
+    delivery_share: string
+    line_total_with_delivery: string
     line_total: string
     vat_amount: string
 }
@@ -39,10 +51,14 @@ export type Demand = {
     transport_number: string
     waybill_number: string
     waybill_date: string | null
+    delivery_cost: string
+    delivery_mode: DeliveryMode
     items: DemandItem[]
     total_sum: string
     vat_sum: string
     total_with_vat: string
+    weight_sum: string
+    grand_total: string
     created_at: string
 }
 

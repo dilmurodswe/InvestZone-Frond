@@ -10,6 +10,7 @@ import { PrinterIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useDemandStore } from "../-hooks/use-demand-store"
 import type { Demand } from "../-types"
+import { unitKey } from "../../orders/-components/item-math"
 import { DEMAND_PRINT_MODAL } from "./demand-print-modal"
 
 const money = (val: string | number | null | undefined) =>
@@ -63,6 +64,32 @@ function DemandDetail() {
                 </Button>
             </div>
 
+            {/* Итоговый блок продажного листа — тот же, что в заказе. */}
+            <Section title={t("table.sum")}>
+                <div className="grid grid-cols-5 divide-x">
+                    <Cell
+                        label={t("table.subtotal")}
+                        value={`${money(data.total_sum)} ${data.currency?.currency ?? ""}`}
+                    />
+                    <Cell
+                        label={t("table.vatIncludedSum")}
+                        value={money(data.vat_sum)}
+                    />
+                    <Cell
+                        label={t("table.shipmentWeight")}
+                        value={round3(data.weight_sum, "0")}
+                    />
+                    <Cell
+                        label={t("table.delivery")}
+                        value={money(data.delivery_cost)}
+                    />
+                    <Cell
+                        label={t("table.grandTotal")}
+                        value={money(data.grand_total)}
+                    />
+                </div>
+            </Section>
+
             <Section title={t("entity.demand")}>
                 <div className="grid grid-cols-3 divide-x divide-y">
                     <Cell
@@ -83,12 +110,10 @@ function DemandDetail() {
                         }
                     />
                     <Cell
-                        label={t("table.sum")}
-                        value={money(data.total_with_vat)}
-                    />
-                    <Cell
                         label={t("table.posted")}
-                        value={data.applicable ? t("common.yes") : t("common.no")}
+                        value={
+                            data.applicable ? t("common.yes") : t("common.no")
+                        }
                     />
                     <Cell
                         label={t("table.deliveryAddress")}
@@ -103,10 +128,6 @@ function DemandDetail() {
                             :   null
                         }
                     />
-                    <Cell
-                        label={t("table.vatSum")}
-                        value={money(data.vat_sum)}
-                    />
                 </div>
             </Section>
 
@@ -117,7 +138,10 @@ function DemandDetail() {
                         label={t("table.transportNumber")}
                         value={data.transport_number}
                     />
-                    <Cell label={t("table.cargoName")} value={data.cargo_name} />
+                    <Cell
+                        label={t("table.cargoName")}
+                        value={data.cargo_name}
+                    />
                     <Cell
                         label={t("table.placesCount")}
                         value={data.places_count}
@@ -149,22 +173,23 @@ function DemandDetail() {
             <Section title={t("table.products")}>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
+                        {/* Те же колонки продажного листа, что и в заказе —
+                            отгрузка наследует всю расчётную часть строки. */}
                         <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
                             <tr>
-                                <Th>#</Th>
-                                <Th>{t("table.productName")}</Th>
+                                <Th>{t("table.nomenclature")}</Th>
+                                <Th align="right">{t("table.qty")}</Th>
                                 <Th>{t("table.unit")}</Th>
+                                <Th align="right">{t("table.quantityBase")}</Th>
+                                <Th align="right">{t("table.weightTn")}</Th>
+                                <Th align="right">{t("table.pricePerTon")}</Th>
                                 <Th align="right">{t("table.price")}</Th>
-                                <Th align="right">{t("table.quantity")}</Th>
-                                <Th align="right">{t("table.discount")}</Th>
-                                <Th align="right">{t("table.vatPercent")}</Th>
-                                <Th align="right">{t("table.lineTotal")}</Th>
+                                <Th align="right">{t("table.sum")}</Th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {data.items.map((item, i) => (
+                            {data.items.map((item) => (
                                 <tr key={item.id}>
-                                    <Td>{i + 1}</Td>
                                     <Td>
                                         <span className="font-medium">
                                             {item.product?.name}
@@ -176,16 +201,21 @@ function DemandDetail() {
                                             </span>
                                         )}
                                     </Td>
-                                    <Td>{item.product?.unit || "—"}</Td>
-                                    <Td align="right">{money(item.price)}</Td>
                                     <Td align="right">
                                         {round3(item.quantity)}
                                     </Td>
+                                    <Td>{t(unitKey(item.unit))}</Td>
                                     <Td align="right">
-                                        {round3(item.discount, "0")}%
+                                        {round3(item.quantity_base)}
                                     </Td>
                                     <Td align="right">
-                                        {round3(item.vat, "0")}%
+                                        {round3(item.weight_tn, "0")}
+                                    </Td>
+                                    <Td align="right">
+                                        {money(item.price_per_ton)}
+                                    </Td>
+                                    <Td align="right">
+                                        {round3(item.unit_price ?? item.price)}
                                     </Td>
                                     <Td align="right">
                                         {money(item.line_total)}
