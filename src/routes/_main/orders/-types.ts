@@ -34,6 +34,12 @@ export type SaleProduct = {
     actual_weight_used?: string | number | null
     /** Метров в пачке — «Кол-во б. ед.» для пачек. */
     meters_per_pack?: string | number | null
+    /**
+     * Произвольные поля карточки. У труб завода именно здесь лежат числа, по
+     * которым считается строка: «Вес 1 погонного метра», «Шт в пачке»,
+     * «Длина трубы» — отдельных колонок под них у товара нет.
+     */
+    extra_fields?: Record<string, string | number | null> | null
     /** O'lchov birligi («тн», «шт»…). Backend qo'shguncha bo'sh kelishi mumkin. */
     unit?: string | null
 }
@@ -164,6 +170,7 @@ export type OrderItemForm = {
         | "theoretical_weight_used"
         | "actual_weight_used"
         | "meters_per_pack"
+        | "extra_fields"
     > | null
 }
 

@@ -107,6 +107,10 @@ export default function SelectField<
                 isDisabled={disabled}
                 inputId={name}
                 optionValueKey={optionValueKey}
+                // Оба принимались в пропсах, но до селекта не доходили —
+                // без них вызывающий код не мог поправить ни размер, ни вид.
+                classNames={classNames}
+                styles={styles}
                 {...field}
                 {...props}
                 isMulti={false}

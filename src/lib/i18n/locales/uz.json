@@ -219,6 +219,9 @@
         "actualWeight": "Faktik og'irlik, kg/m",
         "metersPerPack": "Pachkadagi metr",
         "nomenclature": "Nomlanishi",
+        "columns": "Ustunlar",
+        "extraFields": "Qo'shimcha maydonlar",
+        "columnAlwaysVisible": "Bu ustun o'chirilmaydi — qator shu orqali tanib olinadi",
         "qty": "Miqdor",
         "shipped": "Jo'natilgan",
         "quantityBase": "Miqdor (a.b.)",
@@ -230,8 +233,8 @@
         "delivery": "Yetkazib berish",
         "grandTotal": "Jami",
         "weightMode": "Og'irlik",
-        "weightMissing": "Tovar kartochkasida vazn (кг/м) to'ldirilmagan. Usiz «Вес, тн», «Цена» va «Сумма» hisoblanmaydi — Настройки → Продукты da «Теор. вес, кг/м» ni to'ldiring",
-        "packMetersMissing": "Tovar kartochkasida «Метров в пачке» to'ldirilmagan. Usiz pachka metrga o'girilmaydi — Настройки → Продукты da to'ldiring"
+        "weightMissing": "Tovar kartochkasida vazn (кг/м) to'ldirilmagan. Usiz «Вес, тн», «Цена» va «Сумма» hisoblanmaydi — Настройки → Продукты da «Теор. вес, кг/м» yoki qo'shimcha maydon «Вес 1 погонного метра» ni to'ldiring",
+        "packMetersMissing": "Pachkani metrga o'girish uchun ma'lumot yetmayapti: tovar kartochkasidagi «Шт в пачке» (Sozlamalar → Mahsulotlar) va prokat rejasidagi truba uzunligi (Ishlab chiqarish → Prokatka) kerak. Yoki kartochkaga tayyor «Метров в пачке» ni yozing"
     },
     "status": {
         "shipped": "Jo'natildi",

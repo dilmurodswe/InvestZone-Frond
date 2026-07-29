@@ -219,6 +219,9 @@
         "actualWeight": "Actual weight, kg/m",
         "metersPerPack": "Meters per pack",
         "nomenclature": "Name",
+        "columns": "Columns",
+        "extraFields": "Extra fields",
+        "columnAlwaysVisible": "This column stays on — it is how a row is recognised",
         "qty": "Qty",
         "shipped": "Shipped",
         "quantityBase": "Qty in base units",
@@ -230,8 +233,8 @@
         "delivery": "Delivery",
         "grandTotal": "Total",
         "weightMode": "Weight",
-        "weightMissing": "The product card has no weight (kg/m). Without it the weight, price and sum stay empty — fill in “Theoretical weight, kg/m” in Settings → Products",
-        "packMetersMissing": "The product card has no “Metres per pack”. Without it packs cannot be converted to metres — fill it in under Settings → Products"
+        "weightMissing": "The product card has no weight (kg/m). Without it the weight, price and sum stay empty — fill in “Theoretical weight, kg/m” or the extra field “Weight of 1 running metre” in Settings → Products",
+        "packMetersMissing": "Nothing to convert packs into metres with: it needs “Pieces per pack” from the product card (Settings → Products) and the pipe length from a rolling plan (Production → Rolling). Or put a ready “Metres per pack” on the card"
     },
     "status": {
         "shipped": "Shipped",

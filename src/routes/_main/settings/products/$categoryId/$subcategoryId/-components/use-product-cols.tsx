@@ -121,9 +121,29 @@ function TruncatedCell({
     )
 }
 
+/**
+ * Собственные колонки товара — в том порядке, в каком стоят в таблице.
+ * Список нужен и таблице, и меню «Columns», поэтому живёт здесь.
+ * Название не выключается: по нему строку и опознают.
+ */
+export const PRODUCT_BASE_COLUMNS = [
+    { id: "name", labelKey: "table.productName", locked: true },
+    { id: "code", labelKey: "table.code" },
+    { id: "articul", labelKey: "table.sku" },
+    { id: "price", labelKey: "table.price" },
+    { id: "theoretically_price", labelKey: "table.theoreticalPrice" },
+    { id: "factually_price", labelKey: "table.factualPrice" },
+    { id: "outer_dimension", labelKey: "table.outerSizeMm" },
+    { id: "thickness", labelKey: "table.thickness" },
+    { id: "description", labelKey: "table.description" },
+] as const
+
+/** Id колонки доп. поля — им же она помечена в наборе скрытых. */
+export const extraColumnId = (key: string) => `extra_${key}`
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 export const useProductCols = (
-    visibleExtraKeys: string[],
+    hiddenColumns: Set<string>,
 ): ColumnDef<Product>[] => {
     const { t } = useTranslation()
     const { productList } = useProductsQuery()
@@ -155,18 +175,16 @@ export const useProductCols = (
         detailModal.openModal()
     }
 
-    const extraCols: ColumnDef<Product>[] = extraKeys
-        .filter((key) => visibleExtraKeys.includes(key))
-        .map((key) => ({
-            id: `extra_${key}`,
-            header: key,
-            cell: ({ row: { original } }: CellContext<Product, unknown>) => (
-                <TruncatedCell
-                    value={original.extra_fields?.[key] ?? null}
-                    onClick={() => handleRowClick(original)}
-                />
-            ),
-        }))
+    const extraCols: ColumnDef<Product>[] = extraKeys.map((key) => ({
+        id: extraColumnId(key),
+        header: key,
+        cell: ({ row: { original } }: CellContext<Product, unknown>) => (
+            <TruncatedCell
+                value={original.extra_fields?.[key] ?? null}
+                onClick={() => handleRowClick(original)}
+            />
+        ),
+    }))
 
     const outerDimensionCol: ColumnDef<Product> = {
         id: "outer_dimension",
@@ -192,7 +210,7 @@ export const useProductCols = (
         ),
     }
 
-    return [
+    const columns: ColumnDef<Product>[] = [
         {
             accessorKey: "name",
             header: t("table.productName"),
@@ -291,4 +309,13 @@ export const useProductCols = (
             ),
         },
     ]
+
+    // Меню «Columns» гасит колонки по id — у колонок с `accessorKey` он же и
+    // есть id. Название и кнопки строки остаются всегда.
+    return columns.filter((column) => {
+        const id =
+            column.id ??
+            ("accessorKey" in column ? String(column.accessorKey) : "")
+        return id === "actions" || !hiddenColumns.has(id)
+    })
 }

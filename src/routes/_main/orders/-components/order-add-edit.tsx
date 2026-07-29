@@ -29,9 +29,12 @@ import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { contentAreaElement } from "@/lib/utils/content-area"
 import { formatNumber } from "@/lib/utils/format-number"
+import { cn } from "@/lib/utils/shadcn"
 import ClientAddEditModal from "@/routes/_main/clients/-components/client-add-edit"
 import { useClientStore } from "@/routes/_main/clients/-hooks/use-client-store"
 import type { ReadyProduct } from "@/routes/_main/ready-products/-types"
+import type { RollingPlan } from "@/routes/_main/rolling-plans/-types"
+import type { PaginatedResponse } from "@/types/common"
 import { format } from "date-fns"
 import {
     CircleHelpIcon,
@@ -40,7 +43,7 @@ import {
     Trash2,
     TruckIcon,
 } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import {
     useFieldArray,
     useForm,
@@ -48,6 +51,7 @@ import {
     type UseFormReturn,
 } from "react-hook-form"
 import { useTranslation } from "react-i18next"
+import type { SourceInfo } from "react-number-format"
 import { toast } from "sonner"
 import { useOrderStore } from "../-hooks/use-order-store"
 import type {
@@ -55,13 +59,19 @@ import type {
     OrderItemForm,
     ProductStock,
     SaleClient,
+    SaleItemUnit,
     SaleProduct,
 } from "../-types"
 import CurrencyRateField from "./currency-rate-field"
 import {
     lineTotal,
+    metersPerPack,
     orderTotals,
+    perTonFromPrice,
+    piecesPerPack,
+    priceFromPerTon,
     quantityBase,
+    quantityInUnit,
     unitPrice,
     weightMode,
     weightPerMeter,
@@ -103,6 +113,31 @@ const CALC = "bg-muted/40"
 const GROUP = "border-l"
 
 /**
+ * Компактный вид выпадающих списков документа. По умолчанию react-select
+ * держит control на 40 px, и рядом с полями заказа (32 px) он выпирал; здесь
+ * те же классы, но вровень с соседями и тем же кеглем.
+ */
+const DENSE_SELECT = {
+    control: ({
+        isFocused,
+        isDisabled,
+    }: {
+        isFocused: boolean
+        isDisabled: boolean
+    }) =>
+        cn(
+            "min-h-8! flex rounded-md border border-input bg-background px-2 text-xs shadow-sm transition-colors",
+            isFocused && "outline-none ring-2 ring-ring",
+            isDisabled && "opacity-50",
+        ),
+    option: ({ isSelected }: { isSelected: boolean }) =>
+        cn(
+            "border-b last:border-none first:rounded-t-md last:rounded-b-md px-2 py-1.5 text-xs! outline-none hover:bg-secondary",
+            isSelected && "bg-primary/70 hover:bg-primary/70 text-background",
+        ),
+}
+
+/**
  * The line maths runs on three numbers of the product card — теор. вес, факт.
  * вес and метров в пачке. A row restored from a saved order (or picked from a
  * list that trims them) may carry only some of them, and then «кол-во б. ед.»
@@ -114,17 +149,21 @@ function ProductFacts({
     index,
     productId,
     snapshot,
+    onFilled,
 }: {
     form: UseFormReturn<OrderForm>
     index: number
     productId: number | null
     snapshot: OrderItemForm["product"]
+    /** Вес метра стал известен — цену за метр надо пересчитать. */
+    onFilled: () => void
 }) {
     const incomplete =
         !!productId &&
         (snapshot?.theoretical_weight_used == null ||
             snapshot?.actual_weight_used == null ||
-            snapshot?.meters_per_pack == null)
+            snapshot?.meters_per_pack == null ||
+            snapshot?.extra_fields == null)
 
     const { data } = useGet<SaleProduct>(
         API.EXTRA.PRODUCTS.ID.INDEX.replace("{id}", String(productId ?? "")),
@@ -139,13 +178,46 @@ function ProductFacts({
             theoretical_weight_used: data.theoretical_weight_used ?? null,
             actual_weight_used: data.actual_weight_used ?? null,
             meters_per_pack: data.meters_per_pack ?? null,
+            extra_fields: data.extra_fields ?? {},
         })
+        onFilled()
         // `incomplete` is what triggered the fetch — reacting to it as well
         // would rewrite the snapshot on every keystroke.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data, index, form])
 
     return null
+}
+
+/**
+ * Длина трубы по товарам — из планов прокатки.
+ *
+ * Карточка товара хранит «Шт в пачке», но не длину: одну и ту же трубу катают
+ * и по 6, и по 12 метров, и длина живёт в плане прокатки. Пачку в метры
+ * переводит «Шт в пачке» × длина последнего плана по этому товару. Планы
+ * тянутся только когда в документе действительно появилась строка в пачках.
+ */
+function usePipeLengths(enabled: boolean) {
+    const { data } = useGet<PaginatedResponse<RollingPlan>>(
+        API.ROLLING_PLANS.INDEX,
+        { params: { page_size: 200 }, options: { enabled } },
+    )
+
+    return useMemo(() => {
+        const byProduct = new Map<number, number>()
+        // Список идёт от свежих планов к старым — первая найденная длина и
+        // есть последняя, по которой катали.
+        for (const plan of data?.results ?? []) {
+            for (const line of plan.items ?? []) {
+                const productId = line.product?.id
+                const lengthMm = Number(line.pipe_length_mm ?? 0)
+                if (!productId || lengthMm <= 0) continue
+                if (!byProduct.has(productId))
+                    byProduct.set(productId, lengthMm)
+            }
+        }
+        return byProduct
+    }, [data])
 }
 
 /** Delivery address as written on the client card. */
@@ -186,12 +258,12 @@ function Total({
 }) {
     return (
         <div
-            className={`flex justify-between gap-4 ${strong ? "border-t pt-2 text-base font-semibold" : ""}`}
+            className={`flex justify-between gap-4 ${strong ? "border-t pt-2 text-sm font-semibold" : ""}`}
         >
             <span className={strong ? "" : "text-muted-foreground"}>
                 {label}:
             </span>
-            <span className="tabular-nums">
+            <span className="tabular-nums whitespace-nowrap">
                 {formatNumber(value, { decimalScale: scale, isShowZero: true })}
             </span>
         </div>
@@ -345,6 +417,87 @@ function OrderAddEdit() {
     const watchedItems = values.items
     const totals = orderTotals(values)
 
+    /**
+     * «Цена за Вес, Т» и «Цена» — два взгляда на одни деньги: цена за тонну и
+     * цена за метр, связанные весом погонного метра. Продавец называет ту,
+     * которая у него на руках (в МойСкладе это цена за метр — 7,07 за метр
+     * даёт 7 070 за тысячу), вторая пересчитывается сама. Пишем всегда обе,
+     * поэтому «Сумма» не зависит от того, в какое поле попали цифры.
+     *
+     * Пересчёт запускает только набор с клавиатуры. `NumericFormat` зовёт
+     * `onValueChange` и когда значение пришло сверху пропом — без этой
+     * проверки поля будили друг друга по кругу и на каждом витке округляли
+     * число заново, затирая набираемые цифры.
+     */
+    const typedByUser = (info?: SourceInfo) => info?.source === "event"
+
+    const setPricePerTon = (index: number, perTon: number) => {
+        const item = form.getValues(`items.${index}`)
+        form.setValue(`items.${index}.price_per_ton`, perTon, {
+            shouldDirty: true,
+        })
+        form.setValue(`items.${index}.price`, priceFromPerTon(item, perTon), {
+            shouldDirty: true,
+        })
+    }
+    const setPrice = (index: number, price: number) => {
+        const item = form.getValues(`items.${index}`)
+        form.setValue(`items.${index}.price`, price, { shouldDirty: true })
+        form.setValue(
+            `items.${index}.price_per_ton`,
+            perTonFromPrice(item, price),
+            { shouldDirty: true },
+        )
+    }
+    /** Вес метра поменялся (другой товар) — цена за метр тоже. */
+    const repriceFromPerTon = (index: number) => {
+        const item = form.getValues(`items.${index}`)
+        const perTon = Number(item.price_per_ton ?? 0)
+        if (perTon > 0) {
+            form.setValue(`items.${index}.price`, priceFromPerTon(item, perTon))
+        }
+    }
+
+    /**
+     * Смена «Ед. изм.» — как в МойСкладе: строка остаётся тем же товаром в том
+     * же объёме, меняется только то, в чём его считают. 5 000 м превращаются в
+     * 10 пачек по 500 м, а «Кол-во б. ед.», вес и сумма не шелохнутся.
+     *
+     * `prev` — строка до переключения: селект зовёт `onValueChange` раньше, чем
+     * кладёт новую единицу в форму, поэтому старое количество надо взять из
+     * снимка, а не перечитывать форму.
+     */
+    const changeUnit = (
+        index: number,
+        prev: OrderItemForm,
+        nextUnit: SaleItemUnit,
+    ) => {
+        const next: OrderItemForm = {
+            ...prev,
+            unit: nextUnit,
+            weight_mode: nextUnit === "ton" ? "actual" : "theoretical",
+        }
+        form.setValue(`items.${index}.weight_mode`, next.weight_mode)
+
+        const converted = quantityInUnit(next, quantityBase(prev))
+        // Ноль — перевести нечем (пачка без длины трубы, тонна без веса):
+        // тогда количество остаётся как есть, а строка сама скажет знаком «!»,
+        // какого числа карточке не хватило.
+        if (converted > 0) {
+            form.setValue(`items.${index}.quantity`, converted, {
+                shouldDirty: true,
+            })
+            next.quantity = converted
+        }
+
+        // Цена за метр и цена за тонну — разные числа: пересчитываем от той,
+        // что назвал продавец.
+        const perTon = Number(next.price_per_ton ?? 0)
+        if (perTon > 0) {
+            form.setValue(`items.${index}.price`, priceFromPerTon(next, perTon))
+        }
+    }
+
     // «Доступно» и «Остаток» приходят одной ручкой на все выбранные товары —
     // строка их только показывает. Список id отсортирован, чтобы порядок
     // позиций не плодил новые ключи кэша.
@@ -362,6 +515,31 @@ function OrderAddEdit() {
     const stockByProduct = new Map(
         (stockRows ?? []).map((row) => [row.product_id, row]),
     )
+
+    // Пачки: карточка даёт «Шт в пачке», план прокатки — длину трубы. Как
+    // только оба числа известны, «Метров в пачке» дописывается в снимок
+    // товара, и строка считается дальше сама — как будто поле было в карточке.
+    const packLinesNeedLength = (watchedItems ?? []).some(
+        (item) =>
+            item.unit === "pack" &&
+            item.product_id != null &&
+            !Number(item.product?.meters_per_pack),
+    )
+    const pipeLengthByProduct = usePipeLengths(packLinesNeedLength)
+    useEffect(() => {
+        if (!pipeLengthByProduct.size) return
+        form.getValues("items")?.forEach((item, index) => {
+            if (item.unit !== "pack" || item.product_id == null) return
+            if (Number(item.product?.meters_per_pack ?? 0) > 0) return
+            const pieces = piecesPerPack(item)
+            const lengthMm = pipeLengthByProduct.get(item.product_id) ?? 0
+            if (pieces <= 0 || lengthMm <= 0) return
+            form.setValue(`items.${index}.product`, {
+                ...item.product,
+                meters_per_pack: (pieces * lengthMm) / 1000,
+            })
+        })
+    }, [pipeLengthByProduct, watchedItems, form])
 
     // «Резерв» of the document — the same switch as in МойСклад: the goods of
     // this order are promised to the client, so they stop being available for
@@ -451,7 +629,7 @@ function OrderAddEdit() {
             className="flex flex-col gap-4 min-h-full pr-1"
         >
             <div className="flex flex-wrap items-center justify-between gap-3 pr-10 shrink-0">
-                <CardTitle>
+                <CardTitle className="text-base">
                     {order ?
                         `${t("common.editEntity", { entity: t("entity.order") })} — ${order.number}`
                     :   t("common.addEntity", { entity: t("entity.order") })}
@@ -459,7 +637,7 @@ function OrderAddEdit() {
 
                 {/* Same actions as on the detail screen — a new order has
                     nothing to print or ship yet, so they wait for the save. */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 [&_button]:h-8 [&_button]:text-xs">
                     <Button
                         type="button"
                         size="sm"
@@ -488,11 +666,15 @@ function OrderAddEdit() {
             <div className="flex flex-col gap-3 border-b pb-4">
                 {/* Every cell is a label over a control of the same height, and
                     the labels reserve two lines — so however long a caption is,
-                    the whole block stays on two straight rows. */}
-                <div className="grid grid-cols-2 items-end gap-x-4 gap-y-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 [&_button]:h-9 [&_input]:h-9 [&_label]:flex [&_label]:min-h-9 [&_label]:items-end [&_label]:text-sm [&_label]:leading-tight">
+                    the whole block stays on two straight rows. Шрифт мельче
+                    обычного: документ длинный, и так он читается одним экраном,
+                    а подписи вроде «Планируемая дата отгрузки» встают в строку
+                    вместо переноса. */}
+                <div className="grid grid-cols-2 items-end gap-x-4 gap-y-3 text-xs sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 [&_button]:h-8 [&_button]:text-xs [&_input]:h-8 [&_input]:text-xs [&_label]:flex [&_label]:min-h-8 [&_label]:items-end [&_label]:text-xs [&_label]:leading-tight">
                     <div className="flex items-end gap-1.5">
                         <SelectField
                             methods={form}
+                            classNames={DENSE_SELECT}
                             name="client_id"
                             options={clientOptions}
                             label={t("table.client")}
@@ -502,7 +684,7 @@ function OrderAddEdit() {
                             type="button"
                             variant="outline"
                             size="icon"
-                            className="shrink-0"
+                            className="size-8 shrink-0"
                             title={t("common.addEntity", {
                                 entity: t("entity.client"),
                             })}
@@ -513,12 +695,14 @@ function OrderAddEdit() {
                     </div>
                     <SelectField
                         methods={form}
+                        classNames={DENSE_SELECT}
                         name="payment_type_id"
                         options={paymentTypeOptions}
                         label={t("table.paymentType")}
                     />
                     <SelectField
                         methods={form}
+                        classNames={DENSE_SELECT}
                         name="currency_id"
                         options={currencyOptions}
                         label={t("table.currency")}
@@ -576,6 +760,7 @@ function OrderAddEdit() {
                     {order && (
                         <SelectField
                             methods={form}
+                            classNames={DENSE_SELECT}
                             name="status"
                             options={statusOptions}
                             label={t("table.status")}
@@ -590,12 +775,13 @@ function OrderAddEdit() {
                         label={t("table.comment")}
                         rows={2}
                         optional
-                        className="h-16 min-h-0 text-sm"
+                        className="h-14 min-h-0 text-xs"
+                        wrapperClassName="[&_label]:text-xs"
                     />
 
                     {/* The document flags read as one strip, level with the
                         comment box next to them. */}
-                    <div className="flex h-full flex-wrap items-center gap-x-8 gap-y-3 rounded-lg border bg-muted/30 px-4 py-3 [&_label]:whitespace-nowrap">
+                    <div className="flex h-full flex-wrap items-center gap-x-6 gap-y-3 rounded-lg border bg-muted/30 px-4 py-2.5 text-xs [&_label]:text-xs [&_label]:whitespace-nowrap">
                         <SwitchField
                             methods={form}
                             name="vat_enabled"
@@ -648,25 +834,31 @@ function OrderAddEdit() {
             {/* Positions — the sales spreadsheet: typed columns first, the
                 calculated block (grey) after them */}
             <div className="flex flex-col gap-3">
-                <span className="text-sm font-semibold">
+                <span className="text-xs font-semibold">
                     {t("table.products")}
                 </span>
 
+                {/* Одиннадцать колонок на строку: при обычном шрифте «82
+                    935.244 м» ломается на три строки, а «1 000» — на две.
+                    Мелкий шрифт и запас по ширине держат каждое число в одну
+                    строку, а строку — в одну высоту. */}
                 <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full min-w-[1180px] border-collapse text-sm">
+                    <table className="w-full min-w-[1360px] border-collapse text-xs">
                         <thead>
                             {/* Column order of the sales sheet: наименование →
                                 кол-во → ед. изм. → кол-во б. ед. → отгружено →
                                 доступно → остаток → вес, тн → цена за вес, Т →
                                 цена → сумма. */}
-                            <tr className="border-b bg-muted/20 text-xs text-muted-foreground [&_th]:px-2 [&_th]:py-2 [&_th]:font-medium [&_th]:align-bottom">
-                                <th className="w-[22%] pl-3! text-left">
+                            <tr className="border-b bg-muted/20 text-[11px] leading-tight text-muted-foreground [&_th]:px-2 [&_th]:py-1.5 [&_th]:font-medium [&_th]:align-bottom">
+                                {/* Названия труб длинные — имени отдаём всё,
+                                    что удалось отобрать у денежных колонок. */}
+                                <th className="w-[24%] pl-3! text-left">
                                     {t("table.nomenclature")}
                                 </th>
-                                <th className="w-[8%] text-left">
+                                <th className="w-[7%] text-left">
                                     {t("table.qty")}
                                 </th>
-                                <th className="w-[9%] text-left">
+                                <th className="w-[8%] text-left">
                                     {t("table.unit")}
                                 </th>
                                 <th
@@ -692,21 +884,19 @@ function OrderAddEdit() {
                                 <th className={`w-[7%] text-right ${CALC}`}>
                                     {t("table.weightTn")}
                                 </th>
-                                <th className={`w-[10%] text-left ${GROUP}`}>
+                                <th className={`w-[8%] text-left ${GROUP}`}>
                                     {t("table.pricePerTon")}
                                 </th>
-                                <th
-                                    className={`w-[7%] text-right ${CALC} ${GROUP}`}
-                                >
+                                <th className={`w-[8%] text-left ${GROUP}`}>
                                     {t("table.price")}
                                 </th>
                                 <th className={`w-[8%] text-right ${CALC}`}>
                                     {t("table.sum")}
                                 </th>
-                                <th className="w-10" />
+                                <th className="w-8" />
                             </tr>
                         </thead>
-                        <tbody className="[&_input]:h-9 [&_button]:h-9 [&_td]:px-2 [&_td]:py-2 [&_td]:align-middle">
+                        <tbody className="[&_input]:h-8 [&_input]:text-xs [&_button]:h-8 [&_button]:text-xs [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-middle">
                             {fields.map((field, index) => {
                                 const item = watchedItems?.[index] ?? EMPTY_ITEM
                                 const base = quantityBase(item)
@@ -721,20 +911,32 @@ function OrderAddEdit() {
                                 const packMissing =
                                     picked &&
                                     item.unit === "pack" &&
-                                    !Number(item.product?.meters_per_pack)
+                                    metersPerPack(item) <= 0
                                 const weightMissing =
                                     picked && weightPerMeter(item) <= 0
-                                // Тонны знают свой вес и цену без карточки:
-                                // «Вес, тн» — это само кол-во, а «Цена» —
-                                // цена за тонну. В метры они всё же не
+                                // Количество введено, а в метры не перевелось:
+                                // пачке не хватило «метров в пачке», тонне —
+                                // веса. Ноль в «Кол-во б. ед.» — не результат.
+                                const baseMissing =
+                                    picked &&
+                                    Number(item.quantity ?? 0) > 0 &&
+                                    base <= 0
+                                // Тонны знают свой вес без карточки: «Вес, тн»
+                                // — это само кол-во. В метры они всё же не
                                 // переводятся.
-                                const moneyBlocked =
-                                    weightMissing && item.unit !== "ton"
+                                const weightBlocked =
+                                    item.unit !== "ton" &&
+                                    (weightMissing || baseMissing)
+                                // Сумма — цена × кол-во б. ед.; цену продавец
+                                // называет сам, так что не хватить может
+                                // только количества. Ноль на его месте читался
+                                // бы как посчитанный.
+                                const totalBlocked =
+                                    baseMissing && item.unit !== "ton"
                                 const baseWarning =
                                     packMissing ? t("table.packMetersMissing")
-                                    : weightMissing && item.unit !== "meter" ?
-                                        t("table.weightMissing")
-                                    :   null
+                                    : baseMissing ? t("table.weightMissing")
+                                    : null
                                 // «Отгружено» is kept by the backend on the
                                 // saved line — a row added here has nothing
                                 // shipped yet.
@@ -759,6 +961,9 @@ function OrderAddEdit() {
                                                     item.product_id ?? null
                                                 }
                                                 snapshot={item.product ?? null}
+                                                onFilled={() =>
+                                                    repriceFromPerTon(index)
+                                                }
                                             />
                                             <PaginatedSelectField<
                                                 OrderForm,
@@ -774,7 +979,7 @@ function OrderAddEdit() {
                                                             `${p.name} — ${p.articul}`
                                                         :   p.name,
                                                 })}
-                                                onPick={(picked) =>
+                                                onPick={(picked) => {
                                                     form.setValue(
                                                         `items.${index}.product`,
                                                         picked ?
@@ -789,10 +994,16 @@ function OrderAddEdit() {
                                                                     picked.actual_weight_used,
                                                                 meters_per_pack:
                                                                     picked.meters_per_pack,
+                                                                extra_fields:
+                                                                    picked.extra_fields,
                                                             }
                                                         :   null,
                                                     )
-                                                }
+                                                    // У нового товара свой
+                                                    // вес метра — цена за
+                                                    // метр пересчитывается.
+                                                    repriceFromPerTon(index)
+                                                }}
                                                 selectedOption={
                                                     (
                                                         order?.items?.[index]
@@ -828,22 +1039,23 @@ function OrderAddEdit() {
                                         <td>
                                             <SelectField
                                                 methods={form}
+                                                classNames={DENSE_SELECT}
                                                 name={`items.${index}.unit`}
                                                 options={unitOptions}
                                                 isClearable={false}
                                                 onValueChange={(option) =>
-                                                    form.setValue(
-                                                        `items.${index}.weight_mode`,
-                                                        option?.id === "ton" ?
-                                                            "actual"
-                                                        :   "theoretical",
+                                                    changeUnit(
+                                                        index,
+                                                        item,
+                                                        (option?.id ??
+                                                            "meter") as SaleItemUnit,
                                                     )
                                                 }
                                             />
                                         </td>
                                         {/* Calculated — never typed */}
                                         <td
-                                            className={`text-right tabular-nums ${CALC} ${GROUP}`}
+                                            className={`text-right tabular-nums whitespace-nowrap ${CALC} ${GROUP}`}
                                         >
                                             {base > 0 ?
                                                 `${formatNumber(base, {
@@ -858,7 +1070,7 @@ function OrderAddEdit() {
                                             }
                                         </td>
                                         <td
-                                            className={`text-right tabular-nums ${CALC}`}
+                                            className={`text-right tabular-nums whitespace-nowrap ${CALC}`}
                                         >
                                             {shipped > 0 ?
                                                 formatNumber(shipped, {
@@ -873,7 +1085,7 @@ function OrderAddEdit() {
                                             готовой продукции по этому товару,
                                             в метрах. */}
                                         <td
-                                            className={`text-right tabular-nums ${CALC}`}
+                                            className={`text-right tabular-nums whitespace-nowrap ${CALC}`}
                                             title={t("table.stockFromBackend")}
                                         >
                                             {stock ?
@@ -887,7 +1099,7 @@ function OrderAddEdit() {
                                             }
                                         </td>
                                         <td
-                                            className={`text-right tabular-nums ${CALC}`}
+                                            className={`text-right tabular-nums whitespace-nowrap ${CALC}`}
                                             title={t("table.stockFromBackend")}
                                         >
                                             {stock ?
@@ -901,13 +1113,14 @@ function OrderAddEdit() {
                                             }
                                         </td>
                                         <td
-                                            className={`text-right tabular-nums ${CALC}`}
+                                            className={`text-right tabular-nums whitespace-nowrap ${CALC}`}
                                         >
-                                            {moneyBlocked ?
+                                            {weightBlocked ?
                                                 <Missing
-                                                    hint={t(
-                                                        "table.weightMissing",
-                                                    )}
+                                                    hint={
+                                                        baseWarning ??
+                                                        t("table.weightMissing")
+                                                    }
                                                 />
                                             :   formatNumber(weightTn(item), {
                                                     decimalScale: 3,
@@ -922,31 +1135,46 @@ function OrderAddEdit() {
                                                 name={`items.${index}.price_per_ton`}
                                                 optional
                                                 allowZero
+                                                onValueChange={(v, info) => {
+                                                    if (!typedByUser(info))
+                                                        return
+                                                    setPricePerTon(
+                                                        index,
+                                                        v.floatValue || 0,
+                                                    )
+                                                }}
+                                            />
+                                        </td>
+                                        {/* Цена за метр — тоже поле ввода:
+                                            прайс приходит и за тонну, и за
+                                            метр, и любое из двух заполняет
+                                            второе. */}
+                                        <td className={GROUP}>
+                                            <NumberField
+                                                methods={form}
+                                                name={`items.${index}.price`}
+                                                optional
+                                                allowZero
+                                                className="text-right"
+                                                onValueChange={(v, info) => {
+                                                    if (!typedByUser(info))
+                                                        return
+                                                    setPrice(
+                                                        index,
+                                                        v.floatValue || 0,
+                                                    )
+                                                }}
                                             />
                                         </td>
                                         <td
-                                            className={`text-right tabular-nums ${CALC} ${GROUP}`}
+                                            className={`text-right font-semibold tabular-nums whitespace-nowrap ${CALC}`}
                                         >
-                                            {moneyBlocked ?
+                                            {totalBlocked ?
                                                 <Missing
-                                                    hint={t(
-                                                        "table.weightMissing",
-                                                    )}
-                                                />
-                                            :   formatNumber(unitPrice(item), {
-                                                    decimalScale: 3,
-                                                    isShowZero: true,
-                                                })
-                                            }
-                                        </td>
-                                        <td
-                                            className={`text-right font-semibold tabular-nums ${CALC}`}
-                                        >
-                                            {moneyBlocked ?
-                                                <Missing
-                                                    hint={t(
-                                                        "table.weightMissing",
-                                                    )}
+                                                    hint={
+                                                        baseWarning ??
+                                                        t("table.weightMissing")
+                                                    }
                                                 />
                                             :   formatNumber(lineTotal(item), {
                                                     decimalScale: 2,
@@ -987,7 +1215,7 @@ function OrderAddEdit() {
                     </Button>
 
                     {/* Totals block */}
-                    <div className="w-full max-w-sm flex flex-col gap-2 rounded-lg border bg-muted/30 p-4 text-sm">
+                    <div className="w-full max-w-xs flex flex-col gap-1.5 rounded-lg border bg-muted/30 p-3 text-xs [&_button]:h-8 [&_button]:text-xs [&_input]:h-8 [&_input]:text-xs [&_label]:text-xs">
                         <Total
                             label={t("table.subtotal")}
                             value={totals.subtotal}
@@ -1013,6 +1241,7 @@ function OrderAddEdit() {
                             />
                             <SelectField
                                 methods={form}
+                                classNames={DENSE_SELECT}
                                 name="delivery_mode"
                                 options={deliveryModeOptions}
                                 isClearable={false}
@@ -1031,7 +1260,7 @@ function OrderAddEdit() {
 
             {/* Attached files — the same block as on the detail screen */}
             <div className="flex flex-col gap-2">
-                <span className="text-sm font-semibold">
+                <span className="text-xs font-semibold">
                     {t("table.files")}
                 </span>
                 {order ?
@@ -1045,7 +1274,7 @@ function OrderAddEdit() {
                         documentKey="order_id"
                         documentId={order.id}
                     />
-                :   <p className="text-sm text-muted-foreground">
+                :   <p className="text-xs text-muted-foreground">
                         {t("common.filesAfterSave")}
                     </p>
                 }

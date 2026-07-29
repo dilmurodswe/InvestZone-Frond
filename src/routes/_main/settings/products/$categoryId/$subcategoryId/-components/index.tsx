@@ -7,6 +7,7 @@ import Group from "@/components/semantic/group"
 import { Button } from "@/components/ui/button"
 import { useGet } from "@/hooks/react-query/use-get"
 import { useModal } from "@/hooks/use-modal"
+import { useStoredSet } from "@/hooks/use-stored-set"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { ChevronRight, PlusIcon } from "lucide-react"
 import { useProductStore } from "../-hooks/use-product-store"
@@ -15,12 +16,18 @@ import type { Category, SubCategory } from "../../../-types"
 import ProductAddEditModal from "./product-add-edit"
 import ProductDeleteModal from "./product-delete-modal"
 import ProductDetailModal from "./product-detail-modal"
-import { useProductCols } from "./use-product-cols"
+import {
+    extraColumnId,
+    PRODUCT_BASE_COLUMNS,
+    useProductCols,
+} from "./use-product-cols"
 // import { ExtraFieldFilter } from "./ExtraFieldFilter"
-import { useMemo, useState } from "react"
-import { ExtraFieldColumnToggle } from "./ExtraFieldColumnToggle"
+import { useMemo } from "react"
+import { useTranslation } from "react-i18next"
+import { ColumnToggle, type ColumnOption } from "./column-toggle"
 
 export default function Index() {
+    const { t } = useTranslation()
     const { productList, data, isFetching } = useProductsQuery()
     const { setProduct } = useProductStore()
     const addModal = useModal("add-product")
@@ -34,21 +41,29 @@ export default function Index() {
         return Array.from(keys)
     }, [productList])
 
-    const [hiddenExtraKeys, setHiddenExtraKeys] = useState<Set<string>>(
-        () => new Set(),
+    // «Columns» гасит любую колонку — и собственную колонку товара, и доп.
+    // поле карточки. Кроме названия: без него строку не опознать. Набор
+    // общий на весь справочник товаров и переживает перезагрузку: таблицу
+    // настраивают под себя один раз, а не заново после каждого F5.
+    const { value: hiddenColumns, toggle: toggleColumn } = useStoredSet(
+        "products:hidden-columns",
     )
-
-    const visibleExtraKeys = useMemo(
-        () => extraKeys.filter((k) => !hiddenExtraKeys.has(k)),
-        [extraKeys, hiddenExtraKeys],
+    const columnOptions: ColumnOption[] = useMemo(
+        () => [
+            ...PRODUCT_BASE_COLUMNS.map((c) => ({
+                id: c.id,
+                label: t(c.labelKey),
+                locked: "locked" in c ? c.locked : undefined,
+            })),
+            ...extraKeys.map((key) => ({
+                id: extraColumnId(key),
+                label: key,
+                extra: true,
+            })),
+        ],
+        [extraKeys, t],
     )
-
-    const handleColumnToggle = (keys: string[]) => {
-        const hidden = new Set(extraKeys.filter((k) => !keys.includes(k)))
-        setHiddenExtraKeys(hidden)
-    }
-
-    const cols = useProductCols(visibleExtraKeys)
+    const cols = useProductCols(hiddenColumns)
     const { categoryId, subcategoryId } = useParams({ strict: false })
 
     const { data: categoryData } = useGet<Category>(
@@ -69,10 +84,10 @@ export default function Index() {
                     <div className="flex gap-x-2">
                         {/* <ExtraFieldFilter /> */}
                         <FilterInput />
-                        <ExtraFieldColumnToggle
-                            extraKeys={extraKeys}
-                            visibleKeys={visibleExtraKeys}
-                            onChange={handleColumnToggle}
+                        <ColumnToggle
+                            options={columnOptions}
+                            hidden={hiddenColumns}
+                            onToggle={toggleColumn}
                         />
                         <Button
                             onClick={() => {

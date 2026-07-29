@@ -137,8 +137,11 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
                     <button
                         type="button"
                         id={name}
+                        // В ячейке таблицы длинное имя всё равно обрежется —
+                        // целиком его показывает подсказка.
+                        title={selectedLabel ?? undefined}
                         className={cn(
-                            "min-h-10 flex items-center gap-2 rounded-md border border-input bg-background px-3 text-sm shadow-sm w-full",
+                            "min-h-8 flex items-center gap-1.5 rounded-md border border-input bg-background px-2 text-xs shadow-sm w-full",
                             !!error && "border-destructive",
                         )}
                     >
@@ -159,14 +162,20 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
                         <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
                     </button>
                 </PopoverTrigger>
+                {/* Список шире поля: в строке таблицы колонка узкая, а
+                    названия труб длинные — «Труба профильная прямоугольная
+                    100 x 80 × 4.0 — IZSQ1008040» в ширину ячейки не влезает
+                    и обрывался на полуслове. Меню растягивается по самому
+                    длинному названию, но не шире экрана. */}
                 <PopoverContent
                     align="start"
-                    className="p-0 w-(--radix-popover-trigger-width)"
+                    className="p-0 w-max min-w-(--radix-popover-trigger-width) max-w-[min(34rem,88vw)]"
                 >
-                    <div className="p-2 border-b">
+                    <div className="p-1.5 border-b">
                         <Input
                             type="search"
                             autoFocus
+                            className="h-8 text-xs"
                             placeholder={t("common.search")}
                             handleDebouncedInputValue={setSearch}
                         />
@@ -181,11 +190,15 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
                                 type="button"
                                 onClick={() => pick(o)}
                                 className={cn(
-                                    "flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-secondary",
+                                    "flex w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left text-xs hover:bg-secondary",
                                     o.id === value && "bg-primary/10",
                                 )}
                             >
-                                <span className="truncate">{o.name}</span>
+                                {/* Не обрезаем: если название всё же длиннее
+                                    меню, пусть переносится, а не теряется. */}
+                                <span className="whitespace-normal break-words leading-snug">
+                                    {o.name}
+                                </span>
                                 {o.id === value && (
                                     <Check className="h-4 w-4 shrink-0 text-primary" />
                                 )}
@@ -200,7 +213,7 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
                         {!isLoading &&
                             !isFetchingNextPage &&
                             options.length === 0 && (
-                                <div className="py-3 text-center text-sm text-muted-foreground">
+                                <div className="py-3 text-center text-xs text-muted-foreground">
                                     {t("common.noData")}
                                 </div>
                             )}

@@ -7,6 +7,14 @@ import { type NumericFormatProps, numericFormatter } from "react-number-format"
 //     } else return ""
 // }
 
+/**
+ * `numericFormatter` обрезает лишние знаки, а не округляет: 0,008917 при трёх
+ * знаках превращается в «0,008» вместо «0,009». Считаем округление сами, до
+ * той же точности, с какой число потом печатается.
+ */
+const roundTo = (num: number, scale: number) =>
+    Number.isFinite(num) && scale >= 0 ? Number(num.toFixed(scale)) : num
+
 export function formatNumber(
     val: unknown,
     {
@@ -16,7 +24,8 @@ export function formatNumber(
         isShowZero?: boolean
     } = {},
 ) {
-    const num = Number(val)
+    const scale = props.decimalScale ?? 3
+    const num = roundTo(Number(val), scale)
     const numStr =
         num ? String(num)
         : isShowZero ? "0"
