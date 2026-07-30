@@ -86,7 +86,10 @@ export default function SelectField<
 
     return (
         <fieldset
-            className={cn("flex flex-col gap-2 w-full", wrapperClassName)}
+            className={cn(
+                "flex min-w-0 flex-col gap-2 w-full",
+                wrapperClassName,
+            )}
         >
             {label && (
                 <Label

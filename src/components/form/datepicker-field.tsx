@@ -67,7 +67,7 @@ export default function DatepickerField<IForm extends FieldValues>({
     return (
         <fieldset
             className={cn(
-                "relative flex flex-col gap-2 w-full",
+                "relative flex min-w-0 flex-col gap-2 w-full",
                 wrapperClassName,
             )}
         >

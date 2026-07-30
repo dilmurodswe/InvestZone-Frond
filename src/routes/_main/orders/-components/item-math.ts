@@ -206,6 +206,16 @@ export function lineTotal(item: OrderItemForm) {
     return unitPrice(item) * quantity * (1 - num(item.discount) / 100)
 }
 
+/**
+ * Ставка НДС по умолчанию, % — стандартная ставка Узбекистана.
+ *
+ * Своя ставка у строки (`item.vat`) остаётся главнее, но её почти никогда не
+ * заполняют: продавец включает «Учитывать НДС» на весь документ и ждёт, что
+ * заказ посчитается по 12 %. Без этой подстановки ставка строки была нулевой,
+ * и «В том числе НДС» показывал 0 при включённом флажке.
+ */
+export const DEFAULT_VAT_RATE = 12
+
 export type OrderTotals = {
     /** Промежуточный итог */
     subtotal: number
@@ -225,24 +235,23 @@ export function orderTotals(values: OrderForm): OrderTotals {
     const subtotal = items.reduce((acc, item) => acc + lineTotal(item), 0)
     const weight = items.reduce((acc, item) => acc + weightTn(item), 0)
 
+    // Два флажка документа делят работу так, как их читает отдел продаж:
+    //
+    //   «НДС включён в цену» — считать ли налог вообще. Включён → «В том числе
+    //     НДС» = сумма × 12 % (310,2 × 0,12 = 37,2), выключен → НДС нет.
+    //   «Учитывать НДС» — ложится ли этот налог сверху на «Итого» или клиент
+    //     платит ровно сумму строк.
     const vat =
-        values.vat_enabled ?
+        values.vat_included ?
             items.reduce((acc, item) => {
-                const rate = num(item.vat)
+                const rate = num(item.vat) || DEFAULT_VAT_RATE
                 if (rate <= 0) return acc
-                const total = lineTotal(item)
-                return (
-                    acc +
-                    (values.vat_included ?
-                        (total * rate) / (100 + rate)
-                    :   (total * rate) / 100)
-                )
+                return acc + (lineTotal(item) * rate) / 100
             }, 0)
         :   0
 
     const delivery = num(values.delivery_cost)
-    const withVat =
-        values.vat_enabled && !values.vat_included ? subtotal + vat : subtotal
+    const withVat = values.vat_enabled ? subtotal + vat : subtotal
 
     return {
         subtotal,

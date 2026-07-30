@@ -121,7 +121,10 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
 
     return (
         <fieldset
-            className={cn("flex flex-col gap-2 w-full", wrapperClassName)}
+            className={cn(
+                "flex min-w-0 flex-col gap-2 w-full",
+                wrapperClassName,
+            )}
         >
             {label && (
                 <Label
@@ -145,9 +148,13 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
                             !!error && "border-destructive",
                         )}
                     >
+                        {/* `min-w-0` — без него флекс-элемент не сжимается
+                            меньше своего текста: длинное название распирало
+                            кнопку, а с ней и ячейку таблицы, отбирая ширину у
+                            соседних колонок вместо того чтобы обрезаться. */}
                         <span
                             className={cn(
-                                "flex-1 truncate text-left",
+                                "min-w-0 flex-1 truncate text-left",
                                 !selectedLabel && "text-muted-foreground",
                             )}
                         >

@@ -43,7 +43,7 @@ import {
     Trash2,
     TruckIcon,
 } from "lucide-react"
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, type ReactNode } from "react"
 import {
     useFieldArray,
     useForm,
@@ -126,7 +126,7 @@ const DENSE_SELECT = {
         isDisabled: boolean
     }) =>
         cn(
-            "min-h-8! flex rounded-md border border-input bg-background px-2 text-xs shadow-sm transition-colors",
+            "min-h-8! flex min-w-0 rounded-md border border-input bg-background px-2 text-xs shadow-sm transition-colors",
             isFocused && "outline-none ring-2 ring-ring",
             isDisabled && "opacity-50",
         ),
@@ -135,6 +135,10 @@ const DENSE_SELECT = {
             "border-b last:border-none first:rounded-t-md last:rounded-b-md px-2 py-1.5 text-xs! outline-none hover:bg-secondary",
             isSelected && "bg-primary/70 hover:bg-primary/70 text-background",
         ),
+    // Длинное имя клиента («ООО ...») не должно распирать свою колонку — оно
+    // обрезается многоточием, целиком видно в списке.
+    valueContainer: () => "gap-1 min-w-0 overflow-hidden",
+    singleValue: () => "truncate",
 }
 
 /**
@@ -244,6 +248,46 @@ function Missing({ hint }: { hint: string }) {
     )
 }
 
+/**
+ * Одна карточка документа: заголовок с необязательным действием справа и тело.
+ *
+ * Раньше блоки заказа шли сплошным потоком — поля, таблица, итоги и файлы
+ * висели на одном фоне, и глазу не за что было зацепиться. Карточка отделяет
+ * «шапку документа» от «позиций» и «итогов», а кнопка блока (например
+ * «Добавить товар») живёт в его же заголовке, а не болтается под таблицей.
+ */
+function Section({
+    title,
+    action,
+    children,
+    bodyClassName,
+    className,
+}: {
+    title: string
+    action?: ReactNode
+    children: ReactNode
+    /** `p-0`, когда тело само знает свои отступы (таблица, файлы). */
+    bodyClassName?: string
+    className?: string
+}) {
+    return (
+        <section
+            className={cn(
+                "flex flex-col overflow-hidden rounded-xl border bg-card",
+                className,
+            )}
+        >
+            <header className="flex min-h-11 shrink-0 flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-4 py-2">
+                <h3 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+                    {title}
+                </h3>
+                {action}
+            </header>
+            <div className={cn("flex-1 p-4", bodyClassName)}>{children}</div>
+        </section>
+    )
+}
+
 /** One line of the totals block. */
 function Total({
     label,
@@ -282,7 +326,9 @@ export default function OrderAddEditModal() {
             overlayClassName="absolute inset-0 z-40"
             wrapperClassname="absolute inset-0 top-0! translate-x-0 translate-y-0 w-full! max-w-full! md:max-w-full! rounded-none border-0 p-0! md:p-0!"
             className="h-full max-h-full w-full max-w-none px-4 py-4 md:px-6"
-            closeButtonClassName="top-3! right-3! text-foreground rounded-md p-1 hover:bg-muted"
+            // z-30 — выше прилипшей шапки формы (z-20), иначе она накрывает
+            // крестик и его нечем нажать.
+            closeButtonClassName="top-3! right-3! z-30 text-foreground rounded-md p-1 hover:bg-muted"
         >
             <OrderAddEdit />
         </Modal>
@@ -626,9 +672,14 @@ function OrderAddEdit() {
     return (
         <form
             onSubmit={onSubmit}
-            className="flex flex-col gap-4 min-h-full pr-1"
+            className="flex min-h-full flex-col gap-4 pr-1"
         >
-            <div className="flex flex-wrap items-center justify-between gap-3 pr-10 shrink-0">
+            {/* Шапка и кнопки сохранения прилипают к краям окна: документ
+                длинный, и до моей правки, дойдя до файлов, приходилось
+                прокручивать обратно наверх — просто чтобы увидеть «Добавить».
+                Отрицательные отступы гасят паддинги модалки, чтобы полоса шла
+                во всю ширину. */}
+            <div className="sticky top-0 z-20 -mx-4 -mt-4 flex flex-wrap items-center justify-between gap-3 border-b bg-background px-4 pt-4 pr-12 pb-3 md:-mx-6 md:px-6 md:pr-14">
                 <CardTitle className="text-base">
                     {order ?
                         `${t("common.editEntity", { entity: t("entity.order") })} — ${order.number}`
@@ -663,14 +714,19 @@ function OrderAddEdit() {
             </div>
 
             {/* Document fields — one compact block across the top */}
-            <div className="flex flex-col gap-3 border-b pb-4">
-                {/* Every cell is a label over a control of the same height, and
-                    the labels reserve two lines — so however long a caption is,
-                    the whole block stays on two straight rows. Шрифт мельче
-                    обычного: документ длинный, и так он читается одним экраном,
-                    а подписи вроде «Планируемая дата отгрузки» встают в строку
-                    вместо переноса. */}
-                <div className="grid grid-cols-2 items-end gap-x-4 gap-y-3 text-xs sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 [&_button]:h-8 [&_button]:text-xs [&_input]:h-8 [&_input]:text-xs [&_label]:flex [&_label]:min-h-8 [&_label]:items-end [&_label]:text-xs [&_label]:leading-tight">
+            <Section
+                title={t("common.orderDetails")}
+                bodyClassName="flex flex-col gap-3 p-4"
+            >
+                {/* Сетка документа — ровно четыре колонки, и каждая строка
+                    заполнена до края: клиент → оплата → валюта → курс, дата →
+                    договор → лот → склад, адрес (и статус) — во всю ширину.
+                    Ячейка это подпись над полем одной высоты, подписи держат
+                    две строки, поэтому длинная («Планируемая дата отгрузки») не
+                    сдвигает соседей. Шрифт мельче обычного: документ длинный, и
+                    так он читается одним экраном. */}
+                <div className="grid grid-cols-1 items-end gap-x-4 gap-y-3 text-xs sm:grid-cols-2 lg:grid-cols-4 [&>*]:min-w-0 [&_button]:h-8 [&_button]:text-xs [&_input]:h-8 [&_input]:text-xs [&_fieldset>label]:flex [&_fieldset>label]:min-h-8 [&_fieldset>label]:items-end [&_fieldset>label]:text-xs [&_fieldset>label]:leading-tight">
+                    {/* Ряд 1 — кто, чем и по какому курсу платит */}
                     <div className="flex items-end gap-1.5">
                         <SelectField
                             methods={form}
@@ -711,6 +767,8 @@ function OrderAddEdit() {
                         methods={form}
                         currencyList={currencyList}
                     />
+
+                    {/* Ряд 2 — когда, по какому документу и с какого склада */}
                     <DatepickerField
                         methods={form}
                         name="delivery_planned_date"
@@ -748,40 +806,43 @@ function OrderAddEdit() {
                             :   null
                         }
                     />
-                    {/* The address is a long line — it gets the room of two
-                        (three on a wide screen) ordinary fields. */}
+
+                    {/* Ряд 3 — длинный адрес на три колонки, статус на
+                        четвёртую. Статус виден и у нового заказа: продажи
+                        часто заводят документ сразу «в работе», а не «Новый»,
+                        и переоткрывать карточку ради этого не нужно. */}
                     <UncontrolledInput
                         methods={form}
                         name="shipment_address"
                         label={t("table.deliveryAddress")}
                         optional
-                        wrapperClassName="col-span-2 lg:col-span-2 xl:col-span-3"
+                        wrapperClassName="sm:col-span-2 lg:col-span-3"
                     />
-                    {order && (
-                        <SelectField
-                            methods={form}
-                            classNames={DENSE_SELECT}
-                            name="status"
-                            options={statusOptions}
-                            label={t("table.status")}
-                        />
-                    )}
+                    <SelectField
+                        methods={form}
+                        classNames={DENSE_SELECT}
+                        name="status"
+                        options={statusOptions}
+                        label={t("table.status")}
+                    />
                 </div>
 
-                <div className="grid gap-x-4 gap-y-3 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+                {/* Ряд 4 — те же четыре колонки: комментарий на две, флаги
+                    документа на две, обе карточки одной высоты. */}
+                <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
                     <UncontrolledTextarea
                         methods={form}
                         name="description"
                         label={t("table.comment")}
                         rows={2}
                         optional
-                        className="h-14 min-h-0 text-xs"
-                        wrapperClassName="[&_label]:text-xs"
+                        className="min-h-14 flex-1 text-xs"
+                        wrapperClassName="sm:col-span-1 lg:col-span-2 [&_label]:text-xs"
                     />
 
                     {/* The document flags read as one strip, level with the
                         comment box next to them. */}
-                    <div className="flex h-full flex-wrap items-center gap-x-6 gap-y-3 rounded-lg border bg-muted/30 px-4 py-2.5 text-xs [&_label]:text-xs [&_label]:whitespace-nowrap">
+                    <div className="grid h-full grid-cols-1 items-center gap-x-6 gap-y-2 self-stretch rounded-lg border bg-muted/30 px-4 py-2.5 text-xs sm:grid-cols-2 lg:col-span-2 [&_label]:text-xs [&_label]:whitespace-nowrap">
                         <SwitchField
                             methods={form}
                             name="vat_enabled"
@@ -829,21 +890,43 @@ function OrderAddEdit() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </Section>
 
             {/* Positions — the sales spreadsheet: typed columns first, the
                 calculated block (grey) after them */}
-            <div className="flex flex-col gap-3">
-                <span className="text-xs font-semibold">
-                    {t("table.products")}
-                </span>
-
+            <Section
+                title={t("table.products")}
+                bodyClassName="p-0"
+                action={
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => append({ ...EMPTY_ITEM })}
+                    >
+                        <PlusIcon className="mr-1 h-3.5 w-3.5" />
+                        {t("common.addProduct")}
+                    </Button>
+                }
+            >
                 {/* Одиннадцать колонок на строку: при обычном шрифте «82
                     935.244 м» ломается на три строки, а «1 000» — на две.
                     Мелкий шрифт и запас по ширине держат каждое число в одну
-                    строку, а строку — в одну высоту. */}
-                <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full min-w-[1360px] border-collapse text-xs">
+                    строку, а строку — в одну высоту.
+
+                    Ширина рассчитана на семизначные числа: метры заказывают
+                    миллионами («1 000 000»), а в узком поле input прокручивался
+                    и показывал хвост числа — начало уезжало из виду. */}
+                <div className="overflow-x-auto">
+                    {/* `table-fixed`: ширины колонок берутся из шапки и не
+                        зависят от содержимого. При обычной раскладке длинное
+                        название трубы растягивало свою ячейку и отбирало ширину
+                        у «Кол-во», «Цены» и «Суммы» — строка перестраивалась от
+                        каждого выбранного товара. Теперь колонки стоят на
+                        месте, а имя обрезается многоточием (целиком — в
+                        подсказке и в выпадающем списке). */}
+                    <table className="w-full min-w-[1560px] table-fixed border-collapse text-xs">
                         <thead>
                             {/* Column order of the sales sheet: наименование →
                                 кол-во → ед. изм. → кол-во б. ед. → отгружено →
@@ -852,13 +935,13 @@ function OrderAddEdit() {
                             <tr className="border-b bg-muted/20 text-[11px] leading-tight text-muted-foreground [&_th]:px-2 [&_th]:py-1.5 [&_th]:font-medium [&_th]:align-bottom">
                                 {/* Названия труб длинные — имени отдаём всё,
                                     что удалось отобрать у денежных колонок. */}
-                                <th className="w-[24%] pl-3! text-left">
+                                <th className="w-[19%] pl-3! text-left">
                                     {t("table.nomenclature")}
                                 </th>
-                                <th className="w-[7%] text-left">
+                                <th className="w-[9%] text-left">
                                     {t("table.qty")}
                                 </th>
-                                <th className="w-[8%] text-left">
+                                <th className="w-[7%] text-left">
                                     {t("table.unit")}
                                 </th>
                                 <th
@@ -866,7 +949,7 @@ function OrderAddEdit() {
                                 >
                                     {t("table.quantityBase")}
                                 </th>
-                                <th className={`w-[7%] text-right ${CALC}`}>
+                                <th className={`w-[6%] text-right ${CALC}`}>
                                     {t("table.shipped")}
                                 </th>
                                 <th
@@ -884,19 +967,19 @@ function OrderAddEdit() {
                                 <th className={`w-[7%] text-right ${CALC}`}>
                                     {t("table.weightTn")}
                                 </th>
-                                <th className={`w-[8%] text-left ${GROUP}`}>
+                                <th className={`w-[9%] text-left ${GROUP}`}>
                                     {t("table.pricePerTon")}
                                 </th>
-                                <th className={`w-[8%] text-left ${GROUP}`}>
+                                <th className={`w-[9%] text-left ${GROUP}`}>
                                     {t("table.price")}
                                 </th>
-                                <th className={`w-[8%] text-right ${CALC}`}>
+                                <th className={`w-[9%] text-right ${CALC}`}>
                                     {t("table.sum")}
                                 </th>
                                 <th className="w-8" />
                             </tr>
                         </thead>
-                        <tbody className="[&_input]:h-8 [&_input]:text-xs [&_button]:h-8 [&_button]:text-xs [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-middle">
+                        <tbody className="[&_input]:h-8 [&_input]:px-2 [&_input]:text-xs [&_button]:h-8 [&_button]:text-xs [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-middle">
                             {fields.map((field, index) => {
                                 const item = watchedItems?.[index] ?? EMPTY_ITEM
                                 const base = quantityBase(item)
@@ -1201,90 +1284,83 @@ function OrderAddEdit() {
                         </tbody>
                     </table>
                 </div>
+            </Section>
 
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-8 text-xs"
-                        onClick={() => append({ ...EMPTY_ITEM })}
-                    >
-                        <PlusIcon className="mr-1 h-3.5 w-3.5" />
-                        {t("common.addProduct")}
-                    </Button>
-
-                    {/* Totals block */}
-                    <div className="w-full max-w-xs flex flex-col gap-1.5 rounded-lg border bg-muted/30 p-3 text-xs [&_button]:h-8 [&_button]:text-xs [&_input]:h-8 [&_input]:text-xs [&_label]:text-xs">
-                        <Total
-                            label={t("table.subtotal")}
-                            value={totals.subtotal}
+            {/* Низ документа — две карточки в ряд: слева файлы, справа итоги.
+                Раньше итоги жались к правому краю, а половина экрана под
+                таблицей пустовала, и файлы уезжали ещё ниже отдельной
+                строкой. */}
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+                <Section title={t("table.files")} bodyClassName="p-0">
+                    {order ?
+                        <DocumentFiles
+                            listUrl={API.ORDERS.FILES.INDEX.replace(
+                                "{id}",
+                                String(order.id),
+                            )}
+                            attachUrl={API.ORDERS.FILES.POST}
+                            detachUrl={API.ORDERS.FILES.DELETE}
+                            documentKey="order_id"
+                            documentId={order.id}
                         />
-                        <Total
-                            label={t("table.vatIncludedSum")}
-                            value={totals.vat}
-                        />
-                        <Total
-                            label={t("table.shipmentWeight")}
-                            value={totals.weight}
-                            scale={3}
-                        />
+                    :   <p className="p-4 text-xs text-muted-foreground">
+                            {t("common.filesAfterSave")}
+                        </p>
+                    }
+                </Section>
 
-                        <div className="flex items-end gap-2 pt-1">
-                            <NumberField
-                                methods={form}
-                                name="delivery_cost"
-                                label={t("table.delivery")}
-                                optional
-                                allowZero
-                                wrapperClassName="max-w-[140px]"
-                            />
-                            <SelectField
-                                methods={form}
-                                classNames={DENSE_SELECT}
-                                name="delivery_mode"
-                                options={deliveryModeOptions}
-                                isClearable={false}
-                                optional
-                            />
-                        </div>
+                <Section
+                    title={t("common.totals")}
+                    bodyClassName="flex flex-col gap-1.5 p-4 text-xs [&_button]:h-8 [&_button]:text-xs [&_input]:h-8 [&_input]:text-xs [&_label]:text-xs"
+                >
+                    <Total
+                        label={t("table.subtotal")}
+                        value={totals.subtotal}
+                    />
+                    <Total
+                        label={t("table.vatIncludedSum")}
+                        value={totals.vat}
+                    />
+                    <Total
+                        label={t("table.shipmentWeight")}
+                        value={totals.weight}
+                        scale={3}
+                    />
 
-                        <Total
-                            label={t("table.grandTotal")}
-                            value={totals.grandTotal}
-                            strong
+                    <div className="flex items-end gap-2 pt-1">
+                        <NumberField
+                            methods={form}
+                            name="delivery_cost"
+                            label={t("table.delivery")}
+                            optional
+                            allowZero
+                            wrapperClassName="max-w-[140px]"
+                        />
+                        <SelectField
+                            methods={form}
+                            classNames={DENSE_SELECT}
+                            name="delivery_mode"
+                            options={deliveryModeOptions}
+                            isClearable={false}
+                            optional
                         />
                     </div>
-                </div>
-            </div>
 
-            {/* Attached files — the same block as on the detail screen */}
-            <div className="flex flex-col gap-2">
-                <span className="text-xs font-semibold">
-                    {t("table.files")}
-                </span>
-                {order ?
-                    <DocumentFiles
-                        listUrl={API.ORDERS.FILES.INDEX.replace(
-                            "{id}",
-                            String(order.id),
-                        )}
-                        attachUrl={API.ORDERS.FILES.POST}
-                        detachUrl={API.ORDERS.FILES.DELETE}
-                        documentKey="order_id"
-                        documentId={order.id}
+                    <Total
+                        label={t("table.grandTotal")}
+                        value={totals.grandTotal}
+                        strong
                     />
-                :   <p className="text-xs text-muted-foreground">
-                        {t("common.filesAfterSave")}
-                    </p>
-                }
+                </Section>
             </div>
 
-            <FormAction
-                submitName={order ? t("common.save") : t("common.add")}
-                loading={isPending}
-                className="mt-auto max-w-md ml-auto w-full"
-            />
+            <div className="sticky bottom-0 z-20 -mx-4 -mb-4 mt-auto border-t bg-background px-4 py-3 md:-mx-6 md:px-6">
+                <FormAction
+                    submitName={order ? t("common.save") : t("common.add")}
+                    loading={isPending}
+                    className="mt-0 ml-auto w-full max-w-md"
+                />
+            </div>
 
             {/* Opens over the order (its own key, so the order stays put) and
                 the saved client lands in the field right away. */}

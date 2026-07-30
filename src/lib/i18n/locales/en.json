@@ -51,7 +51,9 @@
         "deliverySplit": "Split across goods",
         "saveFirst": "Save the order first",
         "filesAfterSave": "Files can be attached once the order is saved",
-        "reserveHint": "Reserve is stock promised to the client on this order. It lowers the warehouse's available stock without writing it off — the write-off happens on shipment, and the reserve is released then. The switch reserves every position in full; a single line can be reserved partly in the «Reserve» column."
+        "reserveHint": "Reserve is stock promised to the client on this order. It lowers the warehouse's available stock without writing it off — the write-off happens on shipment, and the reserve is released then. The switch reserves every position in full; a single line can be reserved partly in the «Reserve» column.",
+        "orderDetails": "Order details",
+        "totals": "Totals"
     },
     "entity": {
         "client": "Client",

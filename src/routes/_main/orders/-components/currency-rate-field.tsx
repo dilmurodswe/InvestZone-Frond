@@ -65,7 +65,7 @@ export default function CurrencyRateField({ methods, currencyList }: Props) {
             <Label>{t("table.currencyRate")}</Label>
 
             {selected ?
-                <div className="flex h-9 items-center gap-2 text-sm">
+                <div className="flex h-8 items-center gap-2 text-xs">
                     <span className="truncate">
                         1 {selected.currency} ={" "}
                         {formatNumber(rate ?? refRate ?? 0, {
@@ -82,12 +82,19 @@ export default function CurrencyRateField({ methods, currencyList }: Props) {
                         <PencilIcon className="w-4 h-4" />
                     </button>
                 </div>
-            :   <div className="flex h-9 items-center text-sm text-muted-foreground">
+            :   <div className="flex h-8 items-center text-xs text-muted-foreground">
                     —
                 </div>
             }
 
-            <Modal modalKey={MODAL_KEY} title={t("table.docCurrencyRate")}>
+            <Modal
+                modalKey={MODAL_KEY}
+                title={
+                    <span className="text-sm">
+                        {t("table.docCurrencyRate")}
+                    </span>
+                }
+            >
                 {selected && (
                     <RateForm
                         code={selected.currency}
@@ -126,32 +133,37 @@ function RateForm({ code, base, refRate, rate, onApply }: RateFormProps) {
         closeModal()
     }
 
+    // Диалог набран тем же мелким кеглем, что и сама карточка заказа: рядом с
+    // полями в 12 px крупный шрифт окна курса выглядел из другого приложения.
     return (
-        <div className="flex flex-col gap-5 pt-2">
+        <div className="flex flex-col gap-4 pt-1 text-xs">
             <RadioGroup
                 value={mode}
                 onValueChange={(value) =>
                     setMode(value as "reference" | "custom")
                 }
-                className="gap-4"
+                className="gap-3"
             >
-                <label className="flex items-start gap-3 cursor-pointer">
-                    <RadioGroupItem value="reference" className="mt-1" />
+                <label className="flex cursor-pointer items-start gap-2.5">
+                    <RadioGroupItem
+                        value="reference"
+                        className="mt-0.5 size-3.5"
+                    />
                     <span className="flex flex-col gap-0.5">
-                        <span className="text-sm">
+                        <span className="text-xs">
                             1 {code} ={" "}
                             {formatNumber(refRate ?? 0, { isShowZero: true })}{" "}
                             {base}
                         </span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground">
                             {t("common.rateFromReference")}
                         </span>
                     </span>
                 </label>
 
-                <label className="flex items-center gap-3 cursor-pointer">
-                    <RadioGroupItem value="custom" />
-                    <span className="flex items-center gap-2 text-sm">
+                <label className="flex cursor-pointer items-center gap-2.5">
+                    <RadioGroupItem value="custom" className="size-3.5" />
+                    <span className="flex items-center gap-2 text-xs">
                         1 {code} =
                         <NumericFormat
                             customInput={Input}
@@ -159,7 +171,7 @@ function RateForm({ code, base, refRate, rate, onApply }: RateFormProps) {
                             thousandSeparator=" "
                             allowNegative={false}
                             decimalScale={2}
-                            className="w-36 h-9"
+                            className="h-8 w-32 text-xs"
                             onFocus={() => setMode("custom")}
                             onValueChange={(values) =>
                                 setDraft(values.floatValue ?? null)
@@ -170,11 +182,16 @@ function RateForm({ code, base, refRate, rate, onApply }: RateFormProps) {
                 </label>
             </RadioGroup>
 
-            <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={closeModal}>
+            <div className="flex justify-end gap-2 [&_button]:h-8 [&_button]:text-xs">
+                <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={closeModal}
+                >
                     {t("common.cancel")}
                 </Button>
-                <Button type="button" onClick={apply}>
+                <Button type="button" size="sm" onClick={apply}>
                     {t("common.changeRate")}
                 </Button>
             </div>

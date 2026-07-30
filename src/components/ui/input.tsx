@@ -44,11 +44,23 @@ function Input({
 
     return (
         <Label className={cn("relative items-center", inputWrapperClassName)}>
+            {/* Иконки прижаты к середине поля явно: раньше их держало
+                `items-center` обёртки, и любой родитель, переопределивший
+                выравнивание (например, плотная сетка документа), ронял иконку
+                на нижний край. */}
             {type === "search" && (
-                <Search size={18} className="absolute left-2" />
+                <Search
+                    size={18}
+                    className="absolute left-2 top-1/2 -translate-y-1/2"
+                />
             )}
             {leftNode && (
-                <span className={cn("absolute left-2", leftNodeClassName)}>
+                <span
+                    className={cn(
+                        "absolute left-2 top-1/2 -translate-y-1/2",
+                        leftNodeClassName,
+                    )}
+                >
                     {leftNode}
                 </span>
             )}
@@ -84,7 +96,7 @@ function Input({
                     onClick={() => {
                         setPwd((prev) => !prev)
                     }}
-                    className="absolute right-3"
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
                     {pwd ?
                         <EyeOff size={16} />
@@ -92,7 +104,12 @@ function Input({
                 </span>
             )}
             {rightNode && (
-                <span className={cn("absolute right-3", rightNodeClassName)}>
+                <span
+                    className={cn(
+                        "absolute right-3 top-1/2 -translate-y-1/2",
+                        rightNodeClassName,
+                    )}
+                >
                     {rightNode}
                 </span>
             )}
