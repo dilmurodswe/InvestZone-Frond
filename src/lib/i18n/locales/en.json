@@ -236,7 +236,9 @@
         "grandTotal": "Total",
         "weightMode": "Weight",
         "weightMissing": "The product card has no weight (kg/m). Without it the weight, price and sum stay empty — fill in “Theoretical weight, kg/m” or the extra field “Weight of 1 running metre” in Settings → Products",
-        "packMetersMissing": "Nothing to convert packs into metres with: it needs “Pieces per pack” from the product card (Settings → Products) and the pipe length from a rolling plan (Production → Rolling). Or put a ready “Metres per pack” on the card"
+        "packMetersMissing": "Nothing to convert packs into metres with: it needs “Pieces per pack” from the product card (Settings → Products) and the pipe length from a rolling plan (Production → Rolling). Or put a ready “Metres per pack” on the card",
+        "proxyNumber": "Power of attorney №",
+        "revision": "Revision"
     },
     "status": {
         "shipped": "Shipped",

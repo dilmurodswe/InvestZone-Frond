@@ -390,6 +390,8 @@ function OrderAddEdit() {
             client_currency: null,
             contract_number: "",
             lot_number: "",
+            proxy_number: "",
+            revision: "",
             warehouse_id: null,
             // Not asked for — the document is dated by the day it is created.
             doc_date: format(new Date(), "yyyy-MM-dd"),
@@ -419,6 +421,8 @@ function OrderAddEdit() {
                         :   null,
                     contract_number: order.contract_number ?? "",
                     lot_number: order.lot_number ?? "",
+                    proxy_number: order.proxy_number ?? "",
+                    revision: order.revision ?? "",
                     warehouse_id: order.warehouse?.id ?? null,
                     doc_date:
                         (order.doc_date ?? order.created_at)?.slice(0, 10) ??
@@ -768,7 +772,7 @@ function OrderAddEdit() {
                         currencyList={currencyList}
                     />
 
-                    {/* Ряд 2 — когда, по какому документу и с какого склада */}
+                    {/* Ряд 2 — когда и по каким бумагам */}
                     <DatepickerField
                         methods={form}
                         name="delivery_planned_date"
@@ -787,6 +791,20 @@ function OrderAddEdit() {
                         label={t("table.lotNumber")}
                         optional
                     />
+
+                    {/* Ряд 3 — бумажные реквизиты сделки и склад. */}
+                    <UncontrolledInput
+                        methods={form}
+                        name="proxy_number"
+                        label={t("table.proxyNumber")}
+                        optional
+                    />
+                    <UncontrolledInput
+                        methods={form}
+                        name="revision"
+                        label={t("table.revision")}
+                        optional
+                    />
                     <PaginatedSelectField<OrderForm, ReadyProduct>
                         methods={form}
                         name="warehouse_id"
@@ -797,6 +815,7 @@ function OrderAddEdit() {
                         })}
                         label={t("table.warehouse")}
                         optional
+                        wrapperClassName="sm:col-span-2 lg:col-span-2"
                         selectedOption={
                             order?.warehouse ?
                                 {
@@ -807,7 +826,7 @@ function OrderAddEdit() {
                         }
                     />
 
-                    {/* Ряд 3 — длинный адрес на три колонки, статус на
+                    {/* Ряд 4 — длинный адрес на три колонки, статус на
                         четвёртую. Статус виден и у нового заказа: продажи
                         часто заводят документ сразу «в работе», а не «Новый»,
                         и переоткрывать карточку ради этого не нужно. */}

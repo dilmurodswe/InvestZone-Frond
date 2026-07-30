@@ -169,6 +169,11 @@ function OrderDetail() {
                         value={data.lot_number}
                     />
                     <Cell
+                        label={t("table.proxyNumber")}
+                        value={data.proxy_number}
+                    />
+                    <Cell label={t("table.revision")} value={data.revision} />
+                    <Cell
                         label={t("table.warehouse")}
                         value={data.warehouse?.name}
                     />

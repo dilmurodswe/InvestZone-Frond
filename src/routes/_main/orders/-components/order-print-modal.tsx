@@ -48,7 +48,9 @@ function buildSeed(order: Order, client?: Client): AppendixSeed {
         contractNumber: order.contract_number ?? "",
         lotNumber: order.lot_number ?? "",
         appendixNumber: order.number ?? "",
-        appendixVersion: "",
+        // «Версия» приложения — это «Ревизия» заказа; до сохранения поля её
+        // всё равно можно поправить прямо в окне печати.
+        appendixVersion: order.revision ?? "",
         deliveryDeadline: order.delivery_planned_date ?? "",
         buyerName,
         consignee: consigneeOf(buyerName, client),

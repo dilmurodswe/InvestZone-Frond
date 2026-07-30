@@ -129,6 +129,9 @@ export type Order = {
     /** Mijoz bilan shartnoma va lot raqami — «Приложение» sarlavhasiga tushadi. */
     contract_number: string | null
     lot_number: string | null
+    /** «Доверенность №» — tovarni kim olib ketishi, «Ревизия» — kelishuv versiyasi. */
+    proxy_number: string | null
+    revision: string | null
     warehouse: Warehouse | null
     delivery_planned_date: string | null
     shipment_address: string
@@ -181,6 +184,8 @@ export type OrderForm = {
     client_currency: number | null
     contract_number: string
     lot_number: string
+    proxy_number: string
+    revision: string
     warehouse_id: number | null
     doc_date: string | null
     delivery_planned_date: string | null
