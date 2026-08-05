@@ -1,12 +1,13 @@
 import Modal from "@/components/custom/modal"
 import DocumentFiles from "@/components/files/document-files"
-import { Button } from "@/components/ui/button"
+import PrintMenu from "@/components/print/print-menu"
 import { CardTitle } from "@/components/ui/card"
 import { useGet } from "@/hooks/react-query/use-get"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { demandMenuOptions } from "@/lib/print/demand-variants"
+import { useDemandPrintVariant } from "@/lib/print/use-print-variant"
 import { formatNumber, round3 } from "@/lib/utils/format-number"
-import { PrinterIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useDemandStore } from "../-hooks/use-demand-store"
 import type { Demand } from "../-types"
@@ -33,6 +34,7 @@ function DemandDetail() {
     const { t } = useTranslation()
     const { demand } = useDemandStore()
     const printModal = useModal(DEMAND_PRINT_MODAL)
+    const { setVariant } = useDemandPrintVariant()
 
     const { data, isLoading } = useGet<Demand>(
         API.DEMANDS.ID.INDEX.replace("{id}", String(demand?.id ?? "")),
@@ -54,14 +56,13 @@ function DemandDetail() {
                 <CardTitle>
                     {t("entity.demand")} №{data.number}
                 </CardTitle>
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => printModal.openModal()}
-                >
-                    <PrinterIcon className="w-4 h-4" />
-                    {t("print.appendix")}
-                </Button>
+                <PrintMenu
+                    options={demandMenuOptions()}
+                    onPick={(variant) => {
+                        setVariant(variant)
+                        printModal.openModal()
+                    }}
+                />
             </div>
 
             {/* Итоговый блок продажного листа — тот же, что в заказе. */}

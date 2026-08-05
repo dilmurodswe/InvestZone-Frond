@@ -8,6 +8,7 @@ import SelectField from "@/components/form/select-field"
 import SwitchField from "@/components/form/switch-field"
 import UncontrolledInput from "@/components/form/uncontrolled-input"
 import UncontrolledTextarea from "@/components/form/uncontrolled-textarea"
+import PrintMenu from "@/components/print/print-menu"
 import { Button } from "@/components/ui/button"
 import { CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -27,6 +28,8 @@ import {
 } from "@/hooks/react-query/use-sale-refs"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { printMenuOptions } from "@/lib/print/appendix-variants"
+import { usePrintVariant } from "@/lib/print/use-print-variant"
 import { contentAreaElement } from "@/lib/utils/content-area"
 import { formatNumber } from "@/lib/utils/format-number"
 import { cn } from "@/lib/utils/shadcn"
@@ -36,13 +39,7 @@ import type { ReadyProduct } from "@/routes/_main/ready-products/-types"
 import type { RollingPlan } from "@/routes/_main/rolling-plans/-types"
 import type { PaginatedResponse } from "@/types/common"
 import { format } from "date-fns"
-import {
-    CircleHelpIcon,
-    PlusIcon,
-    PrinterIcon,
-    Trash2,
-    TruckIcon,
-} from "lucide-react"
+import { CircleHelpIcon, PlusIcon, Trash2, TruckIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, type ReactNode } from "react"
 import {
     useFieldArray,
@@ -103,14 +100,19 @@ const ORDER_CLIENT_MODAL = "add-client-from-order"
 
 /**
  * The sales sheet colours its columns: what the seller types stays white
- * (наименование, кол-во, ед. изм., цена за вес) and everything the sheet
- * derives sits on a tint (кол-во б. ед., отгружено, доступно, остаток, вес,
- * цена, сумма). The table below repeats that, so a row reads as
- * «typed → derived → typed → derived» at a glance instead of eleven equal cells.
+ * (наименование, кол-во, ед. изм., обе цены) and everything the sheet derives
+ * sits on a tint (сумма — и вся нижняя полоса позиции). Позиция читается как
+ * «вписал сверху → документ посчитал снизу», а не как одиннадцать равных ячеек.
  */
 const CALC = "bg-muted/40"
-/** Where the sheet switches between a typed and a derived block. */
-const GROUP = "border-l"
+
+/**
+ * Сетка позиции: наименование → кол-во → ед. изм. → цена за вес, Т → цена →
+ * сумма → удалить. Одна и та же и у шапки колонок, и у каждой карточки товара,
+ * поэтому подписи стоят ровно над своими полями.
+ */
+const COLS =
+    "grid grid-cols-[minmax(0,2.6fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_2rem] items-center gap-x-2"
 
 /**
  * Компактный вид выпадающих списков документа. По умолчанию react-select
@@ -311,6 +313,45 @@ function Section({
 }
 
 /**
+ * Одно посчитанное число в нижней строке позиции: подпись и значение рядом.
+ *
+ * Строка товара набрана двумя ярусами — сверху то, что вписывают руками, снизу
+ * то, что документ посчитал сам. У нижнего яруса своей шапки нет (иначе
+ * таблице понадобилось бы одиннадцать колонок и горизонтальная прокрутка),
+ * поэтому подпись каждое число носит с собой.
+ */
+function Derived({
+    label,
+    title,
+    children,
+}: {
+    label: string
+    title?: string
+    children: ReactNode
+}) {
+    return (
+        <div
+            // Своя еле заметная ячейка у каждого числа: на сплошной подложке
+            // пять пар «подпись → значение» сливались в одну строку текста, и
+            // глаз не сразу понимал, какое число к какой подписи относится.
+            // Рамка почти невидима — она отделяет, а не расчерчивает.
+            className="flex min-w-0 items-baseline justify-between gap-2 rounded-md border border-border/50 bg-background/70 px-2 py-1"
+            title={title}
+        >
+            <span className="truncate text-[11px] text-muted-foreground">
+                {label}
+            </span>
+            <span className="font-medium tabular-nums whitespace-nowrap">
+                {children}
+            </span>
+        </div>
+    )
+}
+
+/** Прочерк на месте числа, которого ещё нет. */
+const Dash = () => <span className="text-muted-foreground">—</span>
+
+/**
  * Одна сумма в строке итогов: подпись сверху, число под ней. `strong` — это
  * «Итого»: отбито чертой слева и прижато к правому краю строки, чтобы взгляд
  * находил конечную сумму, не читая всю цепочку.
@@ -375,6 +416,7 @@ function OrderAddEdit() {
     const { post, patch, isPending } = useRequest()
     const statusOptions = useOrderStatusOptions()
     const printModal = useModal(ORDER_PRINT_MODAL)
+    const { setVariant: setPrintVariant } = usePrintVariant()
     const createDemandModal = useModal("create-demand")
     const clientModal = useModal(ORDER_CLIENT_MODAL)
     const { setClient } = useClientStore()
@@ -725,17 +767,15 @@ function OrderAddEdit() {
                 {/* Same actions as on the detail screen — a new order has
                     nothing to print or ship yet, so they wait for the save. */}
                 <div className="flex items-center gap-2 [&_button]:h-8 [&_button]:text-xs">
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
+                    <PrintMenu
+                        options={printMenuOptions()}
                         disabled={!order}
                         title={!order ? t("common.saveFirst") : undefined}
-                        onClick={() => printModal.openModal()}
-                    >
-                        <PrinterIcon className="w-4 h-4" />
-                        {t("print.appendix")}
-                    </Button>
+                        onPick={(variant) => {
+                            setPrintVariant(variant)
+                            printModal.openModal()
+                        }}
+                    />
                     <Button
                         type="button"
                         size="sm"
@@ -948,76 +988,52 @@ function OrderAddEdit() {
             {/* Positions — the sales spreadsheet: typed columns first, the
                 calculated block (grey) after them */}
             <Section title={t("table.products")} bodyClassName="p-0">
-                {/* Одиннадцать колонок на строку: при обычном шрифте «82
-                    935.244 м» ломается на три строки, а «1 000» — на две.
-                    Мелкий шрифт и запас по ширине держат каждое число в одну
-                    строку, а строку — в одну высоту.
+                {/* Позиция — отдельная карточка в два яруса.
 
-                    Ширина рассчитана на семизначные числа: метры заказывают
-                    миллионами («1 000 000»), а в узком поле input прокручивался
-                    и показывал хвост числа — начало уезжало из виду. */}
+                    Одиннадцать колонок в одну строку не помещались: таблице
+                    приходилось держать 1560 px и прокручиваться вбок, а «Цена»
+                    и «Сумма» — те самые числа, ради которых документ и
+                    заполняют, — оставались за краем экрана. Сверху карточки
+                    теперь то, что вписывают руками, снизу — полоса того, что
+                    документ посчитал сам.
+
+                    Карточка, а не строка таблицы: сплошным списком строки
+                    сливались, и глаз не видел, где кончается один товар и
+                    начинается следующий. Рамка с отбивкой держит оба яруса
+                    вместе как одну позицию. Сетка колонок у шапки и карточек
+                    общая (COLS), а боковые отступы шапки равны отступу карточки
+                    вместе с её рамкой, поэтому подписи стоят ровно над полями. */}
                 <div className="overflow-x-auto">
-                    {/* `table-fixed`: ширины колонок берутся из шапки и не
-                        зависят от содержимого. При обычной раскладке длинное
-                        название трубы растягивало свою ячейку и отбирало ширину
-                        у «Кол-во», «Цены» и «Суммы» — строка перестраивалась от
-                        каждого выбранного товара. Теперь колонки стоят на
-                        месте, а имя обрезается многоточием (целиком — в
-                        подсказке и в выпадающем списке). */}
-                    <table className="w-full min-w-[1560px] table-fixed border-collapse text-xs">
-                        <thead>
-                            {/* Column order of the sales sheet: наименование →
-                                кол-во → ед. изм. → кол-во б. ед. → отгружено →
-                                доступно → остаток → вес, тн → цена за вес, Т →
-                                цена → сумма. */}
-                            <tr className="border-b bg-muted/20 text-[11px] leading-tight text-muted-foreground [&_th]:px-2 [&_th]:py-1.5 [&_th]:font-medium [&_th]:align-bottom">
-                                {/* Названия труб длинные — имени отдаём всё,
-                                    что удалось отобрать у денежных колонок. */}
-                                <th className="w-[19%] pl-3! text-left">
-                                    {t("table.nomenclature")}
-                                </th>
-                                <th className="w-[9%] text-left">
-                                    {t("table.qty")}
-                                </th>
-                                <th className="w-[7%] text-left">
-                                    {t("table.unit")}
-                                </th>
-                                <th
-                                    className={`w-[9%] text-right ${CALC} ${GROUP}`}
-                                >
-                                    {t("table.quantityBase")}
-                                </th>
-                                <th className={`w-[6%] text-right ${CALC}`}>
-                                    {t("table.shipped")}
-                                </th>
-                                <th
-                                    className={`w-[7%] text-right ${CALC}`}
-                                    title={t("table.stockFromBackend")}
-                                >
-                                    {t("table.available")}
-                                </th>
-                                <th
-                                    className={`w-[7%] text-right ${CALC}`}
-                                    title={t("table.stockFromBackend")}
-                                >
-                                    {t("table.remaining")}
-                                </th>
-                                <th className={`w-[7%] text-right ${CALC}`}>
-                                    {t("table.weightTn")}
-                                </th>
-                                <th className={`w-[9%] text-left ${GROUP}`}>
-                                    {t("table.pricePerTon")}
-                                </th>
-                                <th className={`w-[9%] text-left ${GROUP}`}>
-                                    {t("table.price")}
-                                </th>
-                                <th className={`w-[9%] text-right ${CALC}`}>
-                                    {t("table.sum")}
-                                </th>
-                                <th className="w-8" />
-                            </tr>
-                        </thead>
-                        <tbody className="[&_input]:h-8 [&_input]:px-2 [&_input]:text-xs [&_button]:h-8 [&_button]:text-xs [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-middle">
+                    <div className="min-w-[820px]">
+                        <div
+                            className={cn(
+                                COLS,
+                                "border-b bg-muted/20 px-[25px] py-1.5 text-[11px] leading-tight font-medium text-muted-foreground",
+                            )}
+                        >
+                            {/* Названия труб длинные — имени отдаём всё, что
+                                удалось отобрать у денежных колонок.
+
+                                `pl-2`/`pr-2` — это внутренний отступ поля под
+                                подписью: без них подпись стояла на краю
+                                колонки, а значение — на восемь пикселей внутри,
+                                и столбик читался съехавшим. */}
+                            <span className="pl-2">
+                                {t("table.nomenclature")}
+                            </span>
+                            <span className="pl-2">{t("table.qty")}</span>
+                            <span className="pl-2">{t("table.unit")}</span>
+                            <span className="pr-2 text-right">
+                                {t("table.pricePerTon")}
+                            </span>
+                            <span className="pr-2 text-right">
+                                {t("table.price")}
+                            </span>
+                            <span className="text-right">{t("table.sum")}</span>
+                            <span />
+                        </div>
+
+                        <div className="flex flex-col gap-2 p-3 [&_button]:h-8 [&_button]:text-xs [&_input]:h-8 [&_input]:px-2 [&_input]:text-xs">
                             {fields.map((field, index) => {
                                 const item = watchedItems?.[index] ?? EMPTY_ITEM
                                 const base = quantityBase(item)
@@ -1070,94 +1086,102 @@ function OrderAddEdit() {
                                         stockByProduct.get(item.product_id)
                                     :   undefined
                                 return (
-                                    <tr
+                                    <div
                                         key={field.id}
-                                        className="border-t align-middle"
+                                        className="rounded-lg border bg-card shadow-xs transition-colors hover:border-foreground/20"
                                     >
-                                        <td className="pl-3!">
-                                            <ProductFacts
-                                                form={form}
-                                                index={index}
-                                                productId={
-                                                    item.product_id ?? null
-                                                }
-                                                snapshot={item.product ?? null}
-                                                onFilled={() =>
-                                                    repriceFromPerTon(index)
-                                                }
-                                            />
-                                            <PaginatedSelectField<
-                                                OrderForm,
-                                                SaleProduct
-                                            >
-                                                methods={form}
-                                                name={`items.${index}.product_id`}
-                                                url={API.EXTRA.PRODUCTS.INDEX}
-                                                mapOption={(p) => ({
-                                                    id: p.id,
-                                                    name:
-                                                        p.articul ?
-                                                            `${p.name} — ${p.articul}`
-                                                        :   p.name,
-                                                })}
-                                                onPick={(picked) => {
-                                                    form.setValue(
-                                                        `items.${index}.product`,
-                                                        picked ?
-                                                            {
-                                                                theoretical_weight:
-                                                                    picked.theoretical_weight,
-                                                                actual_weight:
-                                                                    picked.actual_weight,
-                                                                theoretical_weight_used:
-                                                                    picked.theoretical_weight_used,
-                                                                actual_weight_used:
-                                                                    picked.actual_weight_used,
-                                                                meters_per_pack:
-                                                                    picked.meters_per_pack,
-                                                                extra_fields:
-                                                                    picked.extra_fields,
-                                                            }
-                                                        :   null,
-                                                    )
-                                                    // У нового товара свой
-                                                    // вес метра — цена за
-                                                    // метр пересчитывается.
-                                                    repriceFromPerTon(index)
-                                                }}
-                                                selectedOption={
-                                                    (
-                                                        order?.items?.[index]
-                                                            ?.product
-                                                    ) ?
-                                                        {
-                                                            id: order.items[
+                                        {/* Верхний ярус — то, что вписывают */}
+                                        <div className={cn(COLS, "px-3 py-2")}>
+                                            <div className="min-w-0">
+                                                <ProductFacts
+                                                    form={form}
+                                                    index={index}
+                                                    productId={
+                                                        item.product_id ?? null
+                                                    }
+                                                    snapshot={
+                                                        item.product ?? null
+                                                    }
+                                                    onFilled={() =>
+                                                        repriceFromPerTon(index)
+                                                    }
+                                                />
+                                                <PaginatedSelectField<
+                                                    OrderForm,
+                                                    SaleProduct
+                                                >
+                                                    methods={form}
+                                                    name={`items.${index}.product_id`}
+                                                    url={
+                                                        API.EXTRA.PRODUCTS.INDEX
+                                                    }
+                                                    mapOption={(p) => ({
+                                                        id: p.id,
+                                                        name:
+                                                            p.articul ?
+                                                                `${p.name} — ${p.articul}`
+                                                            :   p.name,
+                                                    })}
+                                                    onPick={(picked) => {
+                                                        form.setValue(
+                                                            `items.${index}.product`,
+                                                            picked ?
+                                                                {
+                                                                    theoretical_weight:
+                                                                        picked.theoretical_weight,
+                                                                    actual_weight:
+                                                                        picked.actual_weight,
+                                                                    theoretical_weight_used:
+                                                                        picked.theoretical_weight_used,
+                                                                    actual_weight_used:
+                                                                        picked.actual_weight_used,
+                                                                    meters_per_pack:
+                                                                        picked.meters_per_pack,
+                                                                    extra_fields:
+                                                                        picked.extra_fields,
+                                                                }
+                                                            :   null,
+                                                        )
+                                                        // У нового товара свой
+                                                        // вес метра — цена за
+                                                        // метр пересчитывается.
+                                                        repriceFromPerTon(index)
+                                                    }}
+                                                    selectedOption={
+                                                        (
+                                                            order?.items?.[
                                                                 index
-                                                            ].product.id,
-                                                            name:
-                                                                (
-                                                                    order.items[
-                                                                        index
-                                                                    ].product
-                                                                        .articul
-                                                                ) ?
-                                                                    `${order.items[index].product.name} — ${order.items[index].product.articul}`
-                                                                :   order.items[
-                                                                        index
-                                                                    ].product
-                                                                        .name,
-                                                        }
-                                                    :   null
-                                                }
-                                            />
-                                        </td>
-                                        <td>
+                                                            ]?.product
+                                                        ) ?
+                                                            {
+                                                                id: order.items[
+                                                                    index
+                                                                ].product.id,
+                                                                name:
+                                                                    (
+                                                                        order
+                                                                            .items[
+                                                                            index
+                                                                        ]
+                                                                            .product
+                                                                            .articul
+                                                                    ) ?
+                                                                        `${order.items[index].product.name} — ${order.items[index].product.articul}`
+                                                                    :   order
+                                                                            .items[
+                                                                            index
+                                                                        ]
+                                                                            .product
+                                                                            .name,
+                                                            }
+                                                        :   null
+                                                    }
+                                                />
+                                            </div>
                                             <NumberField
                                                 methods={form}
                                                 name={`items.${index}.quantity`}
                                             />
-                                        </td>
-                                        <td>
                                             <SelectField
                                                 methods={form}
                                                 classNames={DENSE_SELECT}
@@ -1173,89 +1197,15 @@ function OrderAddEdit() {
                                                     )
                                                 }
                                             />
-                                        </td>
-                                        {/* Calculated — never typed */}
-                                        <td
-                                            className={`text-right tabular-nums whitespace-nowrap ${CALC} ${GROUP}`}
-                                        >
-                                            {base > 0 ?
-                                                `${formatNumber(base, {
-                                                    decimalScale: 3,
-                                                    isShowZero: true,
-                                                })} ${t("common.meter")}`
-                                            : baseWarning ?
-                                                <Missing hint={baseWarning} />
-                                            :   <span className="text-muted-foreground">
-                                                    —
-                                                </span>
-                                            }
-                                        </td>
-                                        <td
-                                            className={`text-right tabular-nums whitespace-nowrap ${CALC}`}
-                                        >
-                                            {shipped > 0 ?
-                                                formatNumber(shipped, {
-                                                    decimalScale: 3,
-                                                })
-                                            :   <span className="text-muted-foreground">
-                                                    0
-                                                </span>
-                                            }
-                                        </td>
-                                        {/* «Доступно» и «Остаток» — склад
-                                            готовой продукции по этому товару,
-                                            в метрах. */}
-                                        <td
-                                            className={`text-right tabular-nums whitespace-nowrap ${CALC}`}
-                                            title={t("table.stockFromBackend")}
-                                        >
-                                            {stock ?
-                                                formatNumber(stock.available, {
-                                                    decimalScale: 3,
-                                                    isShowZero: true,
-                                                })
-                                            :   <span className="text-muted-foreground">
-                                                    —
-                                                </span>
-                                            }
-                                        </td>
-                                        <td
-                                            className={`text-right tabular-nums whitespace-nowrap ${CALC}`}
-                                            title={t("table.stockFromBackend")}
-                                        >
-                                            {stock ?
-                                                formatNumber(stock.remaining, {
-                                                    decimalScale: 3,
-                                                    isShowZero: true,
-                                                })
-                                            :   <span className="text-muted-foreground">
-                                                    —
-                                                </span>
-                                            }
-                                        </td>
-                                        <td
-                                            className={`text-right tabular-nums whitespace-nowrap ${CALC}`}
-                                        >
-                                            {weightBlocked ?
-                                                <Missing
-                                                    hint={
-                                                        baseWarning ??
-                                                        t("table.weightMissing")
-                                                    }
-                                                />
-                                            :   formatNumber(weightTn(item), {
-                                                    decimalScale: 3,
-                                                    isShowZero: true,
-                                                })
-                                            }
-                                        </td>
-
-                                        <td className={GROUP}>
+                                            {/* Деньги — по правому краю: так
+                                                разряды двух цен и суммы стоят
+                                                друг под другом. */}
                                             <NumberField
                                                 methods={form}
                                                 name={`items.${index}.price_per_ton`}
                                                 optional
                                                 allowZero
+                                                className="text-right"
                                                 onValueChange={(v, info) => {
                                                     if (!typedByUser(info))
                                                         return
@@ -1265,12 +1215,10 @@ function OrderAddEdit() {
                                                     )
                                                 }}
                                             />
-                                        </td>
-                                        {/* Цена за метр — тоже поле ввода:
-                                            прайс приходит и за тонну, и за
-                                            метр, и любое из двух заполняет
-                                            второе. */}
-                                        <td className={GROUP}>
+                                            {/* Цена за метр — тоже поле ввода:
+                                                прайс приходит и за тонну, и за
+                                                метр, и любое из двух заполняет
+                                                второе. */}
                                             <NumberField
                                                 methods={form}
                                                 name={`items.${index}.price`}
@@ -1286,41 +1234,132 @@ function OrderAddEdit() {
                                                     )
                                                 }}
                                             />
-                                        </td>
-                                        <td
-                                            className={`text-right font-semibold tabular-nums whitespace-nowrap ${CALC}`}
+                                            <div className="text-right font-semibold tabular-nums whitespace-nowrap">
+                                                {totalBlocked ?
+                                                    <Missing
+                                                        hint={
+                                                            baseWarning ??
+                                                            t(
+                                                                "table.weightMissing",
+                                                            )
+                                                        }
+                                                    />
+                                                :   formatNumber(
+                                                        lineTotal(item),
+                                                        {
+                                                            decimalScale: 2,
+                                                            isShowZero: true,
+                                                        },
+                                                    )
+                                                }
+                                            </div>
+                                            <div className="flex justify-center">
+                                                {fields.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        title={t(
+                                                            "common.delete",
+                                                        )}
+                                                        onClick={() =>
+                                                            remove(index)
+                                                        }
+                                                        className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Нижний ярус — посчитанное. Он на
+                                            подложке и внутри той же рамки: это
+                                            продолжение позиции, а не новая. */}
+                                        <div
+                                            className={`grid grid-cols-2 gap-1.5 rounded-b-lg border-t p-1.5 text-[11px] sm:grid-cols-3 lg:grid-cols-5 ${CALC}`}
                                         >
-                                            {totalBlocked ?
-                                                <Missing
-                                                    hint={
-                                                        baseWarning ??
-                                                        t("table.weightMissing")
-                                                    }
-                                                />
-                                            :   formatNumber(lineTotal(item), {
-                                                    decimalScale: 2,
-                                                    isShowZero: true,
-                                                })
-                                            }
-                                        </td>
-                                        <td className="text-center">
-                                            {fields.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        remove(index)
-                                                    }
-                                                    className="rounded p-1 text-red-500 hover:bg-muted"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
+                                            <Derived
+                                                label={t("table.quantityBase")}
+                                            >
+                                                {base > 0 ?
+                                                    `${formatNumber(base, {
+                                                        decimalScale: 3,
+                                                        isShowZero: true,
+                                                    })} ${t("common.meter")}`
+                                                : baseWarning ?
+                                                    <Missing
+                                                        hint={baseWarning}
+                                                    />
+                                                :   <Dash />}
+                                            </Derived>
+                                            <Derived label={t("table.shipped")}>
+                                                {shipped > 0 ?
+                                                    formatNumber(shipped, {
+                                                        decimalScale: 3,
+                                                    })
+                                                :   <Dash />}
+                                            </Derived>
+                                            {/* «Доступно» и «Остаток» — склад
+                                                готовой продукции по этому
+                                                товару, в метрах. */}
+                                            <Derived
+                                                label={t("table.available")}
+                                                title={t(
+                                                    "table.stockFromBackend",
+                                                )}
+                                            >
+                                                {stock ?
+                                                    formatNumber(
+                                                        stock.available,
+                                                        {
+                                                            decimalScale: 3,
+                                                            isShowZero: true,
+                                                        },
+                                                    )
+                                                :   <Dash />}
+                                            </Derived>
+                                            <Derived
+                                                label={t("table.remaining")}
+                                                title={t(
+                                                    "table.stockFromBackend",
+                                                )}
+                                            >
+                                                {stock ?
+                                                    formatNumber(
+                                                        stock.remaining,
+                                                        {
+                                                            decimalScale: 3,
+                                                            isShowZero: true,
+                                                        },
+                                                    )
+                                                :   <Dash />}
+                                            </Derived>
+                                            <Derived
+                                                label={t("table.weightTn")}
+                                            >
+                                                {weightBlocked ?
+                                                    <Missing
+                                                        hint={
+                                                            baseWarning ??
+                                                            t(
+                                                                "table.weightMissing",
+                                                            )
+                                                        }
+                                                    />
+                                                :   formatNumber(
+                                                        weightTn(item),
+                                                        {
+                                                            decimalScale: 3,
+                                                            isShowZero: true,
+                                                        },
+                                                    )
+                                                }
+                                            </Derived>
+                                        </div>
+                                    </div>
                                 )
                             })}
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Кнопка под таблицей, а не в шапке блока: новую строку

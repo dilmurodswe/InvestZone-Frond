@@ -1,4 +1,5 @@
 import { useModal } from "@/hooks/use-modal"
+import { usePrintVariant } from "@/lib/print/use-print-variant"
 import { MoreHorizontal, Pencil, Printer, Trash2, Truck } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -16,6 +17,7 @@ export function OrderActions({ order }: { order: Order }) {
     const addModal = useModal("add-order")
     const deleteModal = useModal("delete-order")
     const printModal = useModal(ORDER_PRINT_MODAL)
+    const { setVariant } = usePrintVariant()
     const createDemandModal = useModal("create-demand")
 
     useEffect(() => {
@@ -73,17 +75,22 @@ export function OrderActions({ order }: { order: Order }) {
                     >
                         <Pencil className="w-4 h-4" /> {t("common.edit")}
                     </button>
+                    {/* Ro'yxat qatorida beshta formani sanab o'tirish uzun
+                        bo'lardi — oynaning o'zida ular yo'lakcha bo'lib turadi,
+                        shuning uchun bu yerdan hujjat odatdagi «Приложение»
+                        bilan ochiladi. */}
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}
                         className="flex items-center gap-2 text-sm hover:bg-muted"
                         onClick={(e) => {
                             e.stopPropagation()
                             setOrder(order)
+                            setVariant("appendix")
                             printModal.openModal()
                             setOpen(false)
                         }}
                     >
-                        <Printer className="w-4 h-4" /> {t("print.appendix")}
+                        <Printer className="w-4 h-4" /> {t("print.print")}
                     </button>
                     <button
                         style={{ width: 180, height: 40, padding: "0 12px" }}

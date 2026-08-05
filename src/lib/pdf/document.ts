@@ -33,11 +33,23 @@ export const ptToMm = (pt: number) => (pt * 25.4) / 72
 /** Qator balandligi: shrift o'lchamining 1.15 barobari — zich, lekin siqiq emas. */
 export const lineHeight = (sizePt: number) => ptToMm(sizePt) * 1.15
 
-export async function createDocument(): Promise<jsPDF> {
+/**
+ * Ko'ndalang varaqning o'lchamlari. Yotiq blank («Товарно-транспортная
+ * накладная») bir necha o'nlab ustunni sig'dirishi kerak, tik varaqqa ular
+ * hech qachon sig'maydi.
+ */
+export const pageSize = (landscape: boolean) => ({
+    width: landscape ? A4.height : A4.width,
+    height: landscape ? A4.width : A4.height,
+})
+
+export async function createDocument(
+    orientation: "portrait" | "landscape" = "portrait",
+): Promise<jsPDF> {
     const doc = new jsPDF({
         unit: "mm",
         format: "a4",
-        orientation: "portrait",
+        orientation,
         compress: true,
     })
 
@@ -55,7 +67,11 @@ export async function createDocument(): Promise<jsPDF> {
     return doc
 }
 
-export function setFont(doc: jsPDF, sizePt: number, style: FontStyle = "normal") {
+export function setFont(
+    doc: jsPDF,
+    sizePt: number,
+    style: FontStyle = "normal",
+) {
     doc.setFont(FONT, style)
     doc.setFontSize(sizePt)
 }
@@ -131,6 +147,22 @@ export function rect(
     doc.rect(x, y, w, h)
 }
 
+/** Bo'yalgan to'rtburchak — masalan qoralamadagi ogohlantirish yo'lagi. */
+export function fillRect(
+    doc: jsPDF,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    color: [number, number, number],
+    withBorder = true,
+) {
+    doc.setFillColor(...color)
+    doc.setLineWidth(0.2)
+    doc.setDrawColor(0, 0, 0)
+    doc.rect(x, y, w, h, withBorder ? "FD" : "F")
+}
+
 export function line(
     doc: jsPDF,
     x1: number,
@@ -145,13 +177,17 @@ export function line(
 }
 
 /** Har bir sahifaning yuqori va pastki o'ng burchagiga «1/3» raqamini qo'yadi. */
-export function stampPageNumbers(doc: jsPDF) {
+export function stampPageNumbers(doc: jsPDF, landscape = false) {
+    const { width, height } = pageSize(landscape)
     const total = doc.getNumberOfPages()
     for (let page = 1; page <= total; page++) {
         doc.setPage(page)
         const label = `${page}/${total}`
-        drawText(doc, label, A4.width - A4.margin, 8, { size: 8, align: "right" })
-        drawText(doc, label, A4.width - A4.margin, A4.height - A4.margin + 4, {
+        drawText(doc, label, width - A4.margin, 8, {
+            size: 8,
+            align: "right",
+        })
+        drawText(doc, label, width - A4.margin, height - A4.margin + 4, {
             size: 8,
             align: "right",
         })

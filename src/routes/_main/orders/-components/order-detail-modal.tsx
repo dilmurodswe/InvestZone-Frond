@@ -1,12 +1,15 @@
 import Modal from "@/components/custom/modal"
 import DocumentFiles from "@/components/files/document-files"
+import PrintMenu from "@/components/print/print-menu"
 import { Button } from "@/components/ui/button"
 import { CardTitle } from "@/components/ui/card"
 import { useGet } from "@/hooks/react-query/use-get"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { printMenuOptions } from "@/lib/print/appendix-variants"
+import { usePrintVariant } from "@/lib/print/use-print-variant"
 import { formatNumber, round3 } from "@/lib/utils/format-number"
-import { PrinterIcon, TruckIcon } from "lucide-react"
+import { TruckIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
 import type { Order, ProductStock } from "../-types"
@@ -35,6 +38,7 @@ function OrderDetail() {
     const { order } = useOrderStore()
     const createDemandModal = useModal("create-demand")
     const printModal = useModal(ORDER_PRINT_MODAL)
+    const { setVariant } = usePrintVariant()
 
     const { data, isLoading } = useGet<Order>(
         API.ORDERS.ID.INDEX.replace("{id}", String(order?.id ?? "")),
@@ -78,14 +82,13 @@ function OrderDetail() {
                 </CardTitle>
                 <div className="flex items-center gap-3">
                     <OrderStatusBadge status={data.status} />
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => printModal.openModal()}
-                    >
-                        <PrinterIcon className="w-4 h-4" />
-                        {t("print.appendix")}
-                    </Button>
+                    <PrintMenu
+                        options={printMenuOptions()}
+                        onPick={(variant) => {
+                            setVariant(variant)
+                            printModal.openModal()
+                        }}
+                    />
                     <Button
                         size="sm"
                         disabled={!remaining}

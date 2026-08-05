@@ -1,8 +1,14 @@
 /**
- * «Приложение» formasini PDF qilib chizadi.
+ * Buyurtmaning chop etiladigan formalarini PDF qilib chizadi.
  *
- * Tuzilishi namunadagi (Приложение-1267) hujjatga mos: sarlavha + rekvizitlar
- * jadvali, texnik xususiyatlar, tovarlar jadvali, shartlar va imzo joylari.
+ * Beshta forma, uchta blank:
+ *   `classic`    — «Приложение», «… для проката», «…-Производство»: rekvizit
+ *                  jadvali, texnik xususiyatlar, tovarlar, shartlar, imzolar;
+ *   `draft`      — ichki qoralama: sarlavha, ogohlantirish yo'lagi va narx
+ *                  jadvali, boshqa hech nima;
+ *   `priceCheck` — narxni tekshirish: qisqa rekvizit va hujjatdagi tonna
+ *                  narxini hisoblangani bilan yonma-yon qo'yadigan jadval.
+ *
  * Tovarlar ko'p bo'lsa jadval keyingi sahifaga o'tadi va sarlavhasi takrorlanadi.
  */
 
@@ -12,6 +18,7 @@ import {
     CONTENT_WIDTH,
     createDocument,
     drawText,
+    fillRect,
     line,
     lineHeight,
     rect,
@@ -22,6 +29,7 @@ import {
 import { formatNumber } from "@/lib/utils/format-number"
 import type { jsPDF } from "jspdf"
 import type { AppendixData } from "./appendix-types"
+import { PRINT_VARIANTS } from "./appendix-variants"
 
 const LOGO_URL = "/images/logo-print.png"
 const LOGO_WIDTH = 58
@@ -40,6 +48,9 @@ const LABEL_W = 34
 const BODY = 8.5
 const SMALL = 7.5
 
+/** Qoralamadagi ogohlantirish yo'lagi rangi. */
+const WARNING_BG: [number, number, number] = [255, 252, 214]
+
 /** Pul qiymati tijorat hujjatidagidek doim ikki xonali: `9 750.00`. */
 const money = (val: number) =>
     formatNumber(val, {
@@ -54,6 +65,16 @@ const money = (val: number) =>
  */
 const price = (val: number) =>
     formatNumber(val, { decimalScale: 3, isShowZero: true })
+
+const amount = (val: number) =>
+    formatNumber(val, { decimalScale: 3, isShowZero: true })
+
+/**
+ * Narx varaqlaridagi bo'sh katak. «Доставка» qatorida na og'irlik, na tonna
+ * narxi bor — o'rniga nol yozilsa, u hisoblangandek ko'rinardi.
+ */
+const orDash = (val: number | undefined, format: (n: number) => string) =>
+    val && val > 0 ? format(val) : "-"
 
 /** `2026-07-23` → `23.07.2026`; noto'g'ri qiymat bo'lsa bo'sh qatorga aylanadi. */
 function ruDate(value: string | null | undefined): string {
@@ -111,7 +132,7 @@ function cellHeight(doc: jsPDF, cell: Cell, width: number): number {
 function drawCell(doc: jsPDF, cell: Cell, x: number, y: number, width: number) {
     const inner = width - PAD * 2
     const labelW = cell.labelWidth ?? LABEL_W
-    let cursor = y + PAD
+    const cursor = y + PAD
 
     if (cell.inline) {
         if (cell.label) {
@@ -133,14 +154,15 @@ function drawCell(doc: jsPDF, cell: Cell, x: number, y: number, width: number) {
         return
     }
 
+    let below = cursor
     if (cell.label) {
-        cursor += drawText(doc, cell.label, x + PAD, cursor, {
+        below += drawText(doc, cell.label, x + PAD, below, {
             size: BODY,
             style: "bold",
         })
     }
     if (cell.value) {
-        drawText(doc, cell.value, x + PAD, cursor, {
+        drawText(doc, cell.value, x + PAD, below, {
             size: BODY,
             maxWidth: inner,
         })
@@ -164,38 +186,77 @@ function drawRow(doc: jsPDF, y: number, cells: Cell[]): number {
     return height
 }
 
-const COLUMNS = [
-    { title: "№", width: 10, align: "center" as const },
-    {
-        title: "Наименование товара и типоразмер",
-        width: 82,
-        align: "left" as const,
-    },
-    { title: "Ед. изм", width: 18, align: "center" as const },
-    { title: "Кол-во", width: 20, align: "right" as const },
-    { title: "Цена", width: 20, align: "right" as const },
-    { title: "Сумма", width: 22, align: "right" as const },
+/* ------------------------------------------------------------------ *
+ * Tovarlar jadvali — ustunlari formaga qarab har xil
+ * ------------------------------------------------------------------ */
+
+type Column = {
+    title: string
+    width: number
+    align: "left" | "right" | "center"
+}
+
+/**
+ * Kengliklar yig'indisi 172 mm (A4 minus chekkalar) bo'lishi shart.
+ *
+ * «Сумма» ustuni ataylab keng: yetti xonali summa («1 235 375.00») ikki
+ * qatorga sinib ketmasligi kerak — qog'ozda aynan shu son o'qiladi.
+ */
+const classicColumns = (quantityTitle: string): Column[] => [
+    { title: "№", width: 10, align: "center" },
+    { title: "Наименование товара и типоразмер", width: 78, align: "left" },
+    { title: "Ед. изм", width: 18, align: "center" },
+    { title: quantityTitle, width: 20, align: "right" },
+    { title: "Цена", width: 20, align: "right" },
+    { title: "Сумма", width: 26, align: "right" },
+]
+
+const DRAFT_COLUMNS: Column[] = [
+    { title: "№", width: 9, align: "center" },
+    { title: "Наименование товара и типоразмер", width: 59, align: "left" },
+    { title: "Вес 1пм", width: 19, align: "right" },
+    { title: "Кол-во", width: 21, align: "right" },
+    { title: "Цена за ТН", width: 20, align: "right" },
+    { title: "Цена за М", width: 20, align: "right" },
+    { title: "Сумма", width: 24, align: "right" },
+]
+
+const PRICE_CHECK_COLUMNS: Column[] = [
+    { title: "№", width: 8, align: "center" },
+    { title: "Наименование товара и типоразмер", width: 47, align: "left" },
+    { title: "Вес 1пм", width: 15, align: "right" },
+    { title: "Кол-во", width: 18, align: "right" },
+    { title: "Цена за тн док", width: 20, align: "right" },
+    { title: "Цена за ТН", width: 18, align: "right" },
+    { title: "Цена за пм", width: 18, align: "right" },
+    { title: "Сумма", width: 28, align: "right" },
 ]
 
 /** Ustun boshlanadigan x koordinatasi. */
-function columnX(index: number): number {
-    return LEFT + COLUMNS.slice(0, index).reduce((acc, c) => acc + c.width, 0)
+function columnX(columns: Column[], index: number): number {
+    return LEFT + columns.slice(0, index).reduce((acc, c) => acc + c.width, 0)
 }
 
-/** Nomi uzun bo'lsa qator baland bo'ladi — chizishdan oldin o'lchanadi. */
+/**
+ * Qator balandligi. Nomi uzun bo'lsa qator baland bo'ladi, shuning uchun
+ * chizishdan oldin o'lchanadi; ustun sarlavhasi ham ikki qatorli bo'lishi
+ * mumkin («Кол-во ±10%»).
+ */
 function tableRowHeight(
     doc: jsPDF,
+    columns: Column[],
     values: string[],
     style: FontStyle,
 ): number {
-    const nameIndex = 1
     return (
         Math.max(
-            textHeight(doc, values[nameIndex] ?? "", {
-                size: BODY,
-                style,
-                maxWidth: COLUMNS[nameIndex].width - PAD * 2,
-            }),
+            ...columns.map((column, i) =>
+                textHeight(doc, values[i] ?? "", {
+                    size: BODY,
+                    style,
+                    maxWidth: column.width - PAD * 2,
+                }),
+            ),
             lineHeight(BODY),
         ) +
         PAD * 2
@@ -204,16 +265,17 @@ function tableRowHeight(
 
 function drawTableRow(
     doc: jsPDF,
+    columns: Column[],
     y: number,
     values: string[],
     style: FontStyle,
 ): number {
-    const height = tableRowHeight(doc, values, style)
+    const height = tableRowHeight(doc, columns, values, style)
 
     rect(doc, LEFT, y, CONTENT_WIDTH, height)
 
-    COLUMNS.forEach((column, i) => {
-        const x = columnX(i)
+    columns.forEach((column, i) => {
+        const x = columnX(columns, i)
         if (i > 0) line(doc, x, y, x, y + height)
 
         const align = column.align
@@ -233,14 +295,29 @@ function drawTableRow(
     return height
 }
 
+function drawTableHeader(doc: jsPDF, columns: Column[], y: number): number {
+    return drawTableRow(
+        doc,
+        columns,
+        y,
+        columns.map((c) => c.title),
+        "bold",
+    )
+}
+
 /**
  * «Итого» qatori: ustunlar orasida chiziq yo'q, shuning uchun summa oxirgi
  * ustunga siqilmaydi — valyuta bilan birga o'ng chetga yoziladi.
  */
-function drawTotalRow(doc: jsPDF, y: number, total: string): number {
+function drawTotalRow(
+    doc: jsPDF,
+    columns: Column[],
+    y: number,
+    total: string,
+): number {
     const height = lineHeight(BODY) + PAD * 2
     rect(doc, LEFT, y, CONTENT_WIDTH, height)
-    drawText(doc, "Итого:", columnX(1) + PAD, y + PAD, {
+    drawText(doc, "Итого:", columnX(columns, 1) + PAD, y + PAD, {
         size: BODY,
         style: "bold",
     })
@@ -252,14 +329,36 @@ function drawTotalRow(doc: jsPDF, y: number, total: string): number {
     return height
 }
 
-function drawTableHeader(doc: jsPDF, y: number): number {
-    return drawTableRow(
-        doc,
-        y,
-        COLUMNS.map((c) => c.title),
-        "bold",
-    )
+/** Sarlavha + qatorlar + «Итого»; sahifa to'lsa sarlavha qaytadan chiziladi. */
+function drawItemsTable(
+    doc: jsPDF,
+    columns: Column[],
+    startY: number,
+    rows: string[][],
+    total: string,
+): number {
+    let y = startY + drawTableHeader(doc, columns, startY)
+
+    rows.forEach((values) => {
+        if (y + tableRowHeight(doc, columns, values, "normal") > BOTTOM) {
+            doc.addPage()
+            y = A4.margin
+            y += drawTableHeader(doc, columns, y)
+        }
+        y += drawTableRow(doc, columns, y, values, "normal")
+    })
+
+    if (y + lineHeight(BODY) + PAD * 2 > BOTTOM) {
+        doc.addPage()
+        y = A4.margin
+        y += drawTableHeader(doc, columns, y)
+    }
+    return y + drawTotalRow(doc, columns, y, total)
 }
+
+/* ------------------------------------------------------------------ *
+ * Umumiy bo'laklar
+ * ------------------------------------------------------------------ */
 
 /** Yarim kenglikdagi «yorliq … qiymat» + tagiga chiziq bloki. */
 function drawUnderlinedField(
@@ -281,13 +380,16 @@ function drawUnderlinedField(
     return bottom - y + 1.5
 }
 
-export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
-    const doc = await createDocument()
+/**
+ * Logotip va o'ng tarafdagi hujjat raqamlari. Yangi `y` ni qaytaradi.
+ *
+ * O'ng ustunda faqat qisqa qiymatlar turadi (sana, raqam): u yerda yorliqqa
+ * bor-yo'g'i 70 mm qoladi, uzun matn yorliqning ustiga chiqib ketadi.
+ */
+async function drawLetterhead(doc: jsPDF, data: AppendixData): Promise<number> {
+    const y = A4.margin
     const logo = await fetchBase64(LOGO_URL).catch(() => null)
 
-    let y = A4.margin
-
-    /* ---- Sarlavha: logo + hujjat raqamlari ---- */
     if (logo) {
         doc.addImage(
             `data:image/png;base64,${logo}`,
@@ -299,7 +401,7 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
         )
     }
 
-    const headerRows: [string, string][] = [
+    const rows: [string, string][] = [
         ["ДАТА ОТПРАВКИ:", ruDate(data.shipmentDate)],
         [
             "КОНТРАКТ № / ЛОТ №:",
@@ -318,13 +420,65 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
                 .join(" "),
         ],
     ]
-    headerRows.forEach(([label, value], i) => {
-        const rowY = y + i * lineHeight(BODY)
-        drawText(doc, label, LEFT + 100, rowY, { size: BODY, style: "bold" })
-        drawText(doc, value, RIGHT, rowY, { size: BODY, align: "right" })
+
+    let cursor = y
+    rows.forEach(([label, value]) => {
+        drawText(doc, label, LEFT + 100, cursor, { size: BODY, style: "bold" })
+        cursor += Math.max(
+            drawText(doc, value, RIGHT, cursor, {
+                size: BODY,
+                align: "right",
+                maxWidth: RIGHT - LEFT - 102,
+            }),
+            lineHeight(BODY),
+        )
     })
 
-    y = Math.max(y + LOGO_HEIGHT, y + headerRows.length * lineHeight(BODY)) + 8
+    return Math.max(y + LOGO_HEIGHT, cursor) + 8
+}
+
+/** «Условие оплаты» va «Особые условия» — ikki ustun. */
+function drawTermsColumns(doc: jsPDF, data: AppendixData, y: number): number {
+    const columns: [number, number, string, string, string][] = [
+        [
+            LEFT,
+            HALF - 2,
+            "Условие оплаты",
+            data.paymentTermsTitle,
+            data.paymentTermsText,
+        ],
+        [LEFT + HALF, HALF, "Особые условия", "", data.specialTerms],
+    ]
+
+    let bottom = y
+    columns.forEach(([x, width, title, subtitle, body]) => {
+        let cursor = y
+        cursor += drawText(doc, title, x, cursor, { size: BODY, style: "bold" })
+        cursor += 1
+        if (subtitle) {
+            cursor += drawText(doc, subtitle, x, cursor, { size: SMALL })
+        }
+        cursor += drawText(doc, body, x, cursor, {
+            size: SMALL,
+            maxWidth: width - 2,
+        })
+        bottom = Math.max(bottom, cursor)
+    })
+
+    return bottom
+}
+
+/* ------------------------------------------------------------------ *
+ * Blanklar
+ * ------------------------------------------------------------------ */
+
+/** «Приложение», «… для проката», «…-Производство». */
+async function drawClassic(
+    doc: jsPDF,
+    data: AppendixData,
+    quantityTitle: string,
+) {
+    let y = await drawLetterhead(doc, data)
 
     /* ---- Rekvizitlar jadvali ---- */
     y += drawRow(doc, y, [
@@ -395,33 +549,21 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
         6
 
     /* ---- Tovarlar jadvali ---- */
-    y += drawTableHeader(doc, y)
-
-    data.items.forEach((item, index) => {
-        const values = [
+    const columns = classicColumns(quantityTitle)
+    y = drawItemsTable(
+        doc,
+        columns,
+        y,
+        data.items.map((item, index) => [
             String(index + 1),
             item.name,
             item.unit,
-            formatNumber(item.quantity, { decimalScale: 3, isShowZero: true }),
+            amount(item.quantity),
             price(item.price),
             money(item.total),
-        ]
-        // Qator sahifaga sig'masa — yangi sahifa va jadval sarlavhasi qaytadan.
-        if (y + tableRowHeight(doc, values, "normal") > BOTTOM) {
-            doc.addPage()
-            y = A4.margin
-            y += drawTableHeader(doc, y)
-        }
-        y += drawTableRow(doc, y, values, "normal")
-    })
-
-    const total = `${money(data.total)} ${data.currency}`.trim()
-    if (y + lineHeight(BODY) + PAD * 2 > BOTTOM) {
-        doc.addPage()
-        y = A4.margin
-        y += drawTableHeader(doc, y)
-    }
-    y += drawTotalRow(doc, y, total)
+        ]),
+        `${money(data.total)} ${data.currency}`.trim(),
+    )
 
     /* ---- Shartlar ---- */
     const conditionsHeight =
@@ -443,46 +585,27 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
     }
 
     y += 4
-    const packagingHeight = Math.max(
-        drawUnderlinedField(doc, LEFT, y, HALF - 2, "Упаковка", data.packaging),
-        drawUnderlinedField(
-            doc,
-            LEFT + HALF,
-            y,
-            HALF,
-            "Маркировка",
-            data.marking,
-        ),
-    )
-    y += packagingHeight + 1
+    y +=
+        Math.max(
+            drawUnderlinedField(
+                doc,
+                LEFT,
+                y,
+                HALF - 2,
+                "Упаковка",
+                data.packaging,
+            ),
+            drawUnderlinedField(
+                doc,
+                LEFT + HALF,
+                y,
+                HALF,
+                "Маркировка",
+                data.marking,
+            ),
+        ) + 1
 
-    const conditionsTop = y
-    const columns: [number, number, string, string, string][] = [
-        [
-            LEFT,
-            HALF - 2,
-            "Условие оплаты",
-            data.paymentTermsTitle,
-            data.paymentTermsText,
-        ],
-        [LEFT + HALF, HALF, "Особые условия", "", data.specialTerms],
-    ]
-    let conditionsBottom = conditionsTop
-    columns.forEach(([x, width, title, subtitle, body]) => {
-        let cursor = conditionsTop
-        cursor += drawText(doc, title, x, cursor, { size: BODY, style: "bold" })
-        cursor += 1
-        if (subtitle) {
-            cursor += drawText(doc, subtitle, x, cursor, { size: SMALL })
-        }
-        cursor += drawText(doc, body, x, cursor, {
-            size: SMALL,
-            maxWidth: width - 2,
-        })
-        conditionsBottom = Math.max(conditionsBottom, cursor)
-    })
-
-    y = conditionsBottom + 2
+    y = drawTermsColumns(doc, data, y) + 2
     line(doc, LEFT, y, RIGHT, y)
     y += 1.5
 
@@ -497,6 +620,133 @@ export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
         size: 10,
         style: "bold",
     })
+}
+
+const DRAFT_NOTE = [
+    "Цены подготовлены для внутреннего использования, не для передачи.",
+    "Укажите |Цену за ТН| в Excel — система рассчитает цену за метр.",
+    "Полученные значения используйте для внесения в систему учёта заказов.",
+].join("\n")
+
+/**
+ * «Draft» — narxni tayyorlash uchun ichki varaq.
+ *
+ * Rekvizit ham, ГОСТ ham, imzo ham yo'q: bu qog'oz xaridorga ketmaydi, unda
+ * faqat tonna narxini metrga aylantiradigan raqamlar bor. Shuning uchun
+ * yuqorisida sariq ogohlantirish yo'lagi turadi.
+ */
+async function drawDraft(doc: jsPDF, data: AppendixData) {
+    let y = await drawLetterhead(doc, data)
+
+    // Xaridor — alohida qatorda, sarlavhaning tor o'ng ustunida emas: firma
+    // nomlari uzun va u yerda yorliq ustiga chiqib ketardi.
+    y += drawRow(doc, y, [
+        { label: "Покупатель:", value: data.buyerName, inline: true },
+    ])
+    y += 4
+
+    const noteHeight =
+        textHeight(doc, DRAFT_NOTE, {
+            size: BODY,
+            style: "bold",
+            maxWidth: CONTENT_WIDTH - 8,
+        }) +
+        PAD * 4
+    fillRect(doc, LEFT, y, CONTENT_WIDTH, noteHeight, WARNING_BG)
+    drawText(doc, DRAFT_NOTE, LEFT + CONTENT_WIDTH / 2, y + PAD * 2, {
+        size: BODY,
+        style: "bold",
+        align: "center",
+        maxWidth: CONTENT_WIDTH - 8,
+    })
+    y += noteHeight + 5
+
+    drawItemsTable(
+        doc,
+        DRAFT_COLUMNS,
+        y,
+        data.items.map((item, index) => [
+            String(index + 1),
+            item.name,
+            orDash(item.weightPerMeter, amount),
+            amount(item.quantityMeters ?? item.quantity),
+            orDash(item.pricePerTon, money),
+            orDash(item.pricePerMeter ?? item.price, price),
+            money(item.total),
+        ]),
+        `${money(data.total)} ${data.currency}`.trim(),
+    )
+}
+
+/**
+ * «Проверка цены» — hujjatdagi tonna narxi hisoblangani bilan yonma-yon.
+ *
+ * Ikki ustun («Цена за тн док» va «Цена за ТН») bir xil bo'lishi kerak; farq
+ * chiqsa demak qatorga narx qo'lda kiritilgan yoki tovar kartochkasidagi
+ * og'irlik o'zgargan. Xaridorga ketmaydi, shuning uchun ГОСТ va imzolar yo'q.
+ */
+async function drawPriceCheck(doc: jsPDF, data: AppendixData) {
+    let y = await drawLetterhead(doc, data)
+
+    y += drawRow(doc, y, [
+        { label: "Покупатель:", value: data.buyerName, inline: true },
+    ])
+    y += drawRow(doc, y, [
+        {
+            label: "Срок поставки по:",
+            value:
+                data.deliveryDeadline ?
+                    `${ruDate(data.deliveryDeadline)} включительно`
+                :   "",
+            inline: true,
+        },
+        { label: "Условие поставки:", value: data.deliveryTerms, inline: true },
+    ])
+    // Bu varaqda joyni tejash uchun grúzopoluchatel bir qatorga yig'iladi.
+    y += drawRow(doc, y, [
+        {
+            label: "Грузополучатель:",
+            value: data.consignee
+                .split("\n")
+                .map((part) => part.trim())
+                .filter(Boolean)
+                .join(" ; "),
+        },
+    ])
+
+    y += 4
+    y = drawItemsTable(
+        doc,
+        PRICE_CHECK_COLUMNS,
+        y,
+        data.items.map((item, index) => [
+            String(index + 1),
+            item.name,
+            orDash(item.weightPerMeter, amount),
+            amount(item.quantityMeters ?? item.quantity),
+            orDash(item.pricePerTonDoc, money),
+            orDash(item.pricePerTon, money),
+            orDash(item.pricePerMeter ?? item.price, price),
+            money(item.total),
+        ]),
+        `${money(data.total)} ${data.currency}`.trim(),
+    )
+
+    y += 6
+    if (y + 40 > BOTTOM) {
+        doc.addPage()
+        y = A4.margin
+    }
+    drawTermsColumns(doc, data, y)
+}
+
+export async function buildAppendixPdf(data: AppendixData): Promise<jsPDF> {
+    const doc = await createDocument()
+    const variant = PRINT_VARIANTS[data.variant] ?? PRINT_VARIANTS.appendix
+
+    if (variant.layout === "draft") await drawDraft(doc, data)
+    else if (variant.layout === "priceCheck") await drawPriceCheck(doc, data)
+    else await drawClassic(doc, data, variant.quantityTitle ?? "Кол-во")
 
     stampPageNumbers(doc)
     return doc

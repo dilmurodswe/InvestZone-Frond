@@ -5,6 +5,11 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { usePaginatedSelect } from "@/hooks/react-query/use-paginated-select"
 import { cn } from "@/lib/utils/shadcn"
 import { Check, ChevronDown, Loader2, X } from "lucide-react"
@@ -136,39 +141,59 @@ export default function PaginatedSelectField<IForm extends FieldValues, T>({
                 </Label>
             )}
             <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                    <button
-                        type="button"
-                        id={name}
-                        // В ячейке таблицы длинное имя всё равно обрежется —
-                        // целиком его показывает подсказка.
-                        title={selectedLabel ?? undefined}
-                        className={cn(
-                            "min-h-8 flex items-center gap-1.5 rounded-md border border-input bg-background px-2 text-xs shadow-sm w-full",
-                            !!error && "border-destructive",
-                        )}
-                    >
-                        {/* `min-w-0` — без него флекс-элемент не сжимается
-                            меньше своего текста: длинное название распирало
-                            кнопку, а с ней и ячейку таблицы, отбирая ширину у
-                            соседних колонок вместо того чтобы обрезаться. */}
-                        <span
-                            className={cn(
-                                "min-w-0 flex-1 truncate text-left",
-                                !selectedLabel && "text-muted-foreground",
-                            )}
+                {/* Наведение показывает выбранное целиком.
+                    В колонке таблицы имя трубы обрезается многоточием, и
+                    системный `title` показывал его только через секундную
+                    паузу и системным шрифтом — а прочитать полное название
+                    нужно ровно в тот момент, когда взгляд остановился на
+                    строке. Подсказка выходит сразу и в оформлении интерфейса.
+                    Пока список раскрыт её нет: там имя и так видно целиком, а
+                    подсказка перекрывала бы пункты. */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <PopoverTrigger asChild>
+                            <button
+                                type="button"
+                                id={name}
+                                className={cn(
+                                    "min-h-8 flex items-center gap-1.5 rounded-md border border-input bg-background px-2 text-xs shadow-sm w-full",
+                                    !!error && "border-destructive",
+                                )}
+                            >
+                                {/* `min-w-0` — без него флекс-элемент не
+                                    сжимается меньше своего текста: длинное
+                                    название распирало кнопку, а с ней и ячейку
+                                    таблицы, отбирая ширину у соседних колонок
+                                    вместо того чтобы обрезаться. */}
+                                <span
+                                    className={cn(
+                                        "min-w-0 flex-1 truncate text-left",
+                                        !selectedLabel &&
+                                            "text-muted-foreground",
+                                    )}
+                                >
+                                    {selectedLabel ?? t("common.select")}
+                                </span>
+                                {selectedLabel && (
+                                    <X
+                                        className="h-4 w-4 shrink-0 text-muted-foreground hover:text-foreground"
+                                        onClick={clear}
+                                    />
+                                )}
+                                <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                            </button>
+                        </PopoverTrigger>
+                    </TooltipTrigger>
+                    {selectedLabel && !open && (
+                        <TooltipContent
+                            side="top"
+                            align="start"
+                            className="max-w-sm"
                         >
-                            {selectedLabel ?? t("common.select")}
-                        </span>
-                        {selectedLabel && (
-                            <X
-                                className="h-4 w-4 shrink-0 text-muted-foreground hover:text-foreground"
-                                onClick={clear}
-                            />
-                        )}
-                        <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
-                    </button>
-                </PopoverTrigger>
+                            {selectedLabel}
+                        </TooltipContent>
+                    )}
+                </Tooltip>
                 {/* Список шире поля: в строке таблицы колонка узкая, а
                     названия труб длинные — «Труба профильная прямоугольная
                     100 x 80 × 4.0 — IZSQ1008040» в ширину ячейки не влезает

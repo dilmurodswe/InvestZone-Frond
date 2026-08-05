@@ -1,13 +1,16 @@
-import AppendixPrintModal, {
-    type AppendixSeed,
-} from "@/components/print/appendix-print-modal"
+import DemandPrintModalView, {
+    type DemandSeed,
+} from "@/components/print/demand-print-modal"
 import { useGet } from "@/hooks/react-query/use-get"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import type { DemandItem as PrintItem } from "@/lib/print/demand-types"
 import type { Client } from "@/routes/_main/clients/-types"
+import { weightPerMeter } from "@/routes/_main/orders/-components/item-math"
+import type { OrderItemForm } from "@/routes/_main/orders/-types"
 import { useMemo } from "react"
 import { useDemandStore } from "../-hooks/use-demand-store"
-import type { Demand } from "../-types"
+import type { Demand, DemandItem } from "../-types"
 
 export const DEMAND_PRINT_MODAL = "demand-print"
 
@@ -27,7 +30,34 @@ function consigneeOf(name: string, client?: Client): string {
         .join("\n")
 }
 
-function buildSeed(demand: Demand, client?: Client): AppendixSeed {
+/** «Расходная накладная» sarlavhasidagi xaridor rekviziti — bitta qatorda. */
+function buyerDetailsOf(name: string, client?: Client): string {
+    return [
+        name,
+        client?.legal_address || client?.region_address,
+        client?.inn && `ИНН: ${client.inn}`,
+        client?.okpo_code && `ОКПО: ${client.okpo_code}`,
+    ]
+        .filter(Boolean)
+        .join(", ")
+}
+
+/** Vazn ustuni tovar kartochkasidagi погонный метр og'irligidan chiqadi. */
+const asFormItem = (item: DemandItem): OrderItemForm => ({
+    id: item.id,
+    product_id: item.product?.id ?? null,
+    price: Number(item.price),
+    quantity: Number(item.quantity),
+    unit: item.unit,
+    weight_mode: item.weight_mode,
+    price_per_ton: Number(item.price_per_ton),
+    discount: Number(item.discount),
+    vat: item.vat,
+    reserve: 0,
+    product: item.product ?? null,
+})
+
+function buildSeed(demand: Demand, client?: Client): DemandSeed {
     const buyerName =
         client?.official_name ||
         client?.company_name ||
@@ -39,24 +69,50 @@ function buildSeed(demand: Demand, client?: Client): AppendixSeed {
     const docDate = demand.doc_date?.slice(0, 10) ?? ""
 
     return {
-        shipmentDate: docDate,
+        number: demand.number ?? "",
+        docDate,
         // Otgruzka buyurtmadan chiqqan bo'lsa — shartnoma raqami o'rniga
         // buyurtma raqami boshlang'ich qiymat sifatida qulay.
         contractNumber: demand.order_number ?? "",
         lotNumber: "",
-        appendixNumber: demand.number ?? "",
+        appendixNumber: demand.order_number ?? "",
         appendixVersion: "",
-        deliveryDeadline: docDate,
+        appendixDate: docDate,
+
         buyerName,
+        buyerInn: client?.inn ?? "",
+        buyerDetails: buyerDetailsOf(buyerName, client),
         consignee: consigneeOf(buyerName, client),
-        paymentTermsTitle: "",
+        warehouseName: "",
+
+        transportType: "",
+        carModel: demand.cargo_name ?? "",
+        carNumber: demand.transport_number ?? "",
+        driver: "",
+        carrier: demand.carrier ?? "",
+        waybillNumber: demand.waybill_number ?? "",
+        contractLine: demand.order_number ?? "",
+        loadingPoint: "",
+        loadingPoint2: "",
+        unloadingPoint: demand.shipment_address ?? "",
+        unloadingPoint2: "",
+        redirection: "",
+        newConsigneeAddress: demand.shipment_address ?? "",
+        cargoDocuments: "",
+        packageKind: "",
+        placesCount:
+            demand.places_count != null ? String(demand.places_count) : "",
+        weightMethod: "",
+        cargoClass: "",
         executor: owner ? `${owner.first_name} ${owner.last_name}`.trim() : "",
+
         // Buyurtmadagi kabi: «Кол-во × Цена = Сумма» bo'lishi uchun narx qaysi
         // birlikka tegishli bo'lsa, miqdor ham o'shanda yoziladi — tonnada
         // тонна, qolganida hisoblangan metr.
         items: (demand.items ?? [])
-            .map((item) => {
+            .map((item): PrintItem => {
                 const isTon = item.unit === "ton"
+                const perMeter = weightPerMeter(asFormItem(item))
                 return {
                     name:
                         item.product?.articul ?
@@ -72,6 +128,12 @@ function buildSeed(demand: Demand, client?: Client): AppendixSeed {
                             item.line_total_with_delivery
                         :   item.line_total,
                     ),
+                    // «Вес (кг)»: saqlangan tonnadan, u bo'lmasa kartochkadagi
+                    // погонный метр og'irligidan.
+                    weightKg:
+                        Number(item.weight_tn) > 0 ?
+                            Number(item.weight_tn) * 1000
+                        :   perMeter * Number(item.quantity_base),
                 }
             })
             .concat(
@@ -81,15 +143,15 @@ function buildSeed(demand: Demand, client?: Client): AppendixSeed {
                     demand.delivery_mode === "in_total" &&
                         Number(demand.delivery_cost) > 0
                 ) ?
-                    [
+                    ([
                         {
                             name: "Доставка",
-                            unit: "",
+                            unit: "шт",
                             quantity: 1,
                             price: Number(demand.delivery_cost),
                             total: Number(demand.delivery_cost),
                         },
-                    ]
+                    ] as PrintItem[])
                 :   [],
             ),
         total: Number(
@@ -122,10 +184,10 @@ export default function DemandPrintModal() {
     )
 
     return (
-        <AppendixPrintModal
+        <DemandPrintModalView
             modalKey={DEMAND_PRINT_MODAL}
             seed={seed}
-            fileName={`Приложение-${data?.number ?? ""}`}
+            fileName={data?.number ?? ""}
         />
     )
 }

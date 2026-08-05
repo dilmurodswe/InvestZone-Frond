@@ -10,7 +10,7 @@ import DemandDeleteModal from "./demand-delete-modal"
 import DemandDetailModal from "./demand-detail-modal"
 import DemandEditModal from "./demand-edit-modal"
 import DemandPrintModal from "./demand-print-modal"
-import { getDemandCols } from "./use-demand-cols"
+import { getDemandCols } from "./get-demand-cols"
 
 export default function DemandsPage() {
     const { t } = useTranslation()
