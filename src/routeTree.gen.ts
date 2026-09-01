@@ -33,8 +33,10 @@ import { Route as MainSettingsRawMaterialsIndexRouteImport } from './routes/_mai
 import { Route as MainSettingsProductsIndexRouteImport } from './routes/_main/settings/products/index'
 import { Route as MainSettingsPaymentTypeIndexRouteImport } from './routes/_main/settings/payment-type/index'
 import { Route as MainSettingsMachineIndexRouteImport } from './routes/_main/settings/machine/index'
+import { Route as MainSettingsFinanceCategoryIndexRouteImport } from './routes/_main/settings/finance-category/index'
 import { Route as MainSettingsCurrencyIndexRouteImport } from './routes/_main/settings/currency/index'
 import { Route as MainReadyStripsManufactureIdIndexRouteImport } from './routes/_main/ready-strips/$manufactureId/index'
+import { Route as MainFinanceSalaryIndexRouteImport } from './routes/_main/finance/salary/index'
 import { Route as MainFinanceIncomeIndexRouteImport } from './routes/_main/finance/income/index'
 import { Route as MainFinanceExpenceIndexRouteImport } from './routes/_main/finance/expence/index'
 import { Route as MainFinanceDashboardIndexRouteImport } from './routes/_main/finance/dashboard/index'
@@ -164,6 +166,12 @@ const MainSettingsMachineIndexRoute =
     path: '/settings/machine/',
     getParentRoute: () => MainRoute,
   } as any)
+const MainSettingsFinanceCategoryIndexRoute =
+  MainSettingsFinanceCategoryIndexRouteImport.update({
+    id: '/settings/finance-category/',
+    path: '/settings/finance-category/',
+    getParentRoute: () => MainRoute,
+  } as any)
 const MainSettingsCurrencyIndexRoute =
   MainSettingsCurrencyIndexRouteImport.update({
     id: '/settings/currency/',
@@ -176,6 +184,11 @@ const MainReadyStripsManufactureIdIndexRoute =
     path: '/ready-strips/$manufactureId/',
     getParentRoute: () => MainRoute,
   } as any)
+const MainFinanceSalaryIndexRoute = MainFinanceSalaryIndexRouteImport.update({
+  id: '/finance/salary/',
+  path: '/finance/salary/',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainFinanceIncomeIndexRoute = MainFinanceIncomeIndexRouteImport.update({
   id: '/finance/income/',
   path: '/finance/income/',
@@ -227,8 +240,10 @@ export interface FileRoutesByFullPath {
   '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
   '/finance/expence': typeof MainFinanceExpenceIndexRoute
   '/finance/income': typeof MainFinanceIncomeIndexRoute
+  '/finance/salary': typeof MainFinanceSalaryIndexRoute
   '/ready-strips/$manufactureId': typeof MainReadyStripsManufactureIdIndexRoute
   '/settings/currency': typeof MainSettingsCurrencyIndexRoute
+  '/settings/finance-category': typeof MainSettingsFinanceCategoryIndexRoute
   '/settings/machine': typeof MainSettingsMachineIndexRoute
   '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
   '/settings/products': typeof MainSettingsProductsIndexRoute
@@ -258,8 +273,10 @@ export interface FileRoutesByTo {
   '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
   '/finance/expence': typeof MainFinanceExpenceIndexRoute
   '/finance/income': typeof MainFinanceIncomeIndexRoute
+  '/finance/salary': typeof MainFinanceSalaryIndexRoute
   '/ready-strips/$manufactureId': typeof MainReadyStripsManufactureIdIndexRoute
   '/settings/currency': typeof MainSettingsCurrencyIndexRoute
+  '/settings/finance-category': typeof MainSettingsFinanceCategoryIndexRoute
   '/settings/machine': typeof MainSettingsMachineIndexRoute
   '/settings/payment-type': typeof MainSettingsPaymentTypeIndexRoute
   '/settings/products': typeof MainSettingsProductsIndexRoute
@@ -292,8 +309,10 @@ export interface FileRoutesById {
   '/_main/finance/dashboard/': typeof MainFinanceDashboardIndexRoute
   '/_main/finance/expence/': typeof MainFinanceExpenceIndexRoute
   '/_main/finance/income/': typeof MainFinanceIncomeIndexRoute
+  '/_main/finance/salary/': typeof MainFinanceSalaryIndexRoute
   '/_main/ready-strips/$manufactureId/': typeof MainReadyStripsManufactureIdIndexRoute
   '/_main/settings/currency/': typeof MainSettingsCurrencyIndexRoute
+  '/_main/settings/finance-category/': typeof MainSettingsFinanceCategoryIndexRoute
   '/_main/settings/machine/': typeof MainSettingsMachineIndexRoute
   '/_main/settings/payment-type/': typeof MainSettingsPaymentTypeIndexRoute
   '/_main/settings/products/': typeof MainSettingsProductsIndexRoute
@@ -325,8 +344,10 @@ export interface FileRouteTypes {
     | '/finance/dashboard'
     | '/finance/expence'
     | '/finance/income'
+    | '/finance/salary'
     | '/ready-strips/$manufactureId'
     | '/settings/currency'
+    | '/settings/finance-category'
     | '/settings/machine'
     | '/settings/payment-type'
     | '/settings/products'
@@ -356,8 +377,10 @@ export interface FileRouteTypes {
     | '/finance/dashboard'
     | '/finance/expence'
     | '/finance/income'
+    | '/finance/salary'
     | '/ready-strips/$manufactureId'
     | '/settings/currency'
+    | '/settings/finance-category'
     | '/settings/machine'
     | '/settings/payment-type'
     | '/settings/products'
@@ -389,8 +412,10 @@ export interface FileRouteTypes {
     | '/_main/finance/dashboard/'
     | '/_main/finance/expence/'
     | '/_main/finance/income/'
+    | '/_main/finance/salary/'
     | '/_main/ready-strips/$manufactureId/'
     | '/_main/settings/currency/'
+    | '/_main/settings/finance-category/'
     | '/_main/settings/machine/'
     | '/_main/settings/payment-type/'
     | '/_main/settings/products/'
@@ -574,6 +599,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainSettingsMachineIndexRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/settings/finance-category/': {
+      id: '/_main/settings/finance-category/'
+      path: '/settings/finance-category'
+      fullPath: '/settings/finance-category'
+      preLoaderRoute: typeof MainSettingsFinanceCategoryIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/settings/currency/': {
       id: '/_main/settings/currency/'
       path: '/settings/currency'
@@ -586,6 +618,13 @@ declare module '@tanstack/react-router' {
       path: '/ready-strips/$manufactureId'
       fullPath: '/ready-strips/$manufactureId'
       preLoaderRoute: typeof MainReadyStripsManufactureIdIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/finance/salary/': {
+      id: '/_main/finance/salary/'
+      path: '/finance/salary'
+      fullPath: '/finance/salary'
+      preLoaderRoute: typeof MainFinanceSalaryIndexRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/finance/income/': {
@@ -657,8 +696,10 @@ interface MainRouteChildren {
   MainFinanceDashboardIndexRoute: typeof MainFinanceDashboardIndexRoute
   MainFinanceExpenceIndexRoute: typeof MainFinanceExpenceIndexRoute
   MainFinanceIncomeIndexRoute: typeof MainFinanceIncomeIndexRoute
+  MainFinanceSalaryIndexRoute: typeof MainFinanceSalaryIndexRoute
   MainReadyStripsManufactureIdIndexRoute: typeof MainReadyStripsManufactureIdIndexRoute
   MainSettingsCurrencyIndexRoute: typeof MainSettingsCurrencyIndexRoute
+  MainSettingsFinanceCategoryIndexRoute: typeof MainSettingsFinanceCategoryIndexRoute
   MainSettingsMachineIndexRoute: typeof MainSettingsMachineIndexRoute
   MainSettingsPaymentTypeIndexRoute: typeof MainSettingsPaymentTypeIndexRoute
   MainSettingsProductsIndexRoute: typeof MainSettingsProductsIndexRoute
@@ -688,9 +729,11 @@ const MainRouteChildren: MainRouteChildren = {
   MainFinanceDashboardIndexRoute: MainFinanceDashboardIndexRoute,
   MainFinanceExpenceIndexRoute: MainFinanceExpenceIndexRoute,
   MainFinanceIncomeIndexRoute: MainFinanceIncomeIndexRoute,
+  MainFinanceSalaryIndexRoute: MainFinanceSalaryIndexRoute,
   MainReadyStripsManufactureIdIndexRoute:
     MainReadyStripsManufactureIdIndexRoute,
   MainSettingsCurrencyIndexRoute: MainSettingsCurrencyIndexRoute,
+  MainSettingsFinanceCategoryIndexRoute: MainSettingsFinanceCategoryIndexRoute,
   MainSettingsMachineIndexRoute: MainSettingsMachineIndexRoute,
   MainSettingsPaymentTypeIndexRoute: MainSettingsPaymentTypeIndexRoute,
   MainSettingsProductsIndexRoute: MainSettingsProductsIndexRoute,

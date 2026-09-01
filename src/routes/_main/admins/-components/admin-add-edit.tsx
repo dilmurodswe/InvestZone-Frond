@@ -39,6 +39,12 @@ const adminOptions: { id: Admin["role"]; name: string }[] = [
     { id: "master", name: "Master" },
 ]
 
+const rateUnitOptions: { id: Admin["salary_rate_unit"]; name: string }[] = [
+    { id: "fixed", name: "Фикс" },
+    { id: "day", name: "Кун" },
+    { id: "hour", name: "Соат" },
+]
+
 function AdminAddEdit() {
     const { closeModal } = useModal("add-admin")
     const { invalidateByExactMatch } = useRevalidate()
@@ -53,6 +59,11 @@ function AdminAddEdit() {
             role: "admin",
             confirm_password: "",
             employee_code: null,
+            department: "",
+            position: "",
+            base_salary: "0",
+            salary_rate_unit: "fixed",
+            salary_norm: "1",
         },
         values:
             admin ?
@@ -168,6 +179,45 @@ function AdminAddEdit() {
                 type="password"
                 optional={!!admin}
             />
+
+            <div className="mt-1 border-t pt-3">
+                <p className="mb-2 text-sm font-semibold text-muted-foreground">
+                    {t("salary.title")}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                    <UncontrolledInput
+                        methods={form}
+                        name="department"
+                        label={t("salary.department")}
+                        optional
+                    />
+                    <UncontrolledInput
+                        methods={form}
+                        name="position"
+                        label={t("salary.position")}
+                        optional
+                    />
+                    <UncontrolledInput
+                        methods={form}
+                        name="base_salary"
+                        label={t("salary.baseSalary")}
+                        optional
+                    />
+                    <SelectField
+                        methods={form}
+                        name="salary_rate_unit"
+                        options={rateUnitOptions}
+                        label={t("salary.rateUnit")}
+                    />
+                    <UncontrolledInput
+                        methods={form}
+                        name="salary_norm"
+                        label={t("salary.norm")}
+                        optional
+                    />
+                </div>
+            </div>
+
             <FormAction
                 submitName={admin ? t("common.save") : t("common.add")}
                 loading={isPending}

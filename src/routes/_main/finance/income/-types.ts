@@ -23,11 +23,18 @@ export type SalesAgent = {
     date_joined: string
 }
 
-export type Income = {
+export type CategoryRef = {
     id: number
     name: string
+} | null
+
+export type Income = {
+    id: number
     payment_type: string
     currency: IncomeCurrency
+    category: CategoryRef
+    subcategory: CategoryRef
+    attachment: string | null
     current_rate: string
     custom_rate: string
     date: string
@@ -37,9 +44,11 @@ export type Income = {
 }
 
 export type IncomeForm = {
-    name: string
     payment_type: number | null
     currency: number | null
+    category: number | null
+    subcategory: number | null
+    attachment: File | string | null
     current_rate: string
     custom_rate: string
     date: string

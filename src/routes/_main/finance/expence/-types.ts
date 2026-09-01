@@ -5,11 +5,18 @@ export type ExpenseCurrency = {
     is_active: boolean
 }
 
-export type Expense = {
+export type CategoryRef = {
     id: number
     name: string
+} | null
+
+export type Expense = {
+    id: number
     payment_type: string
     currency: ExpenseCurrency
+    category: CategoryRef
+    subcategory: CategoryRef
+    attachment: string | null
     current_rate: number
     custom_rate: number
     date: string
@@ -18,9 +25,11 @@ export type Expense = {
 }
 
 export type ExpenseForm = {
-    name: string
     payment_type: number | null
     currency: number | null
+    category: number | null
+    subcategory: number | null
+    attachment: File | string | null
     current_rate: number | string
     custom_rate: number | string
     date: string

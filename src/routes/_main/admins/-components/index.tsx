@@ -37,13 +37,19 @@ export default function Index() {
         <>
             <Navbar links={[{ label: t("nav.admins") }]} />
             <Layout>
-                <Group className="flex gap-4 flex-wrap justify-between">
-                    <div className="flex flex-wrap gap-x-2 gap-y-4">
-                        <FilterInput />
+                <Group className="mb-4 flex flex-wrap items-end justify-between gap-4">
+                    <div className="flex flex-wrap items-end gap-3">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">
+                                {t("common.search")}
+                            </label>
+                            <FilterInput className="w-64" />
+                        </div>
                         <FilterSelect
                             filterKey="role"
-                            placeholder={t("table.role")}
+                            label={t("table.role")}
                             options={roleOptions}
+                            wrapperClassname="min-w-[200px]"
                         />
                     </div>
                     <Button

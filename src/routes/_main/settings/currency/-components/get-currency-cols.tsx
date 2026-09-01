@@ -13,6 +13,13 @@ export const getCurrencyCols = (): ColumnDef<Currency>[] => {
             ),
         },
         {
+            accessorKey: "currency_type",
+            header: "Type",
+            cell: ({ row: { original } }) => (
+                <span className="text-sm">{original.currency_type}</span>
+            ),
+        },
+        {
             accessorKey: "current_rate",
             header: i18n.t("table.currentRate"),
             cell: ({ row: { original } }) => (

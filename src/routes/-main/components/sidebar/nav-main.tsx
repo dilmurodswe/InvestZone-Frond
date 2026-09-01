@@ -69,6 +69,11 @@ export function NavMain() {
                     enabled: isAdmin,
                     title: t("nav.income"),
                 }),
+                linkOptions({
+                    to: "/finance/salary",
+                    enabled: isAdmin,
+                    title: t("nav.salary"),
+                }),
             ],
         }),
         linkOptions({
@@ -211,6 +216,11 @@ export function NavMain() {
                     enabled: isAdmin,
                     title: t("nav.machine"),
                 }),
+                linkOptions({
+                    to: "/settings/finance-category",
+                    enabled: isAdmin,
+                    title: t("nav.financeCategory"),
+                }),
             ],
         }),
     ]
@@ -314,7 +324,7 @@ export function NavMain() {
                                                                     <SidebarMenuSubButton
                                                                         asChild
                                                                     >
-                                                                        <span className="flex items-center gap-1">
+                                                                        <span className="flex min-w-0 items-center gap-1 truncate whitespace-nowrap">
                                                                             {
                                                                                 subItem.title
                                                                             }

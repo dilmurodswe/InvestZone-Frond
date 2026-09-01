@@ -30,6 +30,6 @@ export interface Client {
     phone: string
     email: string
     notes: string
-    balance: number | null
+    balance: number | string | null
     created_at: string
 }

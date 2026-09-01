@@ -1,3 +1,4 @@
+import FileInput from "@/components/custom/file-input"
 import FormAction from "@/components/custom/form-action"
 import Modal from "@/components/custom/modal"
 import { Button } from "@/components/ui/button"
@@ -22,16 +23,23 @@ import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { cn } from "@/lib/utils/shadcn"
+import { toFormData } from "@/lib/utils/to-form-data"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { useEffect } from "react"
-import { Controller, useForm } from "react-hook-form"
+import { Controller, useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
+import { NumericFormat } from "react-number-format"
 import { toast } from "sonner"
 import { useCurrenciesQuery } from "../-hooks/use-currencies-query"
 import { usePaymentTypesQuery } from "../-hooks/use-payment-types-query"
 import { useSalesAgentsQuery } from "../-hooks/use-sales-agents-query"
 import type { Income, IncomeForm } from "../-types"
+import RateAutoField from "../../-components/rate-auto-field"
+import {
+    useFinanceCategoriesQuery,
+    useFinanceSubcategoriesQuery,
+} from "../../-hooks/use-finance-categories"
 
 interface Props {
     income: Income | null
@@ -41,7 +49,12 @@ export default function IncomeAddEditModal({ income }: Props) {
     const { isOpen } = useModal("add-income")
 
     return (
-        <Modal modalKey="add-income" title={null} className="md:max-w-lg">
+        <Modal
+            modalKey="add-income"
+            title={null}
+            className="md:max-w-3xl"
+            wrapperClassname="md:max-w-3xl"
+        >
             <IncomeFormInner
                 key={`${income?.id ?? "new"}-${isOpen}`}
                 income={income}
@@ -55,16 +68,24 @@ function IncomeFormInner({ income }: Props) {
     const { closeModal } = useModal("add-income")
     const { invalidateByPatternMatch } = useRevalidate()
     const { post, patch, isPending } = useRequest()
+    // Separate instance for multipart: clears the JSON Content-Type default so
+    // the browser sets `multipart/form-data` with a boundary.
+    const fileReq = useRequest({
+        config: { headers: { "Content-Type": null } },
+    })
     const { currencyList, isLoading: currLoading } = useCurrenciesQuery()
     const { paymentTypeList, isLoading: payLoading } = usePaymentTypesQuery()
     const { salesAgentList, isLoading: agentLoading } = useSalesAgentsQuery()
+    const { categoryList } = useFinanceCategoriesQuery("income")
 
     const listsLoaded = !currLoading && !payLoading && !agentLoading
     const form = useForm<IncomeForm>({
         defaultValues: {
-            name: income?.name ?? "",
             payment_type: null, // list kerak, pastda reset qilinadi
             currency: income?.currency?.id ?? null,
+            category: income?.category?.id ?? null,
+            subcategory: income?.subcategory?.id ?? null,
+            attachment: null,
             current_rate: income?.current_rate ?? "",
             custom_rate: income?.custom_rate ?? "",
             date: income?.date ?? format(new Date(), "yyyy-MM-dd"),
@@ -74,14 +95,19 @@ function IncomeFormInner({ income }: Props) {
         },
     })
 
+    const categoryId = useWatch({ control: form.control, name: "category" })
+    const { subcategoryList } = useFinanceSubcategoriesQuery(categoryId)
+
     useEffect(() => {
         if (!income || !listsLoaded) return
         form.reset({
-            name: income.name,
             payment_type:
                 paymentTypeList.find((p) => p.name === income.payment_type)
                     ?.id ?? null,
             currency: income.currency?.id ?? null,
+            category: income.category?.id ?? null,
+            subcategory: income.subcategory?.id ?? null,
+            attachment: null,
             current_rate: income.current_rate ?? "",
             custom_rate: income.custom_rate ?? "",
             date: income.date,
@@ -99,83 +125,64 @@ function IncomeFormInner({ income }: Props) {
         invalidateByPatternMatch([API.FINANCE.INCOME.INDEX])
         closeModal()
         toast.success(
-            income ? "Updated successfully" : "Income added successfully",
+            income ?
+                t("common.updatedSuccessfully")
+            :   t("common.addedSuccessfully"),
         )
     }
 
     const onSubmit = form.handleSubmit((vals) => {
+        const { attachment, ...rest } = vals
+        const hasFile = attachment instanceof File
+        const payload = hasFile ? toFormData({ ...rest, attachment }) : rest
+        const { post: doPost, patch: doPatch } =
+            hasFile ? fileReq : { post, patch }
+
         if (income) {
-            patch(
+            doPatch(
                 API.FINANCE.INCOME.ID.INDEX.replace("{id}", String(income.id)),
-                vals,
+                payload,
                 { onSuccess },
             )
         } else {
-            post(API.FINANCE.INCOME.INDEX, vals, { onSuccess })
+            doPost(API.FINANCE.INCOME.INDEX, payload, { onSuccess })
         }
     })
 
+    const entity = t("entity.income")
+
     return (
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+        <form onSubmit={onSubmit} className="flex flex-col gap-5">
             <CardTitle>
                 {income ?
-                    t("common.editEntity", { entity: t("entity.income") })
-                :   t("common.addEntity", { entity: t("entity.income") })}
+                    t("common.editEntity", { entity })
+                :   t("common.addEntity", { entity })}
             </CardTitle>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                    <Label>Name</Label>
-                    <Controller
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                            <Input {...field} placeholder="Enter name" />
-                        )}
-                    />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                    <Label>Amount</Label>
+            <div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("table.amount")}</Label>
                     <Controller
                         control={form.control}
                         name="amount"
                         render={({ field }) => (
-                            <Input {...field} placeholder="0.00" />
+                            <NumericFormat
+                                customInput={Input}
+                                value={field.value ?? ""}
+                                getInputRef={field.ref}
+                                onBlur={field.onBlur}
+                                onValueChange={(v) => field.onChange(v.value)}
+                                thousandSeparator=" "
+                                decimalScale={2}
+                                allowNegative={false}
+                                placeholder="0"
+                            />
                         )}
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                    <Label>Payment Type</Label>
-                    <Controller
-                        control={form.control}
-                        name="payment_type"
-                        render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(v) => field.onChange(Number(v))}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select payment type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {paymentTypeList.map((p) => (
-                                        <SelectItem
-                                            key={p.id}
-                                            value={String(p.id)}
-                                        >
-                                            {p.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                    <Label>Currency</Label>
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("table.currency")}</Label>
                     <Controller
                         control={form.control}
                         name="currency"
@@ -184,8 +191,10 @@ function IncomeFormInner({ income }: Props) {
                                 value={field.value ? String(field.value) : ""}
                                 onValueChange={(v) => field.onChange(Number(v))}
                             >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select currency" />
+                                <SelectTrigger className="w-full min-w-0">
+                                    <SelectValue
+                                        placeholder={t("common.select")}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {currencyList.map((c) => (
@@ -202,19 +211,79 @@ function IncomeFormInner({ income }: Props) {
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                    <Label>Current Rate</Label>
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("entity.category")}</Label>
                     <Controller
                         control={form.control}
-                        name="current_rate"
+                        name="category"
                         render={({ field }) => (
-                            <Input {...field} placeholder="0" type="number" />
+                            <Select
+                                value={field.value ? String(field.value) : ""}
+                                onValueChange={(v) => {
+                                    field.onChange(Number(v))
+                                    form.setValue("subcategory", null)
+                                }}
+                            >
+                                <SelectTrigger className="w-full min-w-0">
+                                    <SelectValue
+                                        placeholder={t("common.select")}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categoryList.map((c) => (
+                                        <SelectItem
+                                            key={c.id}
+                                            value={String(c.id)}
+                                        >
+                                            {c.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         )}
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                    <Label>Custom Rate</Label>
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("entity.subcategory")}</Label>
+                    <Controller
+                        control={form.control}
+                        name="subcategory"
+                        render={({ field }) => (
+                            <Select
+                                disabled={!categoryId}
+                                value={field.value ? String(field.value) : ""}
+                                onValueChange={(v) => field.onChange(Number(v))}
+                            >
+                                <SelectTrigger className="w-full min-w-0">
+                                    <SelectValue
+                                        placeholder={t("common.select")}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {subcategoryList.map((c) => (
+                                        <SelectItem
+                                            key={c.id}
+                                            value={String(c.id)}
+                                        >
+                                            {c.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+
+                <RateAutoField
+                    form={form}
+                    name="current_rate"
+                    mirrorName="custom_rate"
+                    autoFill={!income}
+                />
+
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("table.customRate")}</Label>
                     <Controller
                         control={form.control}
                         name="custom_rate"
@@ -224,8 +293,38 @@ function IncomeFormInner({ income }: Props) {
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5 ">
-                    <Label>Sales Agent</Label>
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("finCat.kassa")}</Label>
+                    <Controller
+                        control={form.control}
+                        name="payment_type"
+                        render={({ field }) => (
+                            <Select
+                                value={field.value ? String(field.value) : ""}
+                                onValueChange={(v) => field.onChange(Number(v))}
+                            >
+                                <SelectTrigger className="w-full min-w-0">
+                                    <SelectValue
+                                        placeholder={t("common.select")}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {paymentTypeList.map((p) => (
+                                        <SelectItem
+                                            key={p.id}
+                                            value={String(p.id)}
+                                        >
+                                            {p.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("table.salesAgent")}</Label>
                     <Controller
                         control={form.control}
                         name="sales_agent"
@@ -234,8 +333,10 @@ function IncomeFormInner({ income }: Props) {
                                 value={field.value ? String(field.value) : ""}
                                 onValueChange={(v) => field.onChange(Number(v))}
                             >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select sales agent" />
+                                <SelectTrigger className="w-full min-w-0">
+                                    <SelectValue
+                                        placeholder={t("common.select")}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {salesAgentList.map((a) => (
@@ -252,8 +353,8 @@ function IncomeFormInner({ income }: Props) {
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5 col-span-2">
-                    <Label>Date</Label>
+                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2">
+                    <Label>{t("table.date")}</Label>
                     <Controller
                         control={form.control}
                         name="date"
@@ -271,7 +372,7 @@ function IncomeFormInner({ income }: Props) {
                                         <CalendarIcon className="mr-2 h-4 w-4" />
                                         {field.value ?
                                             field.value
-                                        :   "Pick a date"}
+                                        :   t("common.pickDate")}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
@@ -289,7 +390,7 @@ function IncomeFormInner({ income }: Props) {
                                                 :   "",
                                             )
                                         }
-                                        initialFocus
+                                        autoFocus
                                     />
                                 </PopoverContent>
                             </Popover>
@@ -297,21 +398,49 @@ function IncomeFormInner({ income }: Props) {
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5 col-span-2">
-                    <Label>Comment</Label>
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("table.comment")}</Label>
                     <Controller
                         control={form.control}
                         name="comment"
                         render={({ field }) => (
-                            <Input {...field} placeholder="Enter comment" />
+                            <Input
+                                {...field}
+                                placeholder={t("common.enterValue")}
+                            />
                         )}
                     />
+                </div>
+
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("finCat.attachFile")}</Label>
+                    <Controller
+                        control={form.control}
+                        name="attachment"
+                        render={({ field }) => (
+                            <FileInput
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder={t("finCat.attachFile")}
+                            />
+                        )}
+                    />
+                    {income?.attachment && (
+                        <a
+                            href={income.attachment}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-primary underline"
+                        >
+                            {t("finCat.currentFile")}
+                        </a>
+                    )}
                 </div>
             </div>
 
             <FormAction
                 submitName={income ? t("common.save") : t("common.add")}
-                loading={isPending}
+                loading={isPending || fileReq.isPending}
             />
         </form>
     )

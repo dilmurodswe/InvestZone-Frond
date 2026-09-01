@@ -55,7 +55,7 @@ function ClientDetail() {
                         label="Balance"
                         value={
                             client.balance != null ?
-                                formatDecimal(client.balance)
+                                formatDecimal(Number(client.balance))
                             :   null
                         }
                     />

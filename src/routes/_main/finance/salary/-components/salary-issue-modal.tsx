@@ -26,147 +26,176 @@ import { cn } from "@/lib/utils/shadcn"
 import { toFormData } from "@/lib/utils/to-form-data"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
-import { useEffect } from "react"
-import { Controller, useForm, useWatch } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { NumericFormat } from "react-number-format"
 import { toast } from "sonner"
-import { useCurrenciesQuery } from "../-hooks/use-currencies-query"
-import { usePaymentTypesQuery } from "../-hooks/use-payment-types-query"
-import type { Expense, ExpenseForm } from "../-types"
-import RateAutoField from "../../-components/rate-auto-field"
-import {
-    useFinanceCategoriesQuery,
-    useFinanceSubcategoriesQuery,
-} from "../../-hooks/use-finance-categories"
+import { usePayrollEmployeesQuery } from "../-hooks/use-salary-queries"
+import type { SalaryIssueForm, SalaryKind, SalaryTransaction } from "../-types"
+import { usePaymentTypesQuery } from "../../expence/-hooks/use-payment-types-query"
 
-interface Props {
-    expense: Expense | null
-}
+const MODAL_KEY = "salary-issue"
+const KINDS: SalaryKind[] = ["advance", "penalty", "bonus"]
 
-export default function ExpenseAddEditModal({ expense }: Props) {
-    const { isOpen } = useModal("add-expense")
+type Props = { transaction?: SalaryTransaction | null }
 
+export default function SalaryIssueModal({ transaction }: Props) {
+    const { isOpen } = useModal(MODAL_KEY)
     return (
         <Modal
-            modalKey="add-expense"
+            modalKey={MODAL_KEY}
             title={null}
-            className="md:max-w-3xl"
-            wrapperClassname="md:max-w-3xl"
+            className="md:max-w-xl"
+            wrapperClassname="md:max-w-xl"
         >
-            <ExpenseFormInner
-                key={`${expense?.id ?? "new"}-${isOpen}`}
-                expense={expense}
+            <Inner
+                key={`${transaction?.id ?? "new"}-${isOpen}`}
+                transaction={transaction ?? null}
             />
         </Modal>
     )
 }
 
-function ExpenseFormInner({ expense }: Props) {
+function Inner({ transaction }: { transaction: SalaryTransaction | null }) {
     const { t } = useTranslation()
-    const { closeModal } = useModal("add-expense")
+    const { closeModal } = useModal(MODAL_KEY)
     const { invalidateByPatternMatch } = useRevalidate()
     const { post, patch, isPending } = useRequest()
-    // Separate instance for multipart: clears the JSON Content-Type default so
-    // the browser sets `multipart/form-data` with a boundary.
     const fileReq = useRequest({
         config: { headers: { "Content-Type": null } },
     })
-    const { currencyList, isLoading: currLoading } = useCurrenciesQuery()
-    const { paymentTypeList, isLoading: payLoading } = usePaymentTypesQuery()
-    const { categoryList } = useFinanceCategoriesQuery("expense")
+    const { employeeList } = usePayrollEmployeesQuery()
+    const { paymentTypeList } = usePaymentTypesQuery()
 
-    const listsLoaded = !currLoading && !payLoading
-
-    const form = useForm<ExpenseForm>({
+    const form = useForm<SalaryIssueForm>({
         defaultValues: {
-            payment_type:
-                expense ?
-                    (paymentTypeList.find(
-                        (p) => p.name === expense.payment_type,
-                    )?.id ?? null)
-                :   null,
-            currency: expense?.currency?.id ?? null,
-            category: expense?.category?.id ?? null,
-            subcategory: expense?.subcategory?.id ?? null,
+            employee: transaction?.employee ?? null,
+            kind: transaction?.kind ?? "advance",
+            amount: transaction?.amount ?? "",
+            payment_type: transaction?.payment_type ?? null,
+            date: transaction?.date ?? format(new Date(), "yyyy-MM-dd"),
+            comment: transaction?.comment ?? "",
             attachment: null,
-            current_rate: expense?.current_rate ?? "",
-            custom_rate: expense?.custom_rate ?? "",
-            date: expense?.date ?? format(new Date(), "yyyy-MM-dd"),
-            amount: expense?.amount ?? "",
-            comment: expense?.comment ?? "",
         },
     })
-
-    const categoryId = useWatch({ control: form.control, name: "category" })
-    const { subcategoryList } = useFinanceSubcategoriesQuery(categoryId)
-
-    useEffect(() => {
-        if (!expense || !listsLoaded) return
-        form.reset({
-            payment_type:
-                paymentTypeList.find((p) => p.name === expense.payment_type)
-                    ?.id ?? null,
-            currency: expense.currency?.id ?? null,
-            category: expense.category?.id ?? null,
-            subcategory: expense.subcategory?.id ?? null,
-            attachment: null,
-            current_rate: expense.current_rate ?? "",
-            custom_rate: expense.custom_rate ?? "",
-            date: expense.date,
-            amount: expense.amount ?? "",
-            comment: expense.comment ?? "",
-        })
-    }, [listsLoaded]) // eslint-disable-line
-
-    const onSuccess = () => {
-        invalidateByPatternMatch([API.FINANCE.EXPENSE.INDEX])
-        closeModal()
-        toast.success(
-            expense ?
-                t("common.updatedSuccessfully")
-            :   t("common.addedSuccessfully"),
-        )
-    }
 
     const onSubmit = form.handleSubmit((vals) => {
         const { attachment, ...rest } = vals
         const hasFile = attachment instanceof File
         const payload = hasFile ? toFormData({ ...rest, attachment }) : rest
-        const { post: doPost, patch: doPatch } =
-            hasFile ? fileReq : { post, patch }
-
-        if (expense) {
+        const done = () => {
+            invalidateByPatternMatch([
+                API.FINANCE.SALARY_TRANSACTIONS.INDEX,
+                API.FINANCE.PAYROLL.INDEX,
+                API.FINANCE.EXPENSE.INDEX,
+                API.FINANCE.INCOME.INDEX,
+            ])
+            closeModal()
+            toast.success(
+                transaction ?
+                    t("common.updatedSuccessfully")
+                :   t("common.addedSuccessfully"),
+            )
+        }
+        if (transaction) {
+            const doPatch = hasFile ? fileReq.patch : patch
             doPatch(
-                API.FINANCE.EXPENSE.ID.INDEX.replace(
+                API.FINANCE.SALARY_TRANSACTIONS.ID.INDEX.replace(
                     "{id}",
-                    String(expense.id),
+                    String(transaction.id),
                 ),
                 payload,
-                { onSuccess },
+                { onSuccess: done },
             )
         } else {
-            doPost(API.FINANCE.EXPENSE.INDEX, payload, { onSuccess })
+            const doPost = hasFile ? fileReq.post : post
+            doPost(API.FINANCE.SALARY_TRANSACTIONS.INDEX, payload, {
+                onSuccess: done,
+            })
         }
     })
-
-    const entity = t("entity.expense")
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-5">
             <CardTitle>
-                {expense ?
-                    t("common.editEntity", { entity })
-                :   t("common.addEntity", { entity })}
+                {transaction ?
+                    t("common.editEntity", { entity: t("salary.issue") })
+                :   t("salary.issueTitle")}
             </CardTitle>
 
             <div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2">
+                    <Label>{t("salary.employee")}</Label>
+                    <Controller
+                        control={form.control}
+                        name="employee"
+                        rules={{ required: true }}
+                        render={({ field, fieldState }) => (
+                            <Select
+                                value={field.value ? String(field.value) : ""}
+                                onValueChange={(v) => field.onChange(Number(v))}
+                            >
+                                <SelectTrigger
+                                    className={cn(
+                                        "w-full min-w-0",
+                                        fieldState.error &&
+                                            "border-destructive",
+                                    )}
+                                >
+                                    <SelectValue
+                                        placeholder={t("common.select")}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {employeeList.map((e) => (
+                                        <SelectItem
+                                            key={e.id}
+                                            value={String(e.id)}
+                                        >
+                                            {e.full_name}
+                                            {e.position ?
+                                                ` — ${e.position}`
+                                            :   ""}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("salary.action")}</Label>
+                    <Controller
+                        control={form.control}
+                        name="kind"
+                        render={({ field }) => (
+                            <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                            >
+                                <SelectTrigger className="w-full min-w-0">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {KINDS.map((k) => (
+                                        <SelectItem key={k} value={k}>
+                                            {t(`salary.${k}` as const)}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+
                 <div className="flex min-w-0 flex-col gap-1.5">
                     <Label>{t("table.amount")}</Label>
                     <Controller
                         control={form.control}
                         name="amount"
-                        render={({ field }) => (
+                        rules={{ required: true }}
+                        render={({ field, fieldState }) => (
                             <NumericFormat
                                 customInput={Input}
                                 value={field.value ?? ""}
@@ -177,119 +206,10 @@ function ExpenseFormInner({ expense }: Props) {
                                 decimalScale={2}
                                 allowNegative={false}
                                 placeholder="0"
+                                className={cn(
+                                    fieldState.error && "border-destructive",
+                                )}
                             />
-                        )}
-                    />
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("table.currency")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="currency"
-                        render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(v) => field.onChange(Number(v))}
-                            >
-                                <SelectTrigger className="w-full min-w-0">
-                                    <SelectValue
-                                        placeholder={t("common.select")}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {currencyList.map((c) => (
-                                        <SelectItem
-                                            key={c.id}
-                                            value={String(c.id)}
-                                        >
-                                            {c.currency} ({c.current_rate})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("entity.category")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="category"
-                        render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(v) => {
-                                    field.onChange(Number(v))
-                                    form.setValue("subcategory", null)
-                                }}
-                            >
-                                <SelectTrigger className="w-full min-w-0">
-                                    <SelectValue
-                                        placeholder={t("common.select")}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categoryList.map((c) => (
-                                        <SelectItem
-                                            key={c.id}
-                                            value={String(c.id)}
-                                        >
-                                            {c.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("entity.subcategory")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="subcategory"
-                        render={({ field }) => (
-                            <Select
-                                disabled={!categoryId}
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(v) => field.onChange(Number(v))}
-                            >
-                                <SelectTrigger className="w-full min-w-0">
-                                    <SelectValue
-                                        placeholder={t("common.select")}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {subcategoryList.map((c) => (
-                                        <SelectItem
-                                            key={c.id}
-                                            value={String(c.id)}
-                                        >
-                                            {c.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
-                <RateAutoField
-                    form={form}
-                    name="current_rate"
-                    mirrorName="custom_rate"
-                    autoFill={!expense}
-                />
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("table.customRate")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="custom_rate"
-                        render={({ field }) => (
-                            <Input {...field} placeholder="0" type="number" />
                         )}
                     />
                 </div>
@@ -341,9 +261,7 @@ function ExpenseFormInner({ expense }: Props) {
                                         )}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {field.value ?
-                                            field.value
-                                        :   t("common.pickDate")}
+                                        {field.value || t("common.pickDate")}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
@@ -369,7 +287,7 @@ function ExpenseFormInner({ expense }: Props) {
                     />
                 </div>
 
-                <div className="flex min-w-0 flex-col gap-1.5">
+                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2">
                     <Label>{t("table.comment")}</Label>
                     <Controller
                         control={form.control}
@@ -383,7 +301,7 @@ function ExpenseFormInner({ expense }: Props) {
                     />
                 </div>
 
-                <div className="flex min-w-0 flex-col gap-1.5">
+                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2">
                     <Label>{t("finCat.attachFile")}</Label>
                     <Controller
                         control={form.control}
@@ -396,9 +314,9 @@ function ExpenseFormInner({ expense }: Props) {
                             />
                         )}
                     />
-                    {expense?.attachment && (
+                    {transaction?.attachment && (
                         <a
-                            href={expense.attachment}
+                            href={transaction.attachment}
                             target="_blank"
                             rel="noreferrer"
                             className="text-xs text-primary underline"
@@ -410,7 +328,7 @@ function ExpenseFormInner({ expense }: Props) {
             </div>
 
             <FormAction
-                submitName={expense ? t("common.save") : t("common.add")}
+                submitName={transaction ? t("common.save") : t("common.add")}
                 loading={isPending || fileReq.isPending}
             />
         </form>

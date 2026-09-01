@@ -159,6 +159,28 @@ export const API = {
             INDEX: "finance/income",
             ID: { INDEX: "finance/income/{id}" },
         },
+        CATEGORIES: {
+            INDEX: "finance/categories",
+            ID: { INDEX: "finance/categories/{id}" },
+        },
+        SUBCATEGORIES: {
+            INDEX: "finance/subcategories",
+            ID: { INDEX: "finance/subcategories/{id}" },
+        },
+        USD_RATE: {
+            INDEX: "finance/usd-rate",
+        },
+        PAYROLL_EMPLOYEES: {
+            INDEX: "finance/payroll-employees",
+        },
+        SALARY_TRANSACTIONS: {
+            INDEX: "finance/salary-transactions",
+            ID: { INDEX: "finance/salary-transactions/{id}" },
+        },
+        PAYROLL: {
+            INDEX: "finance/payroll",
+            ID: { INDEX: "finance/payroll/{id}" },
+        },
     },
     DASHBOARD: {
         EXPENSE_STATS: "dashboard/expense-stats",

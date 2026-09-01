@@ -1,5 +1,6 @@
 import FormAction from "@/components/custom/form-action"
 import Modal from "@/components/custom/modal"
+import SelectField from "@/components/form/select-field"
 import UncontrolledInput from "@/components/form/uncontrolled-input"
 import { CardTitle } from "@/components/ui/card"
 import { useRequest } from "@/hooks/react-query/use-request"
@@ -10,7 +11,7 @@ import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useCurrencyStore } from "../-hooks/use-currency-store"
-import type { Currency } from "../-types"
+import { currencyTypeOptions, type Currency } from "../-types"
 
 export default function CurrencyAddEditModal() {
     return (
@@ -29,11 +30,16 @@ function CurrencyAddEdit() {
     const { currency } = useCurrencyStore()
     const { post, patch, isPending } = useRequest()
     const form = useForm<Form>({
-        defaultValues: { currency: "", current_rate: "" },
+        defaultValues: {
+            currency: "",
+            currency_type: undefined,
+            current_rate: "",
+        },
         values:
             currency ?
                 {
                     currency: currency.currency,
+                    currency_type: currency.currency_type,
                     current_rate: currency.current_rate,
                 }
             :   undefined,
@@ -77,6 +83,13 @@ function CurrencyAddEdit() {
                 methods={form}
                 name="currency"
                 label="Currency name"
+            />
+            <SelectField
+                methods={form}
+                name="currency_type"
+                options={currencyTypeOptions}
+                label="Currency type"
+                placeholder="Select currency type"
             />
             <UncontrolledInput
                 methods={form}

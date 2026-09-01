@@ -1,4 +1,5 @@
 import i18n from "@/lib/i18n/request"
+import { formatNumber } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Expense } from "../-types"
 
@@ -9,17 +10,36 @@ export const getExpenseCols = (
     onDelete: (expense: Expense) => void,
 ): ColumnDef<Expense>[] => [
     {
-        accessorKey: "name",
-        header: i18n.t("table.name"),
+        accessorKey: "amount",
+        header: i18n.t("table.amount"),
         cell: ({ row: { original } }) => (
-            <span className="text-sm font-medium">{original.name}</span>
+            <span className="text-sm font-semibold tabular-nums text-red-600 dark:text-red-500">
+                {formatNumber(original.amount, {
+                    decimalScale: 2,
+                    isShowZero: true,
+                })}
+            </span>
         ),
     },
     {
         accessorKey: "payment_type",
-        header: i18n.t("table.paymentType"),
+        header: i18n.t("finCat.kassa"),
         cell: ({ row: { original } }) => (
             <span className="text-sm">{original.payment_type ?? "—"}</span>
+        ),
+    },
+    {
+        accessorKey: "category",
+        header: i18n.t("entity.category"),
+        cell: ({ row: { original } }) => (
+            <span className="text-sm">{original.category?.name ?? "—"}</span>
+        ),
+    },
+    {
+        accessorKey: "subcategory",
+        header: i18n.t("entity.subcategory"),
+        cell: ({ row: { original } }) => (
+            <span className="text-sm">{original.subcategory?.name ?? "—"}</span>
         ),
     },
     {
@@ -36,21 +56,22 @@ export const getExpenseCols = (
         accessorKey: "current_rate",
         header: i18n.t("table.currentRate"),
         cell: ({ row: { original } }) => (
-            <span className="text-sm">{original.current_rate ?? "—"}</span>
+            <span className="text-sm">
+                {original.current_rate ?
+                    formatNumber(original.current_rate)
+                :   "—"}
+            </span>
         ),
     },
     {
         accessorKey: "custom_rate",
         header: i18n.t("table.customRate"),
         cell: ({ row: { original } }) => (
-            <span className="text-sm">{original.custom_rate ?? "—"}</span>
-        ),
-    },
-    {
-        accessorKey: "amount",
-        header: i18n.t("table.amount"),
-        cell: ({ row: { original } }) => (
-            <span className="text-sm font-semibold">{original.amount}</span>
+            <span className="text-sm">
+                {original.custom_rate ?
+                    formatNumber(original.custom_rate)
+                :   "—"}
+            </span>
         ),
     },
     {
@@ -59,15 +80,6 @@ export const getExpenseCols = (
         cell: ({ row: { original } }) => (
             <span className="text-sm text-muted-foreground">
                 {original.date}
-            </span>
-        ),
-    },
-    {
-        accessorKey: "comment",
-        header: i18n.t("table.comment"),
-        cell: ({ row: { original } }) => (
-            <span className="text-sm text-muted-foreground">
-                {original.comment ?? "—"}
             </span>
         ),
     },

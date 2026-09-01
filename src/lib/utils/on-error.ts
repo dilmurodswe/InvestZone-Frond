@@ -5,9 +5,12 @@ export function onError(err: any) {
     const errorData = err?.response?.data
 
     if (errorData && Object.keys(errorData).length > 0) {
-        const formattedMessage = Object.entries(errorData)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join("; ")
+        const formattedMessage =
+            typeof errorData.detail === "string" ?
+                errorData.detail
+            :   Object.entries(errorData)
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join("; ")
 
         toast.error(formattedMessage, { duration: 5000 })
     } else {

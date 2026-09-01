@@ -2,6 +2,7 @@ import Phone from "@/components/custom/phone"
 import { Badge } from "@/components/ui/badge"
 import { useModal } from "@/hooks/use-modal"
 import { dateTimeColumn } from "@/lib/utils/common-cell-renderers"
+import { formatNumber } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -123,6 +124,53 @@ export const useAdminCols = (): ColumnDef<Admin>[] => {
                 >
                     {original.role}
                 </Badge>
+            ),
+        },
+        {
+            accessorKey: "department",
+            header: t("salary.department"),
+            cell: ({ row: { original } }) => (
+                <span className="text-sm">{original.department || "—"}</span>
+            ),
+        },
+        {
+            accessorKey: "position",
+            header: t("salary.position"),
+            cell: ({ row: { original } }) => (
+                <span className="text-sm">{original.position || "—"}</span>
+            ),
+        },
+        {
+            accessorKey: "base_salary",
+            header: t("salary.baseSalary"),
+            cell: ({ row: { original } }) => (
+                <span className="block text-right text-sm font-medium tabular-nums whitespace-nowrap">
+                    {Number(original.base_salary) > 0 ?
+                        formatNumber(original.base_salary, { decimalScale: 0 })
+                    :   "—"}
+                </span>
+            ),
+        },
+        {
+            accessorKey: "salary_rate_unit",
+            header: t("salary.rateUnit"),
+            cell: ({ row: { original } }) => (
+                <span className="text-sm">
+                    {original.salary_rate_unit ?
+                        t(`salary.unit_${original.salary_rate_unit}`)
+                    :   "—"}
+                </span>
+            ),
+        },
+        {
+            accessorKey: "salary_norm",
+            header: t("salary.norm"),
+            cell: ({ row: { original } }) => (
+                <span className="block text-right text-sm tabular-nums">
+                    {original.salary_norm != null ?
+                        formatNumber(original.salary_norm)
+                    :   "—"}
+                </span>
             ),
         },
         dateTimeColumn("date_joined", "Joined at"),

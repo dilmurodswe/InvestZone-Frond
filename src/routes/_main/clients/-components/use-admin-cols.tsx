@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { useModal } from "@/hooks/use-modal"
+import { formatDecimal } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -187,11 +188,11 @@ export const useClientCols = (): ColumnDef<Client>[] => {
             header: t("table.balance"),
             cell: ({ row: { original } }) => (
                 <span
-                    className={`text-sm cursor-pointer font-semibold ${original.balance != null && original.balance < 0 ? "text-red-500" : "text-green-500"}`}
+                    className={`text-sm cursor-pointer font-semibold ${original.balance != null && Number(original.balance) < 0 ? "text-red-500" : "text-green-500"}`}
                     onClick={() => handleRowClick(original)}
                 >
                     {original.balance != null ?
-                        `${original.balance.toFixed(3)}`
+                        formatDecimal(Number(original.balance))
                     :   "—"}
                 </span>
             ),
