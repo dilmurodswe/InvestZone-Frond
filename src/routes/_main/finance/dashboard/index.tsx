@@ -398,10 +398,13 @@ function Donut({
 
     return (
         <div className="flex flex-col items-center gap-2">
-            <span className="text-xs font-semibold" style={{ color: tint }}>
-                {title}
-            </span>
-            <div className="relative h-40 w-40">
+            <div className="text-center">
+                <span className="text-xs font-semibold" style={{ color: tint }}>
+                    {title}
+                </span>
+                <p className="text-sm font-bold tabular-nums">{money(total)}</p>
+            </div>
+            <div className="h-40 w-40">
                 <PieChart width={160} height={160}>
                     <Pie
                         data={data}
@@ -422,11 +425,22 @@ function Donut({
                             />
                         ))}
                     </Pie>
-                    <Tooltip formatter={(v: number) => money(v)} />
+                    <Tooltip
+                        cursor={false}
+                        content={({ active, payload }) =>
+                            active && payload?.length ?
+                                <div className="rounded-md border bg-background px-2.5 py-1.5 text-xs shadow-md">
+                                    <span className="font-medium">
+                                        {payload[0].name}
+                                    </span>
+                                    <span className="ml-2 tabular-nums text-muted-foreground">
+                                        {money(payload[0].value as number)}
+                                    </span>
+                                </div>
+                            :   null
+                        }
+                    />
                 </PieChart>
-                <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs font-bold tabular-nums">
-                    {money(total)}
-                </span>
             </div>
             <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
                 {data.map((d, i) => (
@@ -470,21 +484,7 @@ function PaymentBucketBlock({
 
     return (
         <div className="flex flex-col gap-3 rounded-xl border p-4">
-            <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">{currency}</span>
-                <div className="flex gap-3 text-xs tabular-nums">
-                    {!!bucket.income_total && (
-                        <span className="text-green-600">
-                            +{money(bucket.income_total)}
-                        </span>
-                    )}
-                    {!!bucket.expense_total && (
-                        <span className="text-red-600">
-                            −{money(bucket.expense_total)}
-                        </span>
-                    )}
-                </div>
-            </div>
+            <span className="text-sm font-semibold">{currency}</span>
 
             {!hasAny ?
                 <p className="py-6 text-center text-xs text-muted-foreground">
