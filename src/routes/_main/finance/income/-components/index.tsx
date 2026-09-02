@@ -5,12 +5,17 @@ import Navbar from "@/components/navbar"
 import NoData from "@/components/no-data/nodata"
 import Group from "@/components/semantic/group"
 import { Button } from "@/components/ui/button"
+import { useRequest } from "@/hooks/react-query/use-request"
+import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
-import { PlusIcon } from "lucide-react"
+import { API } from "@/lib/constants/api-endpoints"
+import { PlusIcon, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import { useIncomesQuery } from "../-hooks/use-incomes-query"
 import type { Income } from "../-types"
+import { useBulkSelect } from "../../-hooks/use-bulk-select"
 import IncomeAddEditModal from "./income-add-edit-modal"
 import { getIncomeCols } from "./income-columns"
 import IncomeDeleteModal from "./income-delete-modal"
@@ -21,17 +26,38 @@ export default function IncomePage() {
     const addModal = useModal("add-income")
     const deleteModal = useModal("delete-income")
     const { t } = useTranslation()
+    const bulk = useBulkSelect<Income>()
+    const { removeAsync, isPending: deleting } = useRequest()
+    const { invalidateByPatternMatch } = useRevalidate()
 
-    const cols = getIncomeCols(
-        (income) => {
-            setSelected(income)
-            addModal.openModal()
-        },
-        (income) => {
-            setSelected(income)
-            deleteModal.openModal()
-        },
-    )
+    const cols = [
+        bulk.selectionColumn(incomeList.map((e) => e.id)),
+        ...getIncomeCols(
+            (income) => {
+                setSelected(income)
+                addModal.openModal()
+            },
+            (income) => {
+                setSelected(income)
+                deleteModal.openModal()
+            },
+        ),
+    ]
+
+    const bulkDelete = async () => {
+        const ids = [...bulk.selected]
+        if (!ids.length || !window.confirm(t("common.deleteConfirm"))) return
+        await Promise.all(
+            ids.map((id) =>
+                removeAsync(
+                    API.FINANCE.INCOME.ID.INDEX.replace("{id}", String(id)),
+                ),
+            ),
+        )
+        invalidateByPatternMatch([API.FINANCE.INCOME.INDEX])
+        bulk.clear()
+        toast.success(t("common.deletedSuccessfully"))
+    }
 
     const expenseOptions = [
         { id: "uzs", name: "UZS" },
@@ -69,15 +95,29 @@ export default function IncomePage() {
                             options={originOptions}
                         />
                     </div>
-                    <Button
-                        onClick={() => {
-                            setSelected(null)
-                            addModal.openModal()
-                        }}
-                    >
-                        <PlusIcon />
-                        {t("common.addEntity", { entity: t("entity.income") })}
-                    </Button>
+                    <div className="flex gap-2">
+                        {bulk.selected.size > 0 && (
+                            <Button
+                                variant="destructive"
+                                disabled={deleting}
+                                onClick={bulkDelete}
+                            >
+                                <Trash2 className="size-4" />
+                                {t("common.delete")} ({bulk.selected.size})
+                            </Button>
+                        )}
+                        <Button
+                            onClick={() => {
+                                setSelected(null)
+                                addModal.openModal()
+                            }}
+                        >
+                            <PlusIcon />
+                            {t("common.addEntity", {
+                                entity: t("entity.income"),
+                            })}
+                        </Button>
+                    </div>
                 </Group>
 
                 {!!incomeList.length && (
