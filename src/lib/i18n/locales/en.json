@@ -159,6 +159,11 @@
         "total": "Total",
         "isActive": "Active"
     },
+    "dash": {
+        "title": "Finance dashboard",
+        "incomeVsExpense": "Income vs expense",
+        "paymentByType": "By cash register"
+    },
     "table": {
         "active": "Active",
         "address": "Address",

@@ -159,6 +159,11 @@
         "total": "Итого",
         "isActive": "Активный"
     },
+    "dash": {
+        "title": "Финансовая панель",
+        "incomeVsExpense": "Приход и расход",
+        "paymentByType": "По кассам"
+    },
     "table": {
         "active": "Активный",
         "address": "Адрес",

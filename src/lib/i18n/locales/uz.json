@@ -159,6 +159,11 @@
         "total": "Jami",
         "isActive": "Faol"
     },
+    "dash": {
+        "title": "Moliyaviy panel",
+        "incomeVsExpense": "Kirim va chiqim",
+        "paymentByType": "Kassa bo'yicha"
+    },
     "table": {
         "active": "Faol",
         "address": "Manzil",

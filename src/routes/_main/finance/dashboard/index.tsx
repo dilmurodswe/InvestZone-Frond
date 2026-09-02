@@ -10,26 +10,18 @@ import {
 } from "@/components/ui/popover"
 import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
-import { formatDecimal } from "@/lib/utils/format-number"
+import { formatNumber } from "@/lib/utils/format-number"
+import { cn } from "@/lib/utils/shadcn"
 import { createFileRoute } from "@tanstack/react-router"
 import { endOfMonth, format, startOfMonth } from "date-fns"
-import {
-    Banknote,
-    CalendarIcon,
-    CreditCard,
-    DollarSign,
-    TrendingDown,
-    TrendingUp,
-    Wallet,
-} from "lucide-react"
-import { useState } from "react"
+import { CalendarIcon, TrendingDown, TrendingUp, Wallet } from "lucide-react"
+import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
     CartesianGrid,
-    Cell,
+    Legend,
     Line,
     LineChart,
-    Pie,
-    PieChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -44,20 +36,25 @@ const today = new Date()
 const DEFAULT_START = format(startOfMonth(today), "yyyy-MM-dd")
 const DEFAULT_END = format(endOfMonth(today), "yyyy-MM-dd")
 
-type StatItem = { date: string; USD: number; UZS: number }
-type PaymentTypeStats = Record<
-    string,
-    { total: number; items: { name: string; value: number }[] }
->
+const INCOME_COLOR = "#22c55e"
+const EXPENSE_COLOR = "#ef4444"
 
-const PAYMENT_ICONS = [Banknote, CreditCard, Wallet, DollarSign]
-const CURRENCY_COLORS: Record<string, string> = {
-    UZS: "#6366f1",
-    USD: "#22c55e",
-    EUR: "#f59e0b",
-    RUB: "#ef4444",
+type Currency = "UZS" | "USD"
+type StatItem = { date: string; USD: number; UZS: number }
+type PaymentBucket = {
+    income_total: number
+    expense_total: number
+    items: { name: string; income: number; expense: number }[]
 }
-const DEFAULT_COLOR = "#8b5cf6"
+type PaymentStats = Record<string, PaymentBucket>
+
+const money = (v: unknown) => formatNumber(v, { decimalScale: 0 })
+const compact = (v: number) => {
+    const a = Math.abs(v)
+    if (a >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
+    if (a >= 1_000) return `${Math.round(v / 1_000)}k`
+    return String(v)
+}
 
 function DateRangePicker({
     startDate,
@@ -70,197 +67,143 @@ function DateRangePicker({
     onStartChange: (d: string) => void
     onEndChange: (d: string) => void
 }) {
+    const pick = (
+        value: string,
+        onChange: (d: string) => void,
+        align: "start" | "end",
+    ) => (
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1.5 text-xs"
+                >
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {value}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align={align}>
+                <Calendar
+                    mode="single"
+                    selected={new Date(value)}
+                    onSelect={(d) => d && onChange(format(d, "yyyy-MM-dd"))}
+                />
+            </PopoverContent>
+        </Popover>
+    )
+
     return (
         <div className="flex items-center gap-2">
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs gap-1.5 h-8"
-                    >
-                        <CalendarIcon className="w-3.5 h-3.5" />
-                        {startDate}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                        mode="single"
-                        selected={new Date(startDate)}
-                        onSelect={(d) =>
-                            d && onStartChange(format(d, "yyyy-MM-dd"))
-                        }
-                    />
-                </PopoverContent>
-            </Popover>
-            <span className="text-muted-foreground text-xs">—</span>
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs gap-1.5 h-8"
-                    >
-                        <CalendarIcon className="w-3.5 h-3.5" />
-                        {endDate}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                        mode="single"
-                        selected={new Date(endDate)}
-                        onSelect={(d) =>
-                            d && onEndChange(format(d, "yyyy-MM-dd"))
-                        }
-                    />
-                </PopoverContent>
-            </Popover>
+            {pick(startDate, onStartChange, "start")}
+            <span className="text-xs text-muted-foreground">—</span>
+            {pick(endDate, onEndChange, "end")}
         </div>
     )
 }
 
-// ─── Reusable dual chart ───────────────────────────────────────────────────
-function DualCurrencyChart({
-    data,
-    loading,
-    usdColor,
-    uzsColor,
+function SummaryCard({
     label,
+    value,
+    kind,
 }: {
-    data: StatItem[] | undefined
-    loading: boolean
-    usdColor: string
-    uzsColor: string
     label: string
+    value: number
+    kind: "income" | "expense"
 }) {
-    if (loading) {
-        return (
-            <div className="h-60 flex items-center justify-center text-sm text-muted-foreground">
-                Loading...
-            </div>
-        )
-    }
-
-    const makeTooltip = (currency: string) => (v: number) => [
-        formatDecimal(v),
-        `${label} ${currency}`,
-    ]
-
+    const income = kind === "income"
+    const Icon = income ? TrendingUp : TrendingDown
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* USD */}
-            <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-1.5">
-                    <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ background: usdColor }}
+        <Card>
+            <CardContent className="flex items-center gap-4 pt-6">
+                <div
+                    className={cn(
+                        "rounded-xl p-3",
+                        income ?
+                            "bg-green-100 dark:bg-green-500/15"
+                        :   "bg-red-100 dark:bg-red-500/15",
+                    )}
+                >
+                    <Icon
+                        className={cn(
+                            "h-5 w-5",
+                            income ? "text-green-600" : "text-red-600",
+                        )}
                     />
-                    <span className="text-xs font-medium text-muted-foreground">
-                        USD
-                    </span>
                 </div>
-                <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={data ?? []}>
-                        <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="hsl(var(--border))"
-                        />
-                        <XAxis
-                            dataKey="date"
-                            tick={{ fontSize: 10 }}
-                            tickFormatter={(v) => v.slice(5)}
-                        />
-                        <YAxis tick={{ fontSize: 10 }} width={50} />
-                        <Tooltip
-                            formatter={makeTooltip("USD")}
-                            labelFormatter={(l) => `Date: ${l}`}
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="USD"
-                            stroke={usdColor}
-                            strokeWidth={2}
-                            dot={false}
-                            activeDot={{ r: 4 }}
-                        />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-
-            {/* UZS */}
-            <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-1.5">
-                    <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ background: uzsColor }}
-                    />
-                    <span className="text-xs font-medium text-muted-foreground">
-                        UZS
-                    </span>
+                <div className="min-w-0">
+                    <p className="truncate text-xs text-muted-foreground">
+                        {label}
+                    </p>
+                    <p
+                        className={cn(
+                            "text-xl font-bold tabular-nums",
+                            income ? "text-green-600" : "text-red-600",
+                        )}
+                    >
+                        {money(value)}
+                    </p>
                 </div>
-                <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={data ?? []}>
-                        <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="hsl(var(--border))"
-                        />
-                        <XAxis
-                            dataKey="date"
-                            tick={{ fontSize: 10 }}
-                            tickFormatter={(v) => v.slice(5)}
-                        />
-                        <YAxis tick={{ fontSize: 10 }} width={60} />
-                        <Tooltip
-                            formatter={makeTooltip("UZS")}
-                            labelFormatter={(l) => `Date: ${l}`}
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="UZS"
-                            stroke={uzsColor}
-                            strokeWidth={2}
-                            dot={false}
-                            activeDot={{ r: 4 }}
-                        />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     )
 }
 
 function RouteComponent() {
+    const { t } = useTranslation()
     const [dates, setDates] = useState({
         start: DEFAULT_START,
         end: DEFAULT_END,
     })
+    const [cur, setCur] = useState<Currency>("UZS")
 
     const params = { start_date: dates.start, end_date: dates.end }
+    const opts = { staleTime: 0, refetchOnMount: "always" as const }
 
     const { data: expenseData, isLoading: expenseLoading } = useGet<StatItem[]>(
         API.DASHBOARD.EXPENSE_STATS,
-        { params },
+        { params, options: opts },
     )
     const { data: incomeData, isLoading: incomeLoading } = useGet<StatItem[]>(
         API.DASHBOARD.INCOME_STATS,
-        { params },
+        { params, options: opts },
     )
     const { data: paymentData, isLoading: paymentLoading } =
-        useGet<PaymentTypeStats>(API.DASHBOARD.PAYMENT_TYPE_STATS, { params })
+        useGet<PaymentStats>(API.DASHBOARD.PAYMENT_TYPE_STATS, {
+            params,
+            options: opts,
+        })
 
-    const totalExpenseUSD = expenseData?.reduce((s, i) => s + i.USD, 0) ?? 0
-    const totalExpenseUZS = expenseData?.reduce((s, i) => s + i.UZS, 0) ?? 0
-    const totalIncomeUSD = incomeData?.reduce((s, i) => s + i.USD, 0) ?? 0
-    const totalIncomeUZS = incomeData?.reduce((s, i) => s + i.UZS, 0) ?? 0
+    const chartData = useMemo(
+        () =>
+            (expenseData ?? []).map((e, i) => ({
+                date: e.date,
+                expense: e[cur],
+                income: incomeData?.[i]?.[cur] ?? 0,
+            })),
+        [expenseData, incomeData, cur],
+    )
+
+    const totals = useMemo(() => {
+        const sum = (d: StatItem[] | undefined, c: Currency) =>
+            (d ?? []).reduce((s, i) => s + (i[c] || 0), 0)
+        return {
+            incomeUZS: sum(incomeData, "UZS"),
+            incomeUSD: sum(incomeData, "USD"),
+            expenseUZS: sum(expenseData, "UZS"),
+            expenseUSD: sum(expenseData, "USD"),
+        }
+    }, [incomeData, expenseData])
+
+    const chartLoading = expenseLoading || incomeLoading
 
     return (
         <>
-            <Navbar links={[{ label: "" }]} />
+            <Navbar links={[{ label: t("nav.dashboard") }]} />
             <Layout>
                 <div className="flex flex-col gap-6">
-                    {/* Global date filter */}
-                    <div className="flex items-center justify-between flex-wrap gap-3">
-                        <h1 className="text-xl font-bold">Finance Dashboard</h1>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <h1 className="text-xl font-bold">{t("dash.title")}</h1>
                         <DateRangePicker
                             startDate={dates.start}
                             endDate={dates.end}
@@ -273,263 +216,148 @@ function RouteComponent() {
                         />
                     </div>
 
-                    {/* Summary cards */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card>
-                            <CardContent className="flex items-center gap-4 pt-6">
-                                <div className="p-3 rounded-xl bg-red-100">
-                                    <TrendingDown className="w-5 h-5 text-red-500" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Expense USD
-                                    </p>
-                                    <p className="text-xl font-bold text-red-500">
-                                        ${formatDecimal(totalExpenseUSD)}
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardContent className="flex items-center gap-4 pt-6">
-                                <div className="p-3 rounded-xl bg-red-100">
-                                    <TrendingDown className="w-5 h-5 text-red-400" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Expense UZS
-                                    </p>
-                                    <p className="text-xl font-bold text-red-400">
-                                        {formatDecimal(totalExpenseUZS)}
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardContent className="flex items-center gap-4 pt-6">
-                                <div className="p-3 rounded-xl bg-green-100">
-                                    <TrendingUp className="w-5 h-5 text-green-500" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Income USD
-                                    </p>
-                                    <p className="text-xl font-bold text-green-500">
-                                        ${formatDecimal(totalIncomeUSD)}
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardContent className="flex items-center gap-4 pt-6">
-                                <div className="p-3 rounded-xl bg-green-100">
-                                    <TrendingUp className="w-5 h-5 text-green-400" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Income UZS
-                                    </p>
-                                    <p className="text-xl font-bold text-green-400">
-                                        {formatDecimal(totalIncomeUZS)}
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                        <SummaryCard
+                            label={`${t("entity.income")} · UZS`}
+                            value={totals.incomeUZS}
+                            kind="income"
+                        />
+                        <SummaryCard
+                            label={`${t("entity.income")} · USD`}
+                            value={totals.incomeUSD}
+                            kind="income"
+                        />
+                        <SummaryCard
+                            label={`${t("entity.expense")} · UZS`}
+                            value={totals.expenseUZS}
+                            kind="expense"
+                        />
+                        <SummaryCard
+                            label={`${t("entity.expense")} · USD`}
+                            value={totals.expenseUSD}
+                            kind="expense"
+                        />
                     </div>
 
-                    {/* Payment type stats - Using recharts PieChart */}
+                    {/* One chart: income (green) vs expense (red) */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <Wallet className="h-4 w-4 text-indigo-500" />
+                                {t("dash.incomeVsExpense")}
+                            </CardTitle>
+                            <div className="flex gap-1">
+                                {(["UZS", "USD"] as const).map((c) => (
+                                    <Button
+                                        key={c}
+                                        size="sm"
+                                        variant={
+                                            cur === c ? "default" : "outline"
+                                        }
+                                        className="h-7 px-3 text-xs"
+                                        onClick={() => setCur(c)}
+                                    >
+                                        {c}
+                                    </Button>
+                                ))}
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {chartLoading ?
+                                <div className="flex h-72 items-center justify-center text-sm text-muted-foreground">
+                                    {t("common.loading")}
+                                </div>
+                            : !chartData.length ?
+                                <div className="flex h-72 items-center justify-center text-sm text-muted-foreground">
+                                    {t("common.noData")}
+                                </div>
+                            :   <ResponsiveContainer width="100%" height={320}>
+                                    <LineChart data={chartData}>
+                                        <CartesianGrid
+                                            strokeDasharray="3 3"
+                                            stroke="hsl(var(--border))"
+                                        />
+                                        <XAxis
+                                            dataKey="date"
+                                            tick={{ fontSize: 10 }}
+                                            tickFormatter={(v) => v.slice(5)}
+                                        />
+                                        <YAxis
+                                            tick={{ fontSize: 10 }}
+                                            width={48}
+                                            tickFormatter={compact}
+                                        />
+                                        <Tooltip
+                                            formatter={(v: number, name) => [
+                                                money(v),
+                                                name === "income" ?
+                                                    t("entity.income")
+                                                :   t("entity.expense"),
+                                            ]}
+                                            labelFormatter={(l) =>
+                                                `${t("table.date")}: ${l}`
+                                            }
+                                        />
+                                        <Legend
+                                            formatter={(name) =>
+                                                name === "income" ?
+                                                    t("entity.income")
+                                                :   t("entity.expense")
+                                            }
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="income"
+                                            stroke={INCOME_COLOR}
+                                            strokeWidth={2}
+                                            dot={false}
+                                            activeDot={{ r: 4 }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="expense"
+                                            stroke={EXPENSE_COLOR}
+                                            strokeWidth={2}
+                                            dot={false}
+                                            activeDot={{ r: 4 }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            }
+                        </CardContent>
+                    </Card>
+
+                    {/* Payment by type — income vs expense per cash register */}
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <Wallet className="w-4 h-4 text-indigo-500" />
-                                Payment by Type
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <Wallet className="h-4 w-4 text-indigo-500" />
+                                {t("dash.paymentByType")}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             {paymentLoading ?
-                                <div className="h-32 flex items-center justify-center text-sm text-muted-foreground">
-                                    Loading...
+                                <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
+                                    {t("common.loading")}
                                 </div>
                             : (
                                 !paymentData ||
                                 Object.keys(paymentData).length === 0
                             ) ?
-                                <div className="h-32 flex items-center justify-center text-sm text-muted-foreground">
-                                    No data
+                                <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
+                                    {t("common.noData")}
                                 </div>
                             :   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                    {Object.entries(paymentData).map(
-                                        ([currency, val]) => {
-                                            const color =
-                                                CURRENCY_COLORS[currency] ??
-                                                DEFAULT_COLOR
-
-                                            if (
-                                                val.items.length === 0 &&
-                                                val.total === 0
-                                            )
-                                                return null
-
-                                            // Prepare data for pie chart
-                                            const pieData = val.items.map(
-                                                (item, index) => ({
-                                                    name: item.name,
-                                                    value: item.value,
-                                                    percentage:
-                                                        val.total > 0 ?
-                                                            Math.round(
-                                                                (item.value /
-                                                                    val.total) *
-                                                                    100,
-                                                            )
-                                                        :   0,
-                                                    icon: PAYMENT_ICONS[
-                                                        index %
-                                                            PAYMENT_ICONS.length
-                                                    ],
-                                                    color: [
-                                                        "#ef4444",
-                                                        "#3b82f6",
-                                                        "#22c55e",
-                                                        "#f59e0b",
-                                                        "#8b5cf6",
-                                                        "#ec4899",
-                                                    ][index % 6],
-                                                }),
-                                            )
-
+                                    {(["UZS", "USD"] as const).map(
+                                        (currency) => {
+                                            const bucket = paymentData[currency]
+                                            if (!bucket) return null
                                             return (
-                                                <div
+                                                <PaymentBucketBlock
                                                     key={currency}
-                                                    className="border rounded-xl p-4 flex flex-col gap-4"
-                                                >
-                                                    {/* Currency header */}
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
-                                                            <span
-                                                                className="w-2.5 h-2.5 rounded-full"
-                                                                style={{
-                                                                    background:
-                                                                        color,
-                                                                }}
-                                                            />
-                                                            <span className="font-semibold text-sm">
-                                                                {currency}
-                                                            </span>
-                                                        </div>
-                                                        <span
-                                                            className="text-sm font-bold"
-                                                            style={{ color }}
-                                                        >
-                                                            Total:{" "}
-                                                            {formatDecimal(val.total)}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Pie Chart using recharts */}
-                                                    {val.items.length === 0 ?
-                                                        <p className="text-xs text-muted-foreground text-center py-4">
-                                                            No transactions
-                                                        </p>
-                                                    :   <div className="flex flex-col items-center gap-4">
-                                                            <ResponsiveContainer
-                                                                width="100%"
-                                                                height={200}
-                                                            >
-                                                                <PieChart>
-                                                                    <Pie
-                                                                        data={
-                                                                            pieData
-                                                                        }
-                                                                        dataKey="value"
-                                                                        nameKey="name"
-                                                                        cx="50%"
-                                                                        cy="50%"
-                                                                        innerRadius={
-                                                                            40
-                                                                        }
-                                                                        outerRadius={
-                                                                            70
-                                                                        }
-                                                                        paddingAngle={
-                                                                            2
-                                                                        }
-                                                                        label={({
-                                                                            name,
-                                                                            percent,
-                                                                        }) =>
-                                                                            `${name} ${(percent * 100).toFixed(0)}%`
-                                                                        }
-                                                                        labelLine={
-                                                                            false
-                                                                        }
-                                                                    >
-                                                                        {pieData.map(
-                                                                            (
-                                                                                entry,
-                                                                            ) => (
-                                                                                <Cell
-                                                                                    key={`cell-${entry.name}`}
-                                                                                    fill={
-                                                                                        entry.color
-                                                                                    }
-                                                                                />
-                                                                            ),
-                                                                        )}
-                                                                    </Pie>
-                                                                    <Tooltip
-                                                                        formatter={(
-                                                                            value: number,
-                                                                        ) =>
-                                                                            formatDecimal(value)
-                                                                        }
-                                                                    />
-                                                                </PieChart>
-                                                            </ResponsiveContainer>
-
-                                                            {/* Legend */}
-                                                            <div className="flex flex-wrap justify-center gap-3 w-full">
-                                                                {pieData.map(
-                                                                    (item) => (
-                                                                        <div
-                                                                            key={
-                                                                                item.name
-                                                                            }
-                                                                            className="flex items-center gap-2"
-                                                                        >
-                                                                            <div
-                                                                                className="w-3 h-3 rounded-full"
-                                                                                style={{
-                                                                                    backgroundColor:
-                                                                                        item.color,
-                                                                                }}
-                                                                            />
-                                                                            <item.icon className="w-3 h-3 text-muted-foreground" />
-                                                                            <span className="text-xs">
-                                                                                {
-                                                                                    item.name
-                                                                                }
-                                                                            </span>
-                                                                            <span className="text-xs font-semibold">
-                                                                                {
-                                                                                    item.percentage
-                                                                                }
-
-                                                                                %
-                                                                            </span>
-                                                                            <span className="text-xs text-muted-foreground">
-                                                                                (
-                                                                                {formatDecimal(item.value)}
-
-                                                                                )
-                                                                            </span>
-                                                                        </div>
-                                                                    ),
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    }
-                                                </div>
+                                                    currency={currency}
+                                                    bucket={bucket}
+                                                />
                                             )
                                         },
                                     )}
@@ -537,46 +365,91 @@ function RouteComponent() {
                             }
                         </CardContent>
                     </Card>
-
-                    {/* Expense chart */}
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <TrendingDown className="w-4 h-4 text-red-500" />
-                                Expenses
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <DualCurrencyChart
-                                data={expenseData}
-                                loading={expenseLoading}
-                                usdColor="#ef4444"
-                                uzsColor="#f97316"
-                                label="Expense"
-                            />
-                        </CardContent>
-                    </Card>
-
-                    {/* Income chart */}
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <TrendingUp className="w-4 h-4 text-green-500" />
-                                Income
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <DualCurrencyChart
-                                data={incomeData}
-                                loading={incomeLoading}
-                                usdColor="#22c55e"
-                                uzsColor="#10b981"
-                                label="Income"
-                            />
-                        </CardContent>
-                    </Card>
                 </div>
             </Layout>
         </>
+    )
+}
+
+function PaymentBucketBlock({
+    currency,
+    bucket,
+}: {
+    currency: string
+    bucket: PaymentBucket
+}) {
+    const { t } = useTranslation()
+    const rows = bucket.items.filter((i) => i.income || i.expense)
+
+    return (
+        <div className="flex flex-col gap-3 rounded-xl border p-4">
+            <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">{currency}</span>
+                <div className="flex gap-3 text-xs tabular-nums">
+                    {!!bucket.income_total && (
+                        <span className="text-green-600">
+                            +{money(bucket.income_total)}
+                        </span>
+                    )}
+                    {!!bucket.expense_total && (
+                        <span className="text-red-600">
+                            −{money(bucket.expense_total)}
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            {rows.length === 0 ?
+                <p className="py-3 text-center text-xs text-muted-foreground">
+                    {t("common.noData")}
+                </p>
+            :   <div className="flex flex-col gap-3">
+                    {rows.map((item) => {
+                        const max = Math.max(
+                            ...rows.map((r) => Math.max(r.income, r.expense)),
+                            1,
+                        )
+                        return (
+                            <div
+                                key={item.name}
+                                className="flex flex-col gap-1"
+                            >
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="font-medium">
+                                        {item.name}
+                                    </span>
+                                    <span className="tabular-nums">
+                                        {!!item.income && (
+                                            <span className="text-green-600">
+                                                +{money(item.income)}
+                                            </span>
+                                        )}{" "}
+                                        {!!item.expense && (
+                                            <span className="text-red-600">
+                                                −{money(item.expense)}
+                                            </span>
+                                        )}
+                                    </span>
+                                </div>
+                                <div className="flex h-1.5 gap-0.5 overflow-hidden rounded-full bg-muted">
+                                    <span
+                                        className="h-full bg-green-500"
+                                        style={{
+                                            width: `${(item.income / max) * 100}%`,
+                                        }}
+                                    />
+                                    <span
+                                        className="h-full bg-red-500"
+                                        style={{
+                                            width: `${(item.expense / max) * 100}%`,
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            }
+        </div>
     )
 }
