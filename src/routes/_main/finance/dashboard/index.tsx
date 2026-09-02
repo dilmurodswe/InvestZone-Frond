@@ -19,9 +19,12 @@ import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
     CartesianGrid,
+    Cell,
     Legend,
     Line,
     LineChart,
+    Pie,
+    PieChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -38,6 +41,16 @@ const DEFAULT_END = format(endOfMonth(today), "yyyy-MM-dd")
 
 const INCOME_COLOR = "#22c55e"
 const EXPENSE_COLOR = "#ef4444"
+const SLICE_COLORS = [
+    "#6366f1",
+    "#f59e0b",
+    "#06b6d4",
+    "#ec4899",
+    "#84cc16",
+    "#8b5cf6",
+    "#f97316",
+    "#14b8a6",
+]
 
 type Currency = "UZS" | "USD"
 type StatItem = { date: string; USD: number; UZS: number }
@@ -371,6 +384,74 @@ function RouteComponent() {
     )
 }
 
+function Donut({
+    title,
+    tint,
+    data,
+}: {
+    title: string
+    tint: string
+    data: { name: string; value: number }[]
+}) {
+    const total = data.reduce((s, d) => s + d.value, 0)
+    if (!total) return null
+
+    return (
+        <div className="flex flex-col items-center gap-2">
+            <span className="text-xs font-semibold" style={{ color: tint }}>
+                {title}
+            </span>
+            <div className="relative h-40 w-40">
+                <PieChart width={160} height={160}>
+                    <Pie
+                        data={data}
+                        dataKey="value"
+                        nameKey="name"
+                        cx={78}
+                        cy={78}
+                        innerRadius={46}
+                        outerRadius={68}
+                        paddingAngle={data.length > 1 ? 2 : 0}
+                        strokeWidth={0}
+                        isAnimationActive={false}
+                    >
+                        {data.map((d, i) => (
+                            <Cell
+                                key={d.name}
+                                fill={SLICE_COLORS[i % SLICE_COLORS.length]}
+                            />
+                        ))}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => money(v)} />
+                </PieChart>
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs font-bold tabular-nums">
+                    {money(total)}
+                </span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
+                {data.map((d, i) => (
+                    <span
+                        key={d.name}
+                        className="flex items-center gap-1.5 text-xs"
+                    >
+                        <span
+                            className="size-2 rounded-full"
+                            style={{
+                                background:
+                                    SLICE_COLORS[i % SLICE_COLORS.length],
+                            }}
+                        />
+                        {d.name}
+                        <span className="tabular-nums text-muted-foreground">
+                            {money(d.value)}
+                        </span>
+                    </span>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 function PaymentBucketBlock({
     currency,
     bucket,
@@ -379,7 +460,13 @@ function PaymentBucketBlock({
     bucket: PaymentBucket
 }) {
     const { t } = useTranslation()
-    const rows = bucket.items.filter((i) => i.income || i.expense)
+    const expenseData = bucket.items
+        .filter((i) => i.expense > 0)
+        .map((i) => ({ name: i.name, value: i.expense }))
+    const incomeData = bucket.items
+        .filter((i) => i.income > 0)
+        .map((i) => ({ name: i.name, value: i.income }))
+    const hasAny = expenseData.length > 0 || incomeData.length > 0
 
     return (
         <div className="flex flex-col gap-3 rounded-xl border p-4">
@@ -399,55 +486,21 @@ function PaymentBucketBlock({
                 </div>
             </div>
 
-            {rows.length === 0 ?
-                <p className="py-3 text-center text-xs text-muted-foreground">
+            {!hasAny ?
+                <p className="py-6 text-center text-xs text-muted-foreground">
                     {t("common.noData")}
                 </p>
-            :   <div className="flex flex-col gap-3">
-                    {rows.map((item) => {
-                        const max = Math.max(
-                            ...rows.map((r) => Math.max(r.income, r.expense)),
-                            1,
-                        )
-                        return (
-                            <div
-                                key={item.name}
-                                className="flex flex-col gap-1"
-                            >
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="font-medium">
-                                        {item.name}
-                                    </span>
-                                    <span className="tabular-nums">
-                                        {!!item.income && (
-                                            <span className="text-green-600">
-                                                +{money(item.income)}
-                                            </span>
-                                        )}{" "}
-                                        {!!item.expense && (
-                                            <span className="text-red-600">
-                                                −{money(item.expense)}
-                                            </span>
-                                        )}
-                                    </span>
-                                </div>
-                                <div className="flex h-1.5 gap-0.5 overflow-hidden rounded-full bg-muted">
-                                    <span
-                                        className="h-full bg-green-500"
-                                        style={{
-                                            width: `${(item.income / max) * 100}%`,
-                                        }}
-                                    />
-                                    <span
-                                        className="h-full bg-red-500"
-                                        style={{
-                                            width: `${(item.expense / max) * 100}%`,
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        )
-                    })}
+            :   <div className="flex flex-wrap items-start justify-around gap-4">
+                    <Donut
+                        title={t("entity.expense")}
+                        tint={EXPENSE_COLOR}
+                        data={expenseData}
+                    />
+                    <Donut
+                        title={t("entity.income")}
+                        tint={INCOME_COLOR}
+                        data={incomeData}
+                    />
                 </div>
             }
         </div>
