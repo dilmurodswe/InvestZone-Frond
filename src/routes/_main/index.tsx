@@ -17,7 +17,7 @@ export default function Index() {
     useEffect(() => {
         if (isFetched && !isFetching) {
             if (isAdmin) {
-                navigate({ to: "/admins", replace: true })
+                navigate({ to: "/finance/dashboard", replace: true })
             }
             if (isManager) {
                 navigate({ to: "/clients", replace: true })
