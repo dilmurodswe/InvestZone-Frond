@@ -3,6 +3,13 @@ import Navbar from "@/components/navbar"
 import NoData from "@/components/no-data/nodata"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
@@ -10,14 +17,80 @@ import { API } from "@/lib/constants/api-endpoints"
 import { formatNumber } from "@/lib/utils/format-number"
 import { cn } from "@/lib/utils/shadcn"
 import { Printer, Send } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { usePayrollQuery } from "../-hooks/use-salary-queries"
 import type { PayrollRow, SalaryTransaction } from "../-types"
 import SalaryIssueModal from "./salary-issue-modal"
 import SalaryTransactionsModal from "./salary-transactions-modal"
 
-const thisMonth = () => new Date().toISOString().slice(0, 7)
+const pad = (n: number) => String(n).padStart(2, "0")
+const monthKey = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`
+const thisMonth = () => monthKey(new Date())
+
+const UZ_MONTHS = [
+    "Yanvar",
+    "Fevral",
+    "Mart",
+    "Aprel",
+    "May",
+    "Iyun",
+    "Iyul",
+    "Avgust",
+    "Sentabr",
+    "Oktabr",
+    "Noyabr",
+    "Dekabr",
+]
+
+/** Reliable month picker: a dropdown of the last year + the next two months. */
+function MonthSelect({
+    value,
+    onChange,
+}: {
+    value: string
+    onChange: (v: string) => void
+}) {
+    const { i18n } = useTranslation()
+    const isUz = i18n.language?.startsWith("uz")
+    const locale = i18n.language?.startsWith("ru") ? "ru-RU" : "en-US"
+
+    const options = useMemo(() => {
+        const now = new Date()
+        const list: { value: string; label: string }[] = []
+        for (let i = 2; i >= -12; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+            const label =
+                isUz ?
+                    `${UZ_MONTHS[d.getMonth()]} ${d.getFullYear()}`
+                :   d.toLocaleDateString(locale, {
+                        month: "long",
+                        year: "numeric",
+                    })
+            list.push({ value: monthKey(d), label })
+        }
+        return list
+    }, [isUz, locale])
+
+    return (
+        <Select value={value} onValueChange={onChange}>
+            <SelectTrigger className="w-44 capitalize">
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+                {options.map((o) => (
+                    <SelectItem
+                        key={o.value}
+                        value={o.value}
+                        className="capitalize"
+                    >
+                        {o.label}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    )
+}
 const num = (v: unknown) => formatNumber(v, { decimalScale: 0 })
 
 export default function SalaryPage() {
@@ -89,17 +162,12 @@ export default function SalaryPage() {
             <Layout>
                 <div className="mb-4 flex flex-wrap items-end justify-between gap-4 print:hidden">
                     <div className="flex flex-wrap items-end gap-3">
-                        <label className="flex flex-col gap-1.5">
+                        <div className="flex flex-col gap-1.5">
                             <span className="text-xs font-medium text-muted-foreground">
                                 {t("salary.month")}
                             </span>
-                            <Input
-                                type="month"
-                                value={month}
-                                onChange={(e) => setMonth(e.target.value)}
-                                className="w-44"
-                            />
-                        </label>
+                            <MonthSelect value={month} onChange={setMonth} />
+                        </div>
                         <label className="flex flex-col gap-1.5">
                             <span className="text-xs font-medium text-muted-foreground">
                                 {t("salary.payoutDate")}
