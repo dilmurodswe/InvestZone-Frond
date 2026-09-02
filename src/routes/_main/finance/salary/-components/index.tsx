@@ -23,7 +23,14 @@ const num = (v: unknown) => formatNumber(v, { decimalScale: 0 })
 export default function SalaryPage() {
     const { t } = useTranslation()
     const [month, setMonth] = useState(() => thisMonth())
-    const { payrollList, isFetching } = usePayrollQuery(month)
+    const [search, setSearch] = useState("")
+    const { payrollList: allRows, isFetching } = usePayrollQuery(month)
+    const payrollList =
+        search.trim() ?
+            allRows.filter((r) =>
+                r.full_name.toLowerCase().includes(search.trim().toLowerCase()),
+            )
+        :   allRows
     const { invalidateByPatternMatch } = useRevalidate()
     const { patchAsync } = useRequest()
     const issueModal = useModal("salary-issue")
@@ -45,7 +52,7 @@ export default function SalaryPage() {
 
     const setPayoutDateAll = async (date: string) => {
         await Promise.all(
-            payrollList.map((r) =>
+            allRows.map((r) =>
                 patchAsync(rowUrl(r.id), { payout_date: date || null }),
             ),
         )
@@ -74,16 +81,18 @@ export default function SalaryPage() {
         { base: 0, advance: 0, penalty: 0, bonus: 0, accrued: 0 },
     )
 
-    const payoutDate = payrollList.find((r) => r.payout_date)?.payout_date ?? ""
+    const payoutDate = allRows.find((r) => r.payout_date)?.payout_date ?? ""
 
     return (
         <>
             <Navbar links={[{ label: t("salary.title") }]} />
             <Layout>
-                <div className="mb-4 flex flex-wrap items-end justify-between gap-3 print:hidden">
+                <div className="mb-4 flex flex-wrap items-end justify-between gap-4 print:hidden">
                     <div className="flex flex-wrap items-end gap-3">
-                        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-                            {t("salary.month")}
+                        <label className="flex flex-col gap-1.5">
+                            <span className="text-xs font-medium text-muted-foreground">
+                                {t("salary.month")}
+                            </span>
                             <Input
                                 type="month"
                                 value={month}
@@ -91,13 +100,27 @@ export default function SalaryPage() {
                                 className="w-44"
                             />
                         </label>
-                        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-                            {t("salary.payoutDate")}
+                        <label className="flex flex-col gap-1.5">
+                            <span className="text-xs font-medium text-muted-foreground">
+                                {t("salary.payoutDate")}
+                            </span>
                             <Input
                                 type="date"
                                 defaultValue={payoutDate}
                                 onBlur={(e) => setPayoutDateAll(e.target.value)}
                                 className="w-44"
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1.5">
+                            <span className="text-xs font-medium text-muted-foreground">
+                                {t("common.search")}
+                            </span>
+                            <Input
+                                type="search"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder={t("table.name")}
+                                className="w-56"
                             />
                         </label>
                     </div>
@@ -187,13 +210,13 @@ export default function SalaryPage() {
                                         {num(totals.base)}
                                     </td>
                                     <td colSpan={3} />
-                                    <td className="px-3 py-2 text-right tabular-nums">
+                                    <td className="px-3 py-2 text-right tabular-nums text-amber-600 dark:text-amber-400">
                                         {num(totals.advance)}
                                     </td>
-                                    <td className="px-3 py-2 text-right tabular-nums">
+                                    <td className="px-3 py-2 text-right tabular-nums text-red-600 dark:text-red-400">
                                         {num(totals.penalty)}
                                     </td>
-                                    <td className="px-3 py-2 text-right tabular-nums">
+                                    <td className="px-3 py-2 text-right tabular-nums text-green-600 dark:text-green-400">
                                         {num(totals.bonus)}
                                     </td>
                                     <td className="px-3 py-2 text-right tabular-nums">
@@ -253,7 +276,9 @@ function Row({
     }
 
     const moneyBtn =
-        "cursor-pointer rounded px-1 tabular-nums hover:bg-muted hover:underline"
+        "cursor-pointer rounded px-1 font-medium tabular-nums hover:bg-muted hover:underline"
+    const moneyColor = (value: unknown, color: string) =>
+        Number(value) > 0 ? color : "text-muted-foreground"
 
     return (
         <tr
@@ -294,21 +319,51 @@ function Row({
                 />
             </td>
             <td className="px-3 py-1.5 text-right">
-                <button type="button" className={moneyBtn} onClick={onOpenTxns}>
+                <button
+                    type="button"
+                    className={cn(
+                        moneyBtn,
+                        moneyColor(
+                            row.advance_total,
+                            "text-amber-600 dark:text-amber-400",
+                        ),
+                    )}
+                    onClick={onOpenTxns}
+                >
                     {num(row.advance_total)}
                 </button>
             </td>
             <td className="px-3 py-1.5 text-right">
-                <button type="button" className={moneyBtn} onClick={onOpenTxns}>
+                <button
+                    type="button"
+                    className={cn(
+                        moneyBtn,
+                        moneyColor(
+                            row.penalty_total,
+                            "text-red-600 dark:text-red-400",
+                        ),
+                    )}
+                    onClick={onOpenTxns}
+                >
                     {num(row.penalty_total)}
                 </button>
             </td>
             <td className="px-3 py-1.5 text-right">
-                <button type="button" className={moneyBtn} onClick={onOpenTxns}>
+                <button
+                    type="button"
+                    className={cn(
+                        moneyBtn,
+                        moneyColor(
+                            row.bonus_total,
+                            "text-green-600 dark:text-green-400",
+                        ),
+                    )}
+                    onClick={onOpenTxns}
+                >
                     {num(row.bonus_total)}
                 </button>
             </td>
-            <td className="px-3 py-1.5 text-right font-semibold tabular-nums">
+            <td className="px-3 py-1.5 text-right font-bold tabular-nums">
                 {num(row.accrued)}
             </td>
             <td className="px-2 py-1">

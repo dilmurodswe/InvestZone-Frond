@@ -32,6 +32,7 @@ import { NumericFormat } from "react-number-format"
 import { toast } from "sonner"
 import { usePayrollEmployeesQuery } from "../-hooks/use-salary-queries"
 import type { SalaryIssueForm, SalaryKind, SalaryTransaction } from "../-types"
+import { useCurrenciesQuery } from "../../expence/-hooks/use-currencies-query"
 import { usePaymentTypesQuery } from "../../expence/-hooks/use-payment-types-query"
 
 const MODAL_KEY = "salary-issue"
@@ -66,6 +67,7 @@ function Inner({ transaction }: { transaction: SalaryTransaction | null }) {
     })
     const { employeeList } = usePayrollEmployeesQuery()
     const { paymentTypeList } = usePaymentTypesQuery()
+    const { currencyList } = useCurrenciesQuery()
 
     const form = useForm<SalaryIssueForm>({
         defaultValues: {
@@ -73,6 +75,7 @@ function Inner({ transaction }: { transaction: SalaryTransaction | null }) {
             kind: transaction?.kind ?? "advance",
             amount: transaction?.amount ?? "",
             payment_type: transaction?.payment_type ?? null,
+            currency: transaction?.currency ?? null,
             date: transaction?.date ?? format(new Date(), "yyyy-MM-dd"),
             comment: transaction?.comment ?? "",
             attachment: null,
@@ -236,6 +239,36 @@ function Inner({ transaction }: { transaction: SalaryTransaction | null }) {
                                             value={String(p.id)}
                                         >
                                             {p.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("table.currency")}</Label>
+                    <Controller
+                        control={form.control}
+                        name="currency"
+                        render={({ field }) => (
+                            <Select
+                                value={field.value ? String(field.value) : ""}
+                                onValueChange={(v) => field.onChange(Number(v))}
+                            >
+                                <SelectTrigger className="w-full min-w-0">
+                                    <SelectValue
+                                        placeholder={t("common.select")}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {currencyList.map((c) => (
+                                        <SelectItem
+                                            key={c.id}
+                                            value={String(c.id)}
+                                        >
+                                            {c.currency} ({c.current_rate})
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

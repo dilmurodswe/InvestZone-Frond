@@ -136,6 +136,8 @@
         "employee": "Xodim",
         "noTransactions": "Yozuvlar yo'q",
         "noEmployeesHint": "Xodimlarni «Foydalanuvchilar → Adminlar» bo'limida oylik bilan qo'shing",
+        "source": "Manba",
+        "manual": "Oddiy",
         "action": "Amal",
         "advance": "Avans",
         "penalty": "Jarima",

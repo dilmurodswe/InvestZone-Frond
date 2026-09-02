@@ -10,6 +10,9 @@ export type CategoryRef = {
     name: string
 } | null
 
+/** Set when the row was auto-created from a salary transaction. */
+export type FinanceOrigin = "advance" | "bonus" | "penalty" | null
+
 export type Expense = {
     id: number
     payment_type: string
@@ -22,6 +25,7 @@ export type Expense = {
     date: string
     amount: string
     comment: string
+    origin: FinanceOrigin
 }
 
 export type ExpenseForm = {

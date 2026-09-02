@@ -136,6 +136,8 @@
         "employee": "Employee",
         "noTransactions": "No records",
         "noEmployeesHint": "Add employees with a salary under Users → Admins",
+        "source": "Source",
+        "manual": "Manual",
         "action": "Action",
         "advance": "Advance",
         "penalty": "Penalty",

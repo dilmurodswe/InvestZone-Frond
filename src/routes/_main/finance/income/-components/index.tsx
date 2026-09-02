@@ -42,6 +42,10 @@ export default function IncomePage() {
         { id: "card", name: "CARD" },
         { id: "bank", name: "BANK" },
     ]
+    const originOptions = [
+        { id: "penalty", name: t("salary.penalty") },
+        { id: "manual", name: t("salary.manual") },
+    ]
 
     return (
         <>
@@ -58,6 +62,11 @@ export default function IncomePage() {
                             filterKey="payment_type"
                             placeholder="Payment Type"
                             options={paymentOptions}
+                        />
+                        <FilterSelect
+                            filterKey="origin"
+                            placeholder={t("salary.source")}
+                            options={originOptions}
                         />
                     </div>
                     <Button

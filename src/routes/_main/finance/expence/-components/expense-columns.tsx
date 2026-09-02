@@ -2,6 +2,7 @@ import i18n from "@/lib/i18n/request"
 import { formatNumber } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Expense } from "../-types"
+import OriginBadge from "../../-components/origin-badge"
 
 import { ExpenseActions } from "./expense-actions"
 
@@ -19,6 +20,13 @@ export const getExpenseCols = (
                     isShowZero: true,
                 })}
             </span>
+        ),
+    },
+    {
+        id: "origin",
+        header: i18n.t("salary.source"),
+        cell: ({ row: { original } }) => (
+            <OriginBadge origin={original.origin} />
         ),
     },
     {

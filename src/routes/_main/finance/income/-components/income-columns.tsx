@@ -2,6 +2,7 @@ import i18n from "@/lib/i18n/request"
 import { formatNumber } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Income } from "../-types"
+import OriginBadge from "../../-components/origin-badge"
 import { IncomeActions } from "./income-actions"
 
 export const getIncomeCols = (
@@ -18,6 +19,13 @@ export const getIncomeCols = (
                     isShowZero: true,
                 })}
             </span>
+        ),
+    },
+    {
+        id: "origin",
+        header: i18n.t("salary.source"),
+        cell: ({ row: { original } }) => (
+            <OriginBadge origin={original.origin} />
         ),
     },
     {

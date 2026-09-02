@@ -18,6 +18,8 @@ export type SalaryTransaction = {
     amount: string
     payment_type: number | null
     payment_type_name: string | null
+    currency: number | null
+    currency_name: string | null
     date: string
     comment: string | null
     attachment: string | null
@@ -28,6 +30,7 @@ export type SalaryIssueForm = {
     kind: SalaryKind
     amount: string
     payment_type: number | null
+    currency: number | null
     date: string
     comment: string
     attachment: File | string | null
