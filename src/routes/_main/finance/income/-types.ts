@@ -37,6 +37,9 @@ export type Income = {
     currency: IncomeCurrency
     category: CategoryRef
     subcategory: CategoryRef
+    order: number | null
+    order_number: string | null
+    client_name: string | null
     attachment: string | null
     current_rate: string
     custom_rate: string
@@ -50,6 +53,7 @@ export type Income = {
 export type IncomeForm = {
     payment_type: number | null
     currency: number | null
+    order: number | null
     category: number | null
     subcategory: number | null
     attachment: File | string | null

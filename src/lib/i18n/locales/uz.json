@@ -109,7 +109,7 @@
         "machine": "Stanok",
         "financeCategory": "Kirim/Chiqim",
         "demands": "Otgruzkalar",
-        "cashFlow": "Pul mablag'lari harakati"
+        "cashFlow": "Pul harakati"
     },
     "finCat": {
         "categories": "Kategoriyalar",
@@ -121,6 +121,7 @@
         "currentFile": "Joriy fayl",
         "attachFile": "Fayl biriktirish",
         "kassa": "Kassa",
+        "toIncome": "Kirimga o'tkazish",
         "refreshRate": "Yangilash",
         "marketRateHint": "Bozor kursi: {{rate}}",
         "rateUpdated": "Kurs yangilandi: {{rate}}",

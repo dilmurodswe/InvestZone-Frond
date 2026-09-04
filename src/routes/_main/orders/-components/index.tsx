@@ -11,6 +11,7 @@ import { PlusIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
 import { useOrdersQuery } from "../-hooks/use-orders-query"
+import IncomeAddEditModal from "../../finance/income/-components/income-add-edit-modal"
 import CreateDemandModal from "./create-demand-modal"
 import { getOrderCols } from "./get-order-cols"
 import OrderAddEditModal from "./order-add-edit"
@@ -91,6 +92,7 @@ export default function OrdersPage() {
                 <OrderAddEditModal />
                 <CreateDemandModal />
                 <OrderDeleteModal key="delete-order" />
+                <IncomeAddEditModal income={null} />
             </Layout>
         </>
     )

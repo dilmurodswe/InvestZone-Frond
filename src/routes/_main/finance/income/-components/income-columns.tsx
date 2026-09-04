@@ -36,17 +36,19 @@ export const getIncomeCols = (
         ),
     },
     {
-        accessorKey: "category",
-        header: i18n.t("entity.category"),
+        accessorKey: "order_number",
+        header: i18n.t("entity.order"),
         cell: ({ row: { original } }) => (
-            <span className="text-sm">{original.category?.name ?? "—"}</span>
+            <span className="text-sm">
+                {original.order_number ? `№${original.order_number}` : "—"}
+            </span>
         ),
     },
     {
-        accessorKey: "subcategory",
-        header: i18n.t("entity.subcategory"),
+        accessorKey: "client_name",
+        header: i18n.t("table.client"),
         cell: ({ row: { original } }) => (
-            <span className="text-sm">{original.subcategory?.name ?? "—"}</span>
+            <span className="text-sm">{original.client_name ?? "—"}</span>
         ),
     },
     {
@@ -79,13 +81,6 @@ export const getIncomeCols = (
                     formatNumber(original.custom_rate)
                 :   "—"}
             </span>
-        ),
-    },
-    {
-        accessorKey: "sales_agent",
-        header: i18n.t("table.salesAgent"),
-        cell: ({ row: { original } }) => (
-            <span className="text-sm">{original.sales_agent ?? "—"}</span>
         ),
     },
     {

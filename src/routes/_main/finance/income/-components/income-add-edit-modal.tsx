@@ -26,20 +26,17 @@ import { cn } from "@/lib/utils/shadcn"
 import { toFormData } from "@/lib/utils/to-form-data"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { NumericFormat } from "react-number-format"
 import { toast } from "sonner"
 import { useCurrenciesQuery } from "../-hooks/use-currencies-query"
+import { useIncomePrefillStore } from "../-hooks/use-income-prefill-store"
+import { useOrdersMiniQuery } from "../-hooks/use-orders-mini-query"
 import { usePaymentTypesQuery } from "../-hooks/use-payment-types-query"
-import { useSalesAgentsQuery } from "../-hooks/use-sales-agents-query"
 import type { Income, IncomeForm } from "../-types"
 import CurrencyRateField from "../../-components/currency-rate-field"
-import {
-    useFinanceCategoriesQuery,
-    useFinanceSubcategoriesQuery,
-} from "../../-hooks/use-finance-categories"
 
 interface Props {
     income: Income | null
@@ -75,28 +72,28 @@ function IncomeFormInner({ income }: Props) {
     })
     const { currencyList, isLoading: currLoading } = useCurrenciesQuery()
     const { paymentTypeList, isLoading: payLoading } = usePaymentTypesQuery()
-    const { salesAgentList, isLoading: agentLoading } = useSalesAgentsQuery()
-    const { categoryList } = useFinanceCategoriesQuery("income")
+    const { orderList, isLoading: ordersLoading } = useOrdersMiniQuery()
 
-    const listsLoaded = !currLoading && !payLoading && !agentLoading
+    const listsLoaded = !currLoading && !payLoading && !ordersLoading
     const form = useForm<IncomeForm>({
         defaultValues: {
-            payment_type: null, // list kerak, pastda reset qilinadi
+            payment_type: null,
             currency: income?.currency?.id ?? null,
-            category: income?.category?.id ?? null,
-            subcategory: income?.subcategory?.id ?? null,
+            order: income?.order ?? null,
+            category: null,
+            subcategory: null,
             attachment: null,
             current_rate: income?.current_rate ?? "",
             custom_rate: income?.custom_rate ?? "",
             date: income?.date ?? format(new Date(), "yyyy-MM-dd"),
-            sales_agent: null, // list kerak, pastda reset qilinadi
+            sales_agent: null,
             amount: income?.amount ?? "",
             comment: income?.comment ?? "",
         },
     })
 
-    const categoryId = useWatch({ control: form.control, name: "category" })
-    const { subcategoryList } = useFinanceSubcategoriesQuery(categoryId)
+    const orderId = useWatch({ control: form.control, name: "order" })
+    const selectedOrder = orderList.find((o) => o.id === Number(orderId))
 
     useEffect(() => {
         if (!income || !listsLoaded) return
@@ -105,21 +102,47 @@ function IncomeFormInner({ income }: Props) {
                 paymentTypeList.find((p) => p.name === income.payment_type)
                     ?.id ?? null,
             currency: income.currency?.id ?? null,
-            category: income.category?.id ?? null,
-            subcategory: income.subcategory?.id ?? null,
+            order: income.order ?? null,
+            category: null,
+            subcategory: null,
             attachment: null,
             current_rate: income.current_rate ?? "",
             custom_rate: income.custom_rate ?? "",
             date: income.date,
-            sales_agent:
-                salesAgentList.find(
-                    (a) =>
-                        `${a.first_name} ${a.last_name}` === income.sales_agent,
-                )?.id ?? null,
+            sales_agent: null,
             amount: income.amount ?? "",
             comment: income.comment ?? "",
         })
     }, [listsLoaded]) // eslint-disable-line
+
+    // Picking an order pre-fills amount / currency / rate from it (all editable).
+    const onPickOrder = (value: string) => {
+        const id = Number(value)
+        form.setValue("order", id)
+        const order = orderList.find((o) => o.id === id)
+        if (!order) return
+        if (order.grand_total)
+            form.setValue("amount", String(order.grand_total))
+        if (order.currency?.id) form.setValue("currency", order.currency.id)
+        if (order.client_currency) {
+            form.setValue("current_rate", String(order.client_currency))
+            form.setValue("custom_rate", String(order.client_currency))
+        }
+    }
+
+    // Opened from an order card ("Kirimga o'tkazish") — preselect that order.
+    const { orderId: prefillOrderId, setOrderId: setPrefillOrder } =
+        useIncomePrefillStore()
+    const prefillDone = useRef(false)
+    useEffect(() => {
+        if (income || prefillDone.current) return
+        if (prefillOrderId && orderList.some((o) => o.id === prefillOrderId)) {
+            onPickOrder(String(prefillOrderId))
+            setPrefillOrder(null)
+            prefillDone.current = true
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [prefillOrderId, orderList.length])
 
     const onSuccess = () => {
         invalidateByPatternMatch([API.FINANCE.INCOME.INDEX])
@@ -150,6 +173,10 @@ function IncomeFormInner({ income }: Props) {
     })
 
     const entity = t("entity.income")
+    const clientName =
+        selectedOrder?.client?.full_name ||
+        selectedOrder?.client?.company_name ||
+        "—"
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-5">
@@ -160,6 +187,46 @@ function IncomeFormInner({ income }: Props) {
             </CardTitle>
 
             <div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("entity.order")}</Label>
+                    <Controller
+                        control={form.control}
+                        name="order"
+                        render={({ field }) => (
+                            <Select
+                                value={field.value ? String(field.value) : ""}
+                                onValueChange={onPickOrder}
+                            >
+                                <SelectTrigger className="w-full min-w-0">
+                                    <SelectValue
+                                        placeholder={t("common.select")}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {orderList.map((o) => (
+                                        <SelectItem
+                                            key={o.id}
+                                            value={String(o.id)}
+                                        >
+                                            №{o.number}
+                                            {o.client?.full_name ?
+                                                ` — ${o.client.full_name}`
+                                            :   ""}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("table.client")}</Label>
+                    <div className="flex h-9 items-center text-sm text-muted-foreground">
+                        {clientName}
+                    </div>
+                </div>
+
                 <div className="flex min-w-0 flex-col gap-1.5">
                     <Label>{t("table.amount")}</Label>
                     <Controller
@@ -211,70 +278,6 @@ function IncomeFormInner({ income }: Props) {
                     />
                 </div>
 
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("entity.category")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="category"
-                        render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(v) => {
-                                    field.onChange(Number(v))
-                                    form.setValue("subcategory", null)
-                                }}
-                            >
-                                <SelectTrigger className="w-full min-w-0">
-                                    <SelectValue
-                                        placeholder={t("common.select")}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categoryList.map((c) => (
-                                        <SelectItem
-                                            key={c.id}
-                                            value={String(c.id)}
-                                        >
-                                            {c.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("entity.subcategory")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="subcategory"
-                        render={({ field }) => (
-                            <Select
-                                disabled={!categoryId}
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(v) => field.onChange(Number(v))}
-                            >
-                                <SelectTrigger className="w-full min-w-0">
-                                    <SelectValue
-                                        placeholder={t("common.select")}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {subcategoryList.map((c) => (
-                                        <SelectItem
-                                            key={c.id}
-                                            value={String(c.id)}
-                                        >
-                                            {c.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
                 <CurrencyRateField
                     form={form}
                     currencyName="currency"
@@ -306,36 +309,6 @@ function IncomeFormInner({ income }: Props) {
                                             value={String(p.id)}
                                         >
                                             {p.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("table.salesAgent")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="sales_agent"
-                        render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(v) => field.onChange(Number(v))}
-                            >
-                                <SelectTrigger className="w-full min-w-0">
-                                    <SelectValue
-                                        placeholder={t("common.select")}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {salesAgentList.map((a) => (
-                                        <SelectItem
-                                            key={a.id}
-                                            value={String(a.id)}
-                                        >
-                                            {a.first_name} {a.last_name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

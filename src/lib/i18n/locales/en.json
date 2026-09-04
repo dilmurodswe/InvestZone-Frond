@@ -121,6 +121,7 @@
         "currentFile": "Current file",
         "attachFile": "Attach file",
         "kassa": "Cash register",
+        "toIncome": "Record as income",
         "refreshRate": "Refresh",
         "marketRateHint": "Market rate: {{rate}}",
         "rateUpdated": "Rate updated: {{rate}}",

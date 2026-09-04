@@ -9,10 +9,11 @@ import { API } from "@/lib/constants/api-endpoints"
 import { printMenuOptions } from "@/lib/print/appendix-variants"
 import { usePrintVariant } from "@/lib/print/use-print-variant"
 import { formatNumber, round3 } from "@/lib/utils/format-number"
-import { TruckIcon } from "lucide-react"
+import { TrendingUpIcon, TruckIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useOrderStore } from "../-hooks/use-order-store"
 import type { Order, ProductStock } from "../-types"
+import { useIncomePrefillStore } from "../../finance/income/-hooks/use-income-prefill-store"
 import { unitKey } from "./item-math"
 import { ORDER_PRINT_MODAL } from "./order-print-modal"
 import OrderStatusBadge from "./order-status-badge"
@@ -38,6 +39,8 @@ function OrderDetail() {
     const { order } = useOrderStore()
     const createDemandModal = useModal("create-demand")
     const printModal = useModal(ORDER_PRINT_MODAL)
+    const incomeModal = useModal("add-income")
+    const { setOrderId: setIncomeOrder } = useIncomePrefillStore()
     const { setVariant } = usePrintVariant()
 
     const { data, isLoading } = useGet<Order>(
@@ -89,6 +92,17 @@ function OrderDetail() {
                             printModal.openModal()
                         }}
                     />
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                            setIncomeOrder(data.id)
+                            incomeModal.openModal()
+                        }}
+                    >
+                        <TrendingUpIcon className="w-4 h-4" />
+                        {t("finCat.toIncome")}
+                    </Button>
                     <Button
                         size="sm"
                         disabled={!remaining}

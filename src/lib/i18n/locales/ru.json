@@ -109,7 +109,7 @@
         "machine": "Станок",
         "financeCategory": "Приход/Расход",
         "demands": "Отгрузки",
-        "cashFlow": "Движение денежных средств"
+        "cashFlow": "Движение средств"
     },
     "finCat": {
         "categories": "Категории",
@@ -121,6 +121,7 @@
         "currentFile": "Текущий файл",
         "attachFile": "Прикрепить файл",
         "kassa": "Касса",
+        "toIncome": "Провести в Приход",
         "refreshRate": "Обновить",
         "marketRateHint": "Рыночный курс: {{rate}}",
         "rateUpdated": "Курс обновлён: {{rate}}",

@@ -13,6 +13,7 @@ import { PlusIcon, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
+import { useIncomePrefillStore } from "../-hooks/use-income-prefill-store"
 import { useIncomesQuery } from "../-hooks/use-incomes-query"
 import type { Income } from "../-types"
 import { useBulkSelect } from "../../-hooks/use-bulk-select"
@@ -29,6 +30,13 @@ export default function IncomePage() {
     const bulk = useBulkSelect<Income>()
     const { removeAsync, isPending: deleting } = useRequest()
     const { invalidateByPatternMatch } = useRevalidate()
+    const { setOrderId: setPrefillOrder } = useIncomePrefillStore()
+
+    const openAdd = () => {
+        setPrefillOrder(null)
+        setSelected(null)
+        addModal.openModal()
+    }
 
     const cols = [
         bulk.selectionColumn(incomeList.map((e) => e.id)),
@@ -106,12 +114,7 @@ export default function IncomePage() {
                                 {t("common.delete")} ({bulk.selected.size})
                             </Button>
                         )}
-                        <Button
-                            onClick={() => {
-                                setSelected(null)
-                                addModal.openModal()
-                            }}
-                        >
+                        <Button onClick={openAdd}>
                             <PlusIcon />
                             {t("common.addEntity", {
                                 entity: t("entity.income"),
@@ -132,10 +135,7 @@ export default function IncomePage() {
                 {!incomeList.length && !isFetching && (
                     <NoData>
                         <Button
-                            onClick={() => {
-                                setSelected(null)
-                                addModal.openModal()
-                            }}
+                            onClick={openAdd}
                             variant="ghost"
                             className="text-primary"
                         >
