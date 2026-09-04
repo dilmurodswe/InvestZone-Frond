@@ -60,7 +60,7 @@
     "entity": {
         "client": "Client",
         "supplier": "Supplier",
-        "admin": "Admin",
+        "admin": "Employee",
         "currency": "Currency",
         "paymentType": "Payment Type",
         "category": "Category",
@@ -87,7 +87,7 @@
         "income": "Income",
         "salary": "Salary",
         "users": "Users",
-        "admins": "Admins",
+        "admins": "Employees",
         "clients": "Clients",
         "suppliers": "Suppliers",
         "warehouse": "Warehouse",
@@ -108,7 +108,8 @@
         "paymentTypes": "Payment Types",
         "machine": "Machine",
         "financeCategory": "Income/Expense",
-        "demands": "Shipments"
+        "demands": "Shipments",
+        "cashFlow": "Cash Flow"
     },
     "finCat": {
         "categories": "Categories",
@@ -135,7 +136,7 @@
         "issueTitle": "Issue advance / penalty / bonus",
         "employee": "Employee",
         "noTransactions": "No records",
-        "noEmployeesHint": "Add employees with a salary under Users → Admins",
+        "noEmployeesHint": "Add employees with a salary under Users → Employees",
         "source": "Source",
         "manual": "Manual",
         "action": "Action",
@@ -162,12 +163,24 @@
     "dash": {
         "title": "Finance dashboard",
         "incomeVsExpense": "Income vs expense",
-        "paymentByType": "By cash register"
+        "paymentByType": "By cash register",
+        "kassaBalances": "Cash register balances"
+    },
+    "cashFlow": {
+        "title": "Cash flow",
+        "opening": "Opening",
+        "closing": "Closing",
+        "docNo": "Document №",
+        "purpose": "Purpose",
+        "balance": "Balance",
+        "openingBalanceUzs": "Opening balance, UZS",
+        "openingBalanceUsd": "Opening balance, USD",
+        "openingBalanceDate": "Opening balance date"
     },
     "table": {
         "active": "Active",
         "address": "Address",
-        "admin": "Admin",
+        "admin": "Employee",
         "amount": "Amount",
         "balance": "Balance",
         "ceoStaff": "CEO/Staff",

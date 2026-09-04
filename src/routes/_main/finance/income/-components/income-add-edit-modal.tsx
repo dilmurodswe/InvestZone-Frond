@@ -35,7 +35,7 @@ import { useCurrenciesQuery } from "../-hooks/use-currencies-query"
 import { usePaymentTypesQuery } from "../-hooks/use-payment-types-query"
 import { useSalesAgentsQuery } from "../-hooks/use-sales-agents-query"
 import type { Income, IncomeForm } from "../-types"
-import RateAutoField from "../../-components/rate-auto-field"
+import CurrencyRateField from "../../-components/currency-rate-field"
 import {
     useFinanceCategoriesQuery,
     useFinanceSubcategoriesQuery,
@@ -275,23 +275,14 @@ function IncomeFormInner({ income }: Props) {
                     />
                 </div>
 
-                <RateAutoField
+                <CurrencyRateField
                     form={form}
-                    name="current_rate"
-                    mirrorName="custom_rate"
+                    currencyName="currency"
+                    currentRateName="current_rate"
+                    customRateName="custom_rate"
+                    currencyList={currencyList}
                     autoFill={!income}
                 />
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("table.customRate")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="custom_rate"
-                        render={({ field }) => (
-                            <Input {...field} placeholder="0" type="number" />
-                        )}
-                    />
-                </div>
 
                 <div className="flex min-w-0 flex-col gap-1.5">
                     <Label>{t("finCat.kassa")}</Label>

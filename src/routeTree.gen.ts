@@ -40,6 +40,7 @@ import { Route as MainFinanceSalaryIndexRouteImport } from './routes/_main/finan
 import { Route as MainFinanceIncomeIndexRouteImport } from './routes/_main/finance/income/index'
 import { Route as MainFinanceExpenceIndexRouteImport } from './routes/_main/finance/expence/index'
 import { Route as MainFinanceDashboardIndexRouteImport } from './routes/_main/finance/dashboard/index'
+import { Route as MainFinanceCashFlowIndexRouteImport } from './routes/_main/finance/cash-flow/index'
 import { Route as MainSettingsProductsCategoryIdIndexRouteImport } from './routes/_main/settings/products/$categoryId/index'
 import { Route as MainSettingsProductsCategoryIdSubcategoryIdIndexRouteImport } from './routes/_main/settings/products/$categoryId/$subcategoryId/index'
 
@@ -205,6 +206,12 @@ const MainFinanceDashboardIndexRoute =
     path: '/finance/dashboard/',
     getParentRoute: () => MainRoute,
   } as any)
+const MainFinanceCashFlowIndexRoute =
+  MainFinanceCashFlowIndexRouteImport.update({
+    id: '/finance/cash-flow/',
+    path: '/finance/cash-flow/',
+    getParentRoute: () => MainRoute,
+  } as any)
 const MainSettingsProductsCategoryIdIndexRoute =
   MainSettingsProductsCategoryIdIndexRouteImport.update({
     id: '/settings/products/$categoryId/',
@@ -237,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof MainSettingsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
   '/task-manager': typeof MainTaskManagerIndexRoute
+  '/finance/cash-flow': typeof MainFinanceCashFlowIndexRoute
   '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
   '/finance/expence': typeof MainFinanceExpenceIndexRoute
   '/finance/income': typeof MainFinanceIncomeIndexRoute
@@ -270,6 +278,7 @@ export interface FileRoutesByTo {
   '/settings': typeof MainSettingsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
   '/task-manager': typeof MainTaskManagerIndexRoute
+  '/finance/cash-flow': typeof MainFinanceCashFlowIndexRoute
   '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
   '/finance/expence': typeof MainFinanceExpenceIndexRoute
   '/finance/income': typeof MainFinanceIncomeIndexRoute
@@ -306,6 +315,7 @@ export interface FileRoutesById {
   '/_main/settings/': typeof MainSettingsIndexRoute
   '/_main/suppliers/': typeof MainSuppliersIndexRoute
   '/_main/task-manager/': typeof MainTaskManagerIndexRoute
+  '/_main/finance/cash-flow/': typeof MainFinanceCashFlowIndexRoute
   '/_main/finance/dashboard/': typeof MainFinanceDashboardIndexRoute
   '/_main/finance/expence/': typeof MainFinanceExpenceIndexRoute
   '/_main/finance/income/': typeof MainFinanceIncomeIndexRoute
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/suppliers'
     | '/task-manager'
+    | '/finance/cash-flow'
     | '/finance/dashboard'
     | '/finance/expence'
     | '/finance/income'
@@ -374,6 +385,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/suppliers'
     | '/task-manager'
+    | '/finance/cash-flow'
     | '/finance/dashboard'
     | '/finance/expence'
     | '/finance/income'
@@ -409,6 +421,7 @@ export interface FileRouteTypes {
     | '/_main/settings/'
     | '/_main/suppliers/'
     | '/_main/task-manager/'
+    | '/_main/finance/cash-flow/'
     | '/_main/finance/dashboard/'
     | '/_main/finance/expence/'
     | '/_main/finance/income/'
@@ -648,6 +661,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainFinanceDashboardIndexRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/finance/cash-flow/': {
+      id: '/_main/finance/cash-flow/'
+      path: '/finance/cash-flow'
+      fullPath: '/finance/cash-flow'
+      preLoaderRoute: typeof MainFinanceCashFlowIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/settings/products/$categoryId/': {
       id: '/_main/settings/products/$categoryId/'
       path: '/settings/products/$categoryId'
@@ -693,6 +713,7 @@ interface MainRouteChildren {
   MainSettingsIndexRoute: typeof MainSettingsIndexRoute
   MainSuppliersIndexRoute: typeof MainSuppliersIndexRoute
   MainTaskManagerIndexRoute: typeof MainTaskManagerIndexRoute
+  MainFinanceCashFlowIndexRoute: typeof MainFinanceCashFlowIndexRoute
   MainFinanceDashboardIndexRoute: typeof MainFinanceDashboardIndexRoute
   MainFinanceExpenceIndexRoute: typeof MainFinanceExpenceIndexRoute
   MainFinanceIncomeIndexRoute: typeof MainFinanceIncomeIndexRoute
@@ -726,6 +747,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainSettingsIndexRoute: MainSettingsIndexRoute,
   MainSuppliersIndexRoute: MainSuppliersIndexRoute,
   MainTaskManagerIndexRoute: MainTaskManagerIndexRoute,
+  MainFinanceCashFlowIndexRoute: MainFinanceCashFlowIndexRoute,
   MainFinanceDashboardIndexRoute: MainFinanceDashboardIndexRoute,
   MainFinanceExpenceIndexRoute: MainFinanceExpenceIndexRoute,
   MainFinanceIncomeIndexRoute: MainFinanceIncomeIndexRoute,

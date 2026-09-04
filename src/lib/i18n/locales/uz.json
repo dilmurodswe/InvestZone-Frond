@@ -60,7 +60,7 @@
     "entity": {
         "client": "Mijoz",
         "supplier": "Yetkazib beruvchi",
-        "admin": "Admin",
+        "admin": "Xodim",
         "currency": "Valyuta",
         "paymentType": "To'lov turi",
         "category": "Kategoriya",
@@ -87,7 +87,7 @@
         "income": "Daromadlar",
         "salary": "Oyliklar",
         "users": "Foydalanuvchilar",
-        "admins": "Adminlar",
+        "admins": "Xodimlar",
         "clients": "Mijozlar",
         "suppliers": "Yetkazib beruvchilar",
         "warehouse": "Ombor",
@@ -108,7 +108,8 @@
         "paymentTypes": "To'lov turlari",
         "machine": "Stanok",
         "financeCategory": "Kirim/Chiqim",
-        "demands": "Otgruzkalar"
+        "demands": "Otgruzkalar",
+        "cashFlow": "Pul mablag'lari harakati"
     },
     "finCat": {
         "categories": "Kategoriyalar",
@@ -135,7 +136,7 @@
         "issueTitle": "Avans / jarima / mukofot berish",
         "employee": "Xodim",
         "noTransactions": "Yozuvlar yo'q",
-        "noEmployeesHint": "Xodimlarni «Foydalanuvchilar → Adminlar» bo'limida oylik bilan qo'shing",
+        "noEmployeesHint": "Xodimlarni «Foydalanuvchilar → Xodimlar» bo'limida oylik bilan qo'shing",
         "source": "Manba",
         "manual": "Oddiy",
         "action": "Amal",
@@ -162,12 +163,24 @@
     "dash": {
         "title": "Moliyaviy panel",
         "incomeVsExpense": "Kirim va chiqim",
-        "paymentByType": "Kassa bo'yicha"
+        "paymentByType": "Kassa bo'yicha",
+        "kassaBalances": "Kassa qoldiqlari"
+    },
+    "cashFlow": {
+        "title": "Pul mablag'lari harakati",
+        "opening": "Boshi",
+        "closing": "Qoldiq",
+        "docNo": "Hujjat №",
+        "purpose": "Izoh",
+        "balance": "Qoldiq",
+        "openingBalanceUzs": "Boshlang'ich qoldiq, UZS",
+        "openingBalanceUsd": "Boshlang'ich qoldiq, USD",
+        "openingBalanceDate": "Boshlang'ich qoldiq sanasi"
     },
     "table": {
         "active": "Faol",
         "address": "Manzil",
-        "admin": "Administrator",
+        "admin": "Xodim",
         "amount": "Summa",
         "balance": "Balans",
         "ceoStaff": "Direktor/Xodim",

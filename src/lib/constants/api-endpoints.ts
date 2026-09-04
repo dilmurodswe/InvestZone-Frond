@@ -170,6 +170,9 @@ export const API = {
         USD_RATE: {
             INDEX: "finance/usd-rate",
         },
+        CASH_FLOW: {
+            INDEX: "finance/cash-flow",
+        },
         PAYROLL_EMPLOYEES: {
             INDEX: "finance/payroll-employees",
         },
@@ -186,6 +189,7 @@ export const API = {
         EXPENSE_STATS: "dashboard/expense-stats",
         INCOME_STATS: "dashboard/income-stats",
         PAYMENT_TYPE_STATS: "dashboard/payment-type-stats",
+        KASSA_BALANCES: "dashboard/kassa-balances",
     },
     ROLLING_PLANS: {
         INDEX: "rolling-plans",

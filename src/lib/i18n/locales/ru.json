@@ -60,7 +60,7 @@
     "entity": {
         "client": "Клиент",
         "supplier": "Поставщик",
-        "admin": "Администратор",
+        "admin": "Сотрудник",
         "currency": "Валюта",
         "paymentType": "Тип оплаты",
         "category": "Категория",
@@ -87,7 +87,7 @@
         "income": "Приходы",
         "salary": "Зарплата",
         "users": "Пользователи",
-        "admins": "Администраторы",
+        "admins": "Сотрудники",
         "clients": "Клиенты",
         "suppliers": "Поставщики",
         "warehouse": "Склад",
@@ -108,7 +108,8 @@
         "paymentTypes": "Типы оплаты",
         "machine": "Станок",
         "financeCategory": "Приход/Расход",
-        "demands": "Отгрузки"
+        "demands": "Отгрузки",
+        "cashFlow": "Движение денежных средств"
     },
     "finCat": {
         "categories": "Категории",
@@ -135,7 +136,7 @@
         "issueTitle": "Выдать аванс / штраф / премию",
         "employee": "Сотрудник",
         "noTransactions": "Записей нет",
-        "noEmployeesHint": "Добавляйте сотрудников с окладом в разделе «Пользователи → Администраторы»",
+        "noEmployeesHint": "Добавляйте сотрудников с окладом в разделе «Пользователи → Сотрудники»",
         "source": "Источник",
         "manual": "Обычный",
         "action": "Действие",
@@ -162,12 +163,24 @@
     "dash": {
         "title": "Финансовая панель",
         "incomeVsExpense": "Приход и расход",
-        "paymentByType": "По кассам"
+        "paymentByType": "По кассам",
+        "kassaBalances": "Остатки по кассам"
+    },
+    "cashFlow": {
+        "title": "Движение денежных средств",
+        "opening": "Начало",
+        "closing": "Остаток",
+        "docNo": "Номер документа",
+        "purpose": "Назначение",
+        "balance": "Остаток",
+        "openingBalanceUzs": "Начальный остаток, UZS",
+        "openingBalanceUsd": "Начальный остаток, USD",
+        "openingBalanceDate": "Дата начального остатка"
     },
     "table": {
         "active": "Активный",
         "address": "Адрес",
-        "admin": "Администратор",
+        "admin": "Сотрудник",
         "amount": "Сумма",
         "balance": "Баланс",
         "ceoStaff": "Директор/Сотрудник",

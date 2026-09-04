@@ -22,6 +22,13 @@ export default function PaymentTypeAddEditModal() {
 
 type Form = Omit<PaymentType, "id" | "is_active">
 
+const EMPTY: Form = {
+    name: "",
+    opening_balance_uzs: "0",
+    opening_balance_usd: "0",
+    opening_balance_date: null,
+}
+
 function PaymentTypeAddEdit() {
     const { t } = useTranslation()
     const { closeModal } = useModal("add-payment-type")
@@ -29,8 +36,17 @@ function PaymentTypeAddEdit() {
     const { paymentType } = usePaymentTypeStore()
     const { post, patch, isPending } = useRequest()
     const form = useForm<Form>({
-        defaultValues: { name: "" },
-        values: paymentType ? { name: paymentType.name } : undefined,
+        defaultValues: EMPTY,
+        values:
+            paymentType ?
+                {
+                    name: paymentType.name,
+                    opening_balance_uzs: paymentType.opening_balance_uzs ?? "0",
+                    opening_balance_usd: paymentType.opening_balance_usd ?? "0",
+                    opening_balance_date:
+                        paymentType.opening_balance_date ?? null,
+                }
+            :   undefined,
     })
 
     const onSuccess = () => {
@@ -43,7 +59,13 @@ function PaymentTypeAddEdit() {
         )
     }
 
-    const onSubmit = form.handleSubmit((vals) => {
+    const onSubmit = form.handleSubmit((raw) => {
+        const vals = {
+            ...raw,
+            opening_balance_uzs: raw.opening_balance_uzs || "0",
+            opening_balance_usd: raw.opening_balance_usd || "0",
+            opening_balance_date: raw.opening_balance_date || null,
+        }
         if (paymentType) {
             patch(
                 API.SETTINGS.PAYMENT_TYPE.ID.INDEX.replace(
@@ -71,6 +93,26 @@ function PaymentTypeAddEdit() {
                 methods={form}
                 name="name"
                 label="Payment type name"
+            />
+            <div className="grid grid-cols-2 gap-3">
+                <UncontrolledInput
+                    methods={form}
+                    name="opening_balance_uzs"
+                    type="number"
+                    label={t("cashFlow.openingBalanceUzs")}
+                />
+                <UncontrolledInput
+                    methods={form}
+                    name="opening_balance_usd"
+                    type="number"
+                    label={t("cashFlow.openingBalanceUsd")}
+                />
+            </div>
+            <UncontrolledInput
+                methods={form}
+                name="opening_balance_date"
+                type="date"
+                label={t("cashFlow.openingBalanceDate")}
             />
             <FormAction
                 submitName={paymentType ? t("common.save") : t("common.add")}

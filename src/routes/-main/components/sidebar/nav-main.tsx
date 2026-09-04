@@ -70,6 +70,11 @@ export function NavMain() {
                     title: t("nav.income"),
                 }),
                 linkOptions({
+                    to: "/finance/cash-flow",
+                    enabled: isAdmin,
+                    title: t("nav.cashFlow"),
+                }),
+                linkOptions({
                     to: "/finance/salary",
                     enabled: isAdmin,
                     title: t("nav.salary"),
