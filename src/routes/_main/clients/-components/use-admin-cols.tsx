@@ -5,8 +5,14 @@ import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useClientStore } from "../-hooks/use-client-store"
-import type { Client } from "../-types"
-import { ClientBalancesCell } from "./client-balances"
+import { CURRENCY_CODES, type Client, type CurrencyCode } from "../-types"
+import { ClientBalanceCurrencyCell } from "./client-balances"
+
+const BALANCE_HEADER_KEY = {
+    USD: "table.balanceUsd",
+    UZS: "table.balanceUzs",
+    RUB: "table.balanceRub",
+} as const satisfies Record<CurrencyCode, string>
 
 // eslint-disable-next-line react-refresh/only-export-components
 function ClientActions({ client }: { client: Client }) {
@@ -183,19 +189,22 @@ export const useClientCols = (): ColumnDef<Client>[] => {
                 </span>
             ),
         },
-        {
-            accessorKey: "balances",
-            header: t("table.balance"),
+        ...CURRENCY_CODES.map<ColumnDef<Client>>((code) => ({
+            id: `balance_${code}`,
+            header: t(BALANCE_HEADER_KEY[code]),
             cell: ({ row: { original } }) => (
                 <button
                     type="button"
                     className="cursor-pointer text-left"
                     onClick={() => handleRowClick(original)}
                 >
-                    <ClientBalancesCell balances={original.balances} />
+                    <ClientBalanceCurrencyCell
+                        balances={original.balances}
+                        currency={code}
+                    />
                 </button>
             ),
-        },
+        })),
         {
             id: "actions",
             header: "",

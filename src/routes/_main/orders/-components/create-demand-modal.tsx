@@ -218,34 +218,45 @@ function CreateDemand() {
                     </p>
                 </div>
                 {lines.length ?
-                    <div className="flex flex-col divide-y">
-                        {lines.map((line, index) => (
-                            <div
-                                key={line.order_item}
-                                className="grid grid-cols-[1fr_auto_140px] items-end gap-4 px-4 py-3"
-                            >
-                                <span className="text-sm font-medium">
-                                    {line.product_name}
-                                </span>
-                                <span className="text-xs text-muted-foreground pb-2">
-                                    {t("table.remaining")}:{" "}
-                                    {round3(line.remaining)}
-                                </span>
-                                <NumberField
-                                    methods={form}
-                                    name={`lines.${index}.quantity`}
-                                    label={t("table.shippedQty")}
-                                    optional
-                                    allowZero
-                                    registerOptions={{
-                                        validate: (value) =>
-                                            Number(value) <= line.remaining ||
-                                            `${t("table.remaining")}: ${round3(line.remaining)}`,
-                                    }}
-                                />
-                            </div>
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid grid-cols-[1fr_90px_140px] items-center gap-4 border-b bg-muted/20 px-4 py-2 text-xs font-medium text-muted-foreground">
+                            <span>{t("table.productName")}</span>
+                            <span className="text-right">
+                                {t("table.remaining")}
+                            </span>
+                            <span className="text-right">
+                                {t("table.shippedQty")}
+                            </span>
+                        </div>
+                        <div className="flex flex-col divide-y">
+                            {lines.map((line, index) => (
+                                <div
+                                    key={line.order_item}
+                                    className="grid grid-cols-[1fr_90px_140px] items-center gap-4 px-4 py-2.5"
+                                >
+                                    <span className="text-sm font-medium">
+                                        {line.product_name}
+                                    </span>
+                                    <span className="text-right text-sm tabular-nums text-muted-foreground">
+                                        {round3(line.remaining)}
+                                    </span>
+                                    <NumberField
+                                        methods={form}
+                                        name={`lines.${index}.quantity`}
+                                        optional
+                                        allowZero
+                                        showError
+                                        registerOptions={{
+                                            validate: (value) =>
+                                                Number(value) <=
+                                                    line.remaining ||
+                                                `${t("table.remaining")}: ${round3(line.remaining)}`,
+                                        }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </>
                 :   <p className="px-4 py-3 text-sm text-muted-foreground">
                         {t("common.nothingToShip")}
                     </p>

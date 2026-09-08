@@ -196,19 +196,19 @@ export default function MutualSettlementsPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>
+                                        <TableHead className="w-full">
                                             {t("mutual.client")}
                                         </TableHead>
-                                        <TableHead className="text-right">
+                                        <TableHead className="w-[150px] text-right whitespace-nowrap">
                                             {t("mutual.opening")}
                                         </TableHead>
-                                        <TableHead className="text-right">
+                                        <TableHead className="w-[150px] text-right whitespace-nowrap">
                                             {t("mutual.income")}
                                         </TableHead>
-                                        <TableHead className="text-right">
+                                        <TableHead className="w-[150px] text-right whitespace-nowrap">
                                             {t("mutual.expense")}
                                         </TableHead>
-                                        <TableHead className="text-right">
+                                        <TableHead className="w-[150px] text-right whitespace-nowrap">
                                             {t("mutual.closing")}
                                         </TableHead>
                                     </TableRow>
@@ -299,11 +299,11 @@ function SummaryCard({
     const income = kind === "income"
     const Icon = income ? TrendingUp : TrendingDown
     return (
-        <Card>
-            <CardContent className="flex items-center gap-4 pt-6">
+        <Card className="p-4!">
+            <CardContent className="flex items-center gap-3">
                 <div
                     className={cn(
-                        "rounded-xl p-3",
+                        "flex size-9 shrink-0 items-center justify-center rounded-lg",
                         income ?
                             "bg-green-100 dark:bg-green-500/15"
                         :   "bg-red-100 dark:bg-red-500/15",
@@ -311,18 +311,18 @@ function SummaryCard({
                 >
                     <Icon
                         className={cn(
-                            "h-5 w-5",
+                            "size-4",
                             income ? "text-green-600" : "text-red-600",
                         )}
                     />
                 </div>
                 <div className="min-w-0">
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p className="truncate text-[11px] uppercase tracking-wide text-muted-foreground">
                         {label}
                     </p>
                     <p
                         className={cn(
-                            "text-xl font-bold tabular-nums",
+                            "text-lg font-bold tabular-nums",
                             income ? "text-green-600" : "text-red-600",
                         )}
                     >

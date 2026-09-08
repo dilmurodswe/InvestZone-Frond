@@ -313,34 +313,37 @@ export function NavMain() {
                                                                     subItem.title
                                                                 }
                                                             >
-                                                                <Link
-                                                                    key={
-                                                                        subItem.to
-                                                                    }
-                                                                    to={
-                                                                        subItem.to
-                                                                    }
-                                                                    activeProps={{
-                                                                        className:
-                                                                            "[&_span_svg]:text-primary-foreground [&_span]:bg-primary hover:[&_span]:bg-primary hover:[&_span]:text-primary-foreground [&_span]:text-primary-foreground",
-                                                                    }}
-                                                                    className="rounded-lg text-foreground"
-                                                                    onClick={() => {
-                                                                        setOpenMobile(
-                                                                            false,
-                                                                        )
-                                                                    }}
+                                                                <SidebarMenuSubButton
+                                                                    asChild
                                                                 >
-                                                                    <SidebarMenuSubButton
-                                                                        asChild
+                                                                    <Link
+                                                                        key={
+                                                                            subItem.to
+                                                                        }
+                                                                        to={
+                                                                            subItem.to
+                                                                        }
+                                                                        activeOptions={{
+                                                                            exact: true,
+                                                                        }}
+                                                                        activeProps={{
+                                                                            className:
+                                                                                "bg-primary! text-primary-foreground! hover:bg-primary! hover:text-primary-foreground!",
+                                                                        }}
+                                                                        className="text-sidebar-foreground"
+                                                                        onClick={() => {
+                                                                            setOpenMobile(
+                                                                                false,
+                                                                            )
+                                                                        }}
                                                                     >
-                                                                        <span className="flex min-w-0 items-center gap-1 truncate whitespace-nowrap">
+                                                                        <span className="truncate">
                                                                             {
                                                                                 subItem.title
                                                                             }
                                                                         </span>
-                                                                    </SidebarMenuSubButton>
-                                                                </Link>
+                                                                    </Link>
+                                                                </SidebarMenuSubButton>
                                                             </SidebarMenuSubItem>
                                                         ),
                                                 )}

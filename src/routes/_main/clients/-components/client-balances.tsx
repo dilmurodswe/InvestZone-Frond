@@ -40,6 +40,30 @@ export function ClientBalancesCell({
     )
 }
 
+/** Single-currency balance for one main-table column. `—` when zero. */
+export function ClientBalanceCurrencyCell({
+    balances,
+    currency,
+}: {
+    balances: ClientBalances | null | undefined
+    currency: CurrencyCode
+}) {
+    const raw = balances?.[currency]
+    if (!Number(raw)) {
+        return <span className="text-xs text-muted-foreground">—</span>
+    }
+    return (
+        <span
+            className={cn(
+                "text-xs font-semibold tabular-nums",
+                balanceToneClass(raw),
+            )}
+        >
+            {fmtMoney(raw)} {currency}
+        </span>
+    )
+}
+
 /** One-currency inline chip for the sales-document forms.
  * Shows «Аванс: X» when the client is in credit, «Долг: X» when they owe us. */
 export function ClientBalanceChip({
