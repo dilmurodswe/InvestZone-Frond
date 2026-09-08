@@ -12,7 +12,8 @@ import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
 import { formatNumber } from "@/lib/utils/format-number"
 import { cn } from "@/lib/utils/shadcn"
-import { createFileRoute } from "@tanstack/react-router"
+import type { MutualSettlementsResponse } from "@/routes/_main/clients/-types"
+import { Link, createFileRoute } from "@tanstack/react-router"
 import { endOfMonth, format, startOfMonth } from "date-fns"
 import { CalendarIcon, TrendingDown, TrendingUp, Wallet } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -30,6 +31,7 @@ import {
     XAxis,
     YAxis,
 } from "recharts"
+import TrendWidget, { type Granularity } from "./-components/trend-widget"
 
 export const Route = createFileRoute("/_main/finance/dashboard/")({
     component: RouteComponent,
@@ -174,9 +176,15 @@ function RouteComponent() {
         end: DEFAULT_END,
     })
     const [cur, setCur] = useState<Currency>("UZS")
+    const [granularity, setGranularity] = useState<Granularity>("week")
 
     const params = { start_date: dates.start, end_date: dates.end }
     const opts = { staleTime: 0, refetchOnMount: "always" as const }
+
+    const { data: mutualData } = useGet<MutualSettlementsResponse>(
+        API.SALE.MUTUAL_SETTLEMENTS,
+        { params, options: opts },
+    )
 
     const { data: expenseData, isLoading: expenseLoading } = useGet<StatItem[]>(
         API.DASHBOARD.EXPENSE_STATS,
@@ -216,6 +224,26 @@ function RouteComponent() {
         }))
     }, [incomeData, expenseData])
 
+    const mutual = useMemo(() => {
+        const rows = (mutualData?.results ?? [])
+            .map((r) => ({
+                id: r.client_id,
+                name: r.client_name,
+                closing: Number(r.closing[cur] ?? 0),
+            }))
+            .filter((r) => r.closing)
+        let owedToUs = 0
+        let weOwe = 0
+        for (const r of rows) {
+            if (r.closing < 0) owedToUs += -r.closing
+            else weOwe += r.closing
+        }
+        const top = [...rows]
+            .sort((a, b) => Math.abs(b.closing) - Math.abs(a.closing))
+            .slice(0, 6)
+        return { owedToUs, weOwe, top }
+    }, [mutualData, cur])
+
     const chartLoading = expenseLoading || incomeLoading
 
     return (
@@ -225,33 +253,96 @@ function RouteComponent() {
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <h1 className="text-xl font-bold">{t("dash.title")}</h1>
-                        <DateRangePicker
-                            startDate={dates.start}
-                            endDate={dates.end}
-                            onStartChange={(d) =>
-                                setDates((p) => ({ ...p, start: d }))
-                            }
-                            onEndChange={(d) =>
-                                setDates((p) => ({ ...p, end: d }))
-                            }
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="flex gap-1">
+                                {(
+                                    [
+                                        ["week", t("dash.week")],
+                                        ["month", t("dash.month")],
+                                        ["year", t("dash.year")],
+                                    ] as const
+                                ).map(([g, label]) => (
+                                    <Button
+                                        key={g}
+                                        size="sm"
+                                        variant={
+                                            granularity === g ? "default" : (
+                                                "outline"
+                                            )
+                                        }
+                                        className="h-8 px-3 text-xs"
+                                        onClick={() => setGranularity(g)}
+                                    >
+                                        {label}
+                                    </Button>
+                                ))}
+                            </div>
+                            <div className="flex gap-1">
+                                {CURRENCIES.map((c) => (
+                                    <Button
+                                        key={c}
+                                        size="sm"
+                                        variant={
+                                            cur === c ? "default" : "outline"
+                                        }
+                                        className="h-8 px-3 text-xs"
+                                        onClick={() => setCur(c)}
+                                    >
+                                        {c}
+                                    </Button>
+                                ))}
+                            </div>
+                            <DateRangePicker
+                                startDate={dates.start}
+                                endDate={dates.end}
+                                onStartChange={(d) =>
+                                    setDates((p) => ({ ...p, start: d }))
+                                }
+                                onEndChange={(d) =>
+                                    setDates((p) => ({ ...p, end: d }))
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid gap-4 lg:grid-cols-3">
+                        <TrendWidget
+                            metric="sales"
+                            title={t("dash.sales")}
+                            granularity={granularity}
+                            currency={cur}
+                        />
+                        <TrendWidget
+                            metric="income"
+                            title={t("entity.income")}
+                            granularity={granularity}
+                            currency={cur}
+                        />
+                        <TrendWidget
+                            metric="expense"
+                            title={t("entity.expense")}
+                            granularity={granularity}
+                            currency={cur}
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-                        {totals.flatMap((row) => [
-                            <SummaryCard
-                                key={`${row.currency}-in`}
-                                label={`${t("entity.income")} · ${row.currency}`}
-                                value={row.income}
-                                kind="income"
-                            />,
-                            <SummaryCard
-                                key={`${row.currency}-ex`}
-                                label={`${t("entity.expense")} · ${row.currency}`}
-                                value={row.expense}
-                                kind="expense"
-                            />,
-                        ])}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {totals
+                            .filter((row) => row.currency === cur)
+                            .flatMap((row) => [
+                                <SummaryCard
+                                    key={`${row.currency}-in`}
+                                    label={`${t("entity.income")} · ${row.currency} · ${dates.start} — ${dates.end}`}
+                                    value={row.income}
+                                    kind="income"
+                                />,
+                                <SummaryCard
+                                    key={`${row.currency}-ex`}
+                                    label={`${t("entity.expense")} · ${row.currency} · ${dates.start} — ${dates.end}`}
+                                    value={row.expense}
+                                    kind="expense"
+                                />,
+                            ])}
                     </div>
 
                     {!!kassaData?.length && (
@@ -372,6 +463,60 @@ function RouteComponent() {
                                     </LineChart>
                                 </ResponsiveContainer>
                             }
+                        </CardContent>
+                    </Card>
+
+                    {/* Взаиморасчёты — who owes whom */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <Wallet className="h-4 w-4 text-indigo-500" />
+                                {t("dash.mutualSettlements")} · {cur}
+                            </CardTitle>
+                            <Link
+                                to="/clients/mutual-settlements"
+                                className="text-xs font-medium text-primary hover:underline"
+                            >
+                                {t("dash.viewAll")}
+                            </Link>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <SummaryCard
+                                    label={`${t("mutual.totalOwedToUs")} · ${cur}`}
+                                    value={mutual.owedToUs}
+                                    kind="expense"
+                                />
+                                <SummaryCard
+                                    label={`${t("mutual.totalWeOwe")} · ${cur}`}
+                                    value={mutual.weOwe}
+                                    kind="income"
+                                />
+                            </div>
+                            {mutual.top.length > 0 && (
+                                <div className="flex flex-col divide-y rounded-lg border">
+                                    {mutual.top.map((r) => (
+                                        <div
+                                            key={r.id}
+                                            className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+                                        >
+                                            <span className="truncate font-medium">
+                                                {r.name}
+                                            </span>
+                                            <span
+                                                className={cn(
+                                                    "shrink-0 font-semibold tabular-nums",
+                                                    r.closing < 0 ?
+                                                        "text-red-500"
+                                                    :   "text-green-500",
+                                                )}
+                                            >
+                                                {money(r.closing)} {cur}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 

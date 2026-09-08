@@ -196,6 +196,9 @@ export const API = {
         INCOME_STATS: "dashboard/income-stats",
         PAYMENT_TYPE_STATS: "dashboard/payment-type-stats",
         KASSA_BALANCES: "dashboard/kassa-balances",
+        // МойСклад-style Продажи/Приход/Расход widget: today vs prev day,
+        // period vs prev period, daily series. ?metric=&granularity=&currency=
+        TREND_STATS: "dashboard/trend-stats",
     },
     ROLLING_PLANS: {
         INDEX: "rolling-plans",
