@@ -63,10 +63,6 @@ type PaymentBucket = {
     items: { name: string; income: number; expense: number }[]
 }
 type PaymentStats = Record<string, PaymentBucket>
-type KassaBalance = {
-    payment_type: number
-    name: string
-} & Record<Currency, string>
 
 const money = (v: unknown) => formatNumber(v, { decimalScale: 0 })
 const compact = (v: number) => {
@@ -199,10 +195,6 @@ function RouteComponent() {
             params,
             options: opts,
         })
-    const { data: kassaData } = useGet<KassaBalance[]>(
-        API.DASHBOARD.KASSA_BALANCES,
-        { options: opts },
-    )
 
     const chartData = useMemo(
         () =>
@@ -344,39 +336,6 @@ function RouteComponent() {
                                 />,
                             ])}
                     </div>
-
-                    {!!kassaData?.length && (
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="flex items-center gap-2 text-base">
-                                    <Wallet className="h-4 w-4 text-indigo-500" />
-                                    {t("dash.kassaBalances")}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-                                    {kassaData.map((k) => (
-                                        <div
-                                            key={k.payment_type}
-                                            className="rounded-lg border p-3"
-                                        >
-                                            <p className="truncate text-xs text-muted-foreground">
-                                                {k.name}
-                                            </p>
-                                            {CURRENCIES.map((c) => (
-                                                <p
-                                                    key={c}
-                                                    className="text-sm font-bold tabular-nums"
-                                                >
-                                                    {money(Number(k[c]))} {c}
-                                                </p>
-                                            ))}
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
 
                     {/* One chart: income (green) vs expense (red) */}
                     <Card>
