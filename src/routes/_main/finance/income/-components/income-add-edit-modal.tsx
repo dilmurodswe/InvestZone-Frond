@@ -145,7 +145,12 @@ function IncomeFormInner({ income }: Props) {
     }, [prefillOrderId, orderList.length])
 
     const onSuccess = () => {
-        invalidateByPatternMatch([API.FINANCE.INCOME.INDEX])
+        invalidateByPatternMatch([
+            API.FINANCE.INCOME.INDEX,
+            // An order-linked income is a Приход on that client's Взаиморасчёты.
+            API.CLIENT.USERS.INDEX,
+            API.SALE.MUTUAL_SETTLEMENTS,
+        ])
         closeModal()
         toast.success(
             income ?

@@ -1,7 +1,24 @@
 import Modal from "@/components/custom/modal"
 import { Badge } from "@/components/ui/badge"
-import { formatDecimal } from "@/lib/utils/format-number"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import { useGet } from "@/hooks/react-query/use-get"
+import { API } from "@/lib/constants/api-endpoints"
+import { cn } from "@/lib/utils/shadcn"
+import { useTranslation } from "react-i18next"
 import { useClientStore } from "../-hooks/use-client-store"
+import {
+    CURRENCY_CODES,
+    type ClientLedgerKind,
+    type ClientLedgerResponse,
+} from "../-types"
+import { balanceToneClass, fmtMoney } from "./client-balance-utils"
 
 export default function ClientDetailModal() {
     return (
@@ -18,7 +35,21 @@ export default function ClientDetailModal() {
 
 function ClientDetail() {
     const { client } = useClientStore()
+    const { t } = useTranslation()
+
+    const { data: ledger, isFetching } = useGet<ClientLedgerResponse>(
+        client ?
+            API.CLIENT.USERS.LEDGER.INDEX.replace("{id}", String(client.id))
+        :   "",
+        { options: { enabled: !!client, staleTime: 0 } },
+    )
+
     if (!client) return null
+
+    const kindLabel = (k: ClientLedgerKind) =>
+        k === "shipment" ? t("mutual.kindShipment")
+        : k === "payment" ? t("mutual.kindPayment")
+        : t("mutual.kindAdjustment")
 
     return (
         <div className="flex flex-col gap-5">
@@ -42,6 +73,116 @@ function ClientDetail() {
                 )}
             </div>
 
+            {/* Взаиморасчёты */}
+            <Section title={t("client.balances")}>
+                <div className="grid grid-cols-3 divide-x">
+                    {CURRENCY_CODES.map((code) => {
+                        const v = client.balances?.[code] ?? "0"
+                        const n = Number(v)
+                        return (
+                            <div
+                                key={code}
+                                className="flex flex-col gap-0.5 px-4 py-3"
+                            >
+                                <span className="text-xs text-muted-foreground">
+                                    {code}
+                                    {n ?
+                                        ` · ${n < 0 ? t("client.debt") : t("client.advance")}`
+                                    :   ""}
+                                </span>
+                                <span
+                                    className={cn(
+                                        "text-sm font-semibold tabular-nums",
+                                        n ? balanceToneClass(v) : "",
+                                    )}
+                                >
+                                    {fmtMoney(v)}
+                                </span>
+                            </div>
+                        )
+                    })}
+                </div>
+            </Section>
+
+            {/* Settlement history */}
+            <Section title={t("client.ledger")}>
+                <div className="max-h-72 overflow-y-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>{t("table.date")}</TableHead>
+                                <TableHead>{t("table.type")}</TableHead>
+                                <TableHead>{t("table.comment")}</TableHead>
+                                <TableHead className="text-right">
+                                    {t("mutual.income")}
+                                </TableHead>
+                                <TableHead className="text-right">
+                                    {t("mutual.expense")}
+                                </TableHead>
+                                <TableHead className="text-right">
+                                    {t("cashFlow.balance")}
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isFetching && !ledger ?
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={6}
+                                        className="h-16 text-center text-sm text-muted-foreground"
+                                    >
+                                        {t("common.loading")}
+                                    </TableCell>
+                                </TableRow>
+                            : !ledger?.rows.length ?
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={6}
+                                        className="h-16 text-center text-sm text-muted-foreground"
+                                    >
+                                        {t("client.noMovements")}
+                                    </TableCell>
+                                </TableRow>
+                            :   ledger.rows.map((r) => (
+                                    <TableRow key={r.id}>
+                                        <TableCell className="whitespace-nowrap">
+                                            {r.date}
+                                        </TableCell>
+                                        <TableCell>
+                                            {kindLabel(r.kind)}
+                                        </TableCell>
+                                        <TableCell className="max-w-[280px] truncate">
+                                            {r.comment || "—"}
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums text-green-600">
+                                            {Number(r.income) ?
+                                                `${fmtMoney(r.income)} ${r.currency}`
+                                            :   "—"}
+                                        </TableCell>
+                                        <TableCell className="text-right tabular-nums text-red-600">
+                                            {Number(r.expense) ?
+                                                `${fmtMoney(r.expense)} ${r.currency}`
+                                            :   "—"}
+                                        </TableCell>
+                                        <TableCell
+                                            className={cn(
+                                                "text-right font-medium tabular-nums",
+                                                balanceToneClass(
+                                                    r.balance_after,
+                                                ),
+                                            )}
+                                        >
+                                            {fmtMoney(r.balance_after)}{" "}
+                                            {r.currency}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            }
+                        </TableBody>
+                    </Table>
+                </div>
+            </Section>
+
             {/* General */}
             <Section title="General">
                 <div className="grid grid-cols-3 divide-x divide-y">
@@ -51,14 +192,6 @@ function ClientDetail() {
                     />
                     <Cell label="INN" value={client.inn} />
                     <Cell label="OKPO code" value={client.okpo_code} />
-                    <Cell
-                        label="Balance"
-                        value={
-                            client.balance != null ?
-                                formatDecimal(Number(client.balance))
-                            :   null
-                        }
-                    />
                     <Cell
                         label="Date joined"
                         value={

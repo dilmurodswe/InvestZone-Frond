@@ -17,7 +17,13 @@ export const API = {
         USERS: {
             INDEX: "common/clients",
             ID: { INDEX: "common/clients/{id}" },
+            // Взаиморасчёты movement list for one client (running balance).
+            LEDGER: { INDEX: "common/clients/{id}/ledger" },
         },
+    },
+    SALE: {
+        // Взаиморасчёты с покупателями — per-client opening/приход/расход/closing.
+        MUTUAL_SETTLEMENTS: "sale/mutual-settlements",
     },
     SUPPLIER: {
         INDEX: "supplier",

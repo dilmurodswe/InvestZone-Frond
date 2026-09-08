@@ -1,12 +1,12 @@
 import { Badge } from "@/components/ui/badge"
 import { useModal } from "@/hooks/use-modal"
-import { formatDecimal } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useClientStore } from "../-hooks/use-client-store"
 import type { Client } from "../-types"
+import { ClientBalancesCell } from "./client-balances"
 
 // eslint-disable-next-line react-refresh/only-export-components
 function ClientActions({ client }: { client: Client }) {
@@ -184,17 +184,16 @@ export const useClientCols = (): ColumnDef<Client>[] => {
             ),
         },
         {
-            accessorKey: "balance",
+            accessorKey: "balances",
             header: t("table.balance"),
             cell: ({ row: { original } }) => (
-                <span
-                    className={`text-sm cursor-pointer font-semibold ${original.balance != null && Number(original.balance) < 0 ? "text-red-500" : "text-green-500"}`}
+                <button
+                    type="button"
+                    className="cursor-pointer text-left"
                     onClick={() => handleRowClick(original)}
                 >
-                    {original.balance != null ?
-                        formatDecimal(Number(original.balance))
-                    :   "—"}
-                </span>
+                    <ClientBalancesCell balances={original.balances} />
+                </button>
             ),
         },
         {

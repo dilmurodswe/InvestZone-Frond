@@ -65,10 +65,13 @@ function CreateDemand() {
     const { t } = useTranslation()
     const { order } = useOrderStore()
     const { closeModal } = useModal("create-demand")
-    const { invalidateByExactMatch } = useRevalidate()
+    const { invalidateByExactMatch, invalidateByPatternMatch } = useRevalidate()
     const { post, isPending } = useRequest()
 
-    const orderUrl = API.ORDERS.ID.INDEX.replace("{id}", String(order?.id ?? ""))
+    const orderUrl = API.ORDERS.ID.INDEX.replace(
+        "{id}",
+        String(order?.id ?? ""),
+    )
     const { data, isLoading } = useGet<Order>(orderUrl, {
         options: { enabled: !!order?.id },
     })
@@ -122,6 +125,12 @@ function CreateDemand() {
                     invalidateByExactMatch([API.ORDERS.INDEX])
                     invalidateByExactMatch([API.DEMANDS.INDEX])
                     invalidateByExactMatch([orderUrl])
+                    // The shipment is posted on creation → client's
+                    // Взаиморасчёты balance just changed.
+                    invalidateByPatternMatch([
+                        API.CLIENT.USERS.INDEX,
+                        API.SALE.MUTUAL_SETTLEMENTS,
+                    ])
                     closeModal()
                     toast.success(t("common.addedSuccessfully"))
                 },

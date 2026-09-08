@@ -109,7 +109,8 @@
         "machine": "Machine",
         "financeCategory": "Income/Expense",
         "demands": "Shipments",
-        "cashFlow": "Cash Flow"
+        "cashFlow": "Cash Flow",
+        "mutualSettlements": "Mutual Settlements"
     },
     "finCat": {
         "categories": "Categories",
@@ -396,5 +397,28 @@
         "sectionGoods": "Goods",
         "sectionTerms": "Terms",
         "specsHint": "One row per line in the «Name: Value» format."
+    },
+    "client": {
+        "openingBalance": "Opening balance",
+        "openingBalanceDate": "Opening balance date",
+        "openingBalanceHint": "Positive = the client prepaid (we owe them). Negative = the client owes us. Movements before this date are folded into the opening balance.",
+        "balances": "Mutual settlements",
+        "ledger": "Settlement history",
+        "advance": "Advance",
+        "debt": "Debt",
+        "noMovements": "No movements in this period"
+    },
+    "mutual": {
+        "title": "Mutual settlements with customers",
+        "client": "Counterparty",
+        "opening": "Opening balance",
+        "income": "Credit",
+        "expense": "Debit",
+        "closing": "Closing balance",
+        "totalOwedToUs": "Clients owe us",
+        "totalWeOwe": "We owe clients",
+        "kindShipment": "Shipment",
+        "kindPayment": "Payment",
+        "kindAdjustment": "Adjustment"
     }
 }

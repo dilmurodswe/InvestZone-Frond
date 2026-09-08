@@ -69,6 +69,8 @@ export type SaleClient = {
     region_address?: string | null
     exact_address?: string | null
     legal_address?: string | null
+    /** Взаиморасчёты balance per currency; `+` = аванс, `-` = долг. */
+    balances?: Record<"USD" | "UZS" | "RUB", string> | null
 }
 
 export type SaleCurrency = {

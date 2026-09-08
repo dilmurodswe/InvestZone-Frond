@@ -98,7 +98,7 @@ export default function CashFlowPage() {
     })
 
     const shownCurrencies: CashCurrency[] =
-        currency ? [currency] : ["UZS", "USD"]
+        currency ? [currency] : ["UZS", "USD", "RUB"]
 
     return (
         <>
@@ -133,21 +133,23 @@ export default function CashFlowPage() {
                             </Select>
 
                             <div className="flex gap-1">
-                                {(["", "UZS", "USD"] as const).map((c) => (
-                                    <Button
-                                        key={c || "all"}
-                                        size="sm"
-                                        variant={
-                                            currency === c ? "default" : (
-                                                "outline"
-                                            )
-                                        }
-                                        className="h-8 px-3 text-xs"
-                                        onClick={() => setCurrency(c)}
-                                    >
-                                        {c || t("common.all")}
-                                    </Button>
-                                ))}
+                                {(["", "UZS", "USD", "RUB"] as const).map(
+                                    (c) => (
+                                        <Button
+                                            key={c || "all"}
+                                            size="sm"
+                                            variant={
+                                                currency === c ? "default" : (
+                                                    "outline"
+                                                )
+                                            }
+                                            className="h-8 px-3 text-xs"
+                                            onClick={() => setCurrency(c)}
+                                        >
+                                            {c || t("common.all")}
+                                        </Button>
+                                    ),
+                                )}
                             </div>
 
                             <DatePick

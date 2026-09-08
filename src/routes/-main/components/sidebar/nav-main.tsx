@@ -98,6 +98,11 @@ export function NavMain() {
                     title: t("nav.clients"),
                 }),
                 linkOptions({
+                    to: "/clients/mutual-settlements",
+                    enabled: isAdmin,
+                    title: t("nav.mutualSettlements"),
+                }),
+                linkOptions({
                     to: "/suppliers",
                     enabled: isAdmin,
                     title: t("nav.suppliers"),

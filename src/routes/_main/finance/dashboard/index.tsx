@@ -52,8 +52,9 @@ const SLICE_COLORS = [
     "#14b8a6",
 ]
 
-type Currency = "UZS" | "USD"
-type StatItem = { date: string; USD: number; UZS: number }
+const CURRENCIES = ["UZS", "USD", "RUB"] as const
+type Currency = (typeof CURRENCIES)[number]
+type StatItem = { date: string } & Record<Currency, number>
 type PaymentBucket = {
     income_total: number
     expense_total: number
@@ -63,9 +64,7 @@ type PaymentStats = Record<string, PaymentBucket>
 type KassaBalance = {
     payment_type: number
     name: string
-    UZS: string
-    USD: string
-}
+} & Record<Currency, string>
 
 const money = (v: unknown) => formatNumber(v, { decimalScale: 0 })
 const compact = (v: number) => {
@@ -210,12 +209,11 @@ function RouteComponent() {
     const totals = useMemo(() => {
         const sum = (d: StatItem[] | undefined, c: Currency) =>
             (d ?? []).reduce((s, i) => s + (i[c] || 0), 0)
-        return {
-            incomeUZS: sum(incomeData, "UZS"),
-            incomeUSD: sum(incomeData, "USD"),
-            expenseUZS: sum(expenseData, "UZS"),
-            expenseUSD: sum(expenseData, "USD"),
-        }
+        return CURRENCIES.map((c) => ({
+            currency: c,
+            income: sum(incomeData, c),
+            expense: sum(expenseData, c),
+        }))
     }, [incomeData, expenseData])
 
     const chartLoading = expenseLoading || incomeLoading
@@ -239,27 +237,21 @@ function RouteComponent() {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                        <SummaryCard
-                            label={`${t("entity.income")} · UZS`}
-                            value={totals.incomeUZS}
-                            kind="income"
-                        />
-                        <SummaryCard
-                            label={`${t("entity.income")} · USD`}
-                            value={totals.incomeUSD}
-                            kind="income"
-                        />
-                        <SummaryCard
-                            label={`${t("entity.expense")} · UZS`}
-                            value={totals.expenseUZS}
-                            kind="expense"
-                        />
-                        <SummaryCard
-                            label={`${t("entity.expense")} · USD`}
-                            value={totals.expenseUSD}
-                            kind="expense"
-                        />
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+                        {totals.flatMap((row) => [
+                            <SummaryCard
+                                key={`${row.currency}-in`}
+                                label={`${t("entity.income")} · ${row.currency}`}
+                                value={row.income}
+                                kind="income"
+                            />,
+                            <SummaryCard
+                                key={`${row.currency}-ex`}
+                                label={`${t("entity.expense")} · ${row.currency}`}
+                                value={row.expense}
+                                kind="expense"
+                            />,
+                        ])}
                     </div>
 
                     {!!kassaData?.length && (
@@ -280,12 +272,14 @@ function RouteComponent() {
                                             <p className="truncate text-xs text-muted-foreground">
                                                 {k.name}
                                             </p>
-                                            <p className="text-sm font-bold tabular-nums">
-                                                {money(Number(k.UZS))} UZS
-                                            </p>
-                                            <p className="text-sm font-bold tabular-nums">
-                                                {money(Number(k.USD))} USD
-                                            </p>
+                                            {CURRENCIES.map((c) => (
+                                                <p
+                                                    key={c}
+                                                    className="text-sm font-bold tabular-nums"
+                                                >
+                                                    {money(Number(k[c]))} {c}
+                                                </p>
+                                            ))}
                                         </div>
                                     ))}
                                 </div>
@@ -301,7 +295,7 @@ function RouteComponent() {
                                 {t("dash.incomeVsExpense")}
                             </CardTitle>
                             <div className="flex gap-1">
-                                {(["UZS", "USD"] as const).map((c) => (
+                                {(["UZS", "USD", "RUB"] as const).map((c) => (
                                     <Button
                                         key={c}
                                         size="sm"
@@ -402,7 +396,7 @@ function RouteComponent() {
                                     {t("common.noData")}
                                 </div>
                             :   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                    {(["UZS", "USD"] as const).map(
+                                    {(["UZS", "USD", "RUB"] as const).map(
                                         (currency) => {
                                             const bucket = paymentData[currency]
                                             if (!bucket) return null

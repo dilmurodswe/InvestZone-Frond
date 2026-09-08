@@ -34,6 +34,8 @@ import { contentAreaElement } from "@/lib/utils/content-area"
 import { formatNumber } from "@/lib/utils/format-number"
 import { cn } from "@/lib/utils/shadcn"
 import ClientAddEditModal from "@/routes/_main/clients/-components/client-add-edit"
+import { toCurrencyCode } from "@/routes/_main/clients/-components/client-balance-utils"
+import { ClientBalanceChip } from "@/routes/_main/clients/-components/client-balances"
 import { useClientStore } from "@/routes/_main/clients/-hooks/use-client-store"
 import type { ReadyProduct } from "@/routes/_main/ready-products/-types"
 import type { RollingPlan } from "@/routes/_main/rolling-plans/-types"
@@ -805,27 +807,51 @@ function OrderAddEdit() {
                     сдвигает соседей. */}
                 <div className={cn(DOC_GRID, DOC_TYPE, "items-end")}>
                     {/* Ряд 1 — кто, чем и по какому курсу платит */}
-                    <div className="flex items-end gap-1.5">
-                        <SelectField
-                            methods={form}
-                            classNames={DENSE_SELECT}
-                            name="client_id"
-                            options={clientOptions}
-                            label={t("table.client")}
-                            wrapperClassName="min-w-0 flex-1"
-                        />
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="size-8 shrink-0"
-                            title={t("common.addEntity", {
-                                entity: t("entity.client"),
-                            })}
-                            onClick={openClientModal}
-                        >
-                            <PlusIcon className="h-4 w-4" />
-                        </Button>
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                        <div className="flex items-end gap-1.5">
+                            <SelectField
+                                methods={form}
+                                classNames={DENSE_SELECT}
+                                name="client_id"
+                                options={clientOptions}
+                                label={t("table.client")}
+                                wrapperClassName="min-w-0 flex-1"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="size-8 shrink-0"
+                                title={t("common.addEntity", {
+                                    entity: t("entity.client"),
+                                })}
+                                onClick={openClientModal}
+                            >
+                                <PlusIcon className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        {(() => {
+                            const picked = clientList.find(
+                                (c) => c.id === values.client_id,
+                            )
+                            if (!picked?.balances) return null
+                            const code = toCurrencyCode(
+                                currencyList.find(
+                                    (c) => c.id === values.currency_id,
+                                )?.currency,
+                            )
+                            return (
+                                <ClientBalanceChip
+                                    balances={picked.balances}
+                                    currency={code}
+                                    labels={{
+                                        advance: t("client.advance"),
+                                        debt: t("client.debt"),
+                                        zero: t("cashFlow.balance"),
+                                    }}
+                                />
+                            )
+                        })()}
                     </div>
                     <SelectField
                         methods={form}

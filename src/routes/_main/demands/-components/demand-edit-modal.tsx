@@ -6,10 +6,14 @@ import SwitchField from "@/components/form/switch-field"
 import UncontrolledInput from "@/components/form/uncontrolled-input"
 import UncontrolledTextarea from "@/components/form/uncontrolled-textarea"
 import { CardTitle } from "@/components/ui/card"
+import { useGet } from "@/hooks/react-query/use-get"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
+import { toCurrencyCode } from "@/routes/_main/clients/-components/client-balance-utils"
+import { ClientBalanceChip } from "@/routes/_main/clients/-components/client-balances"
+import type { Client } from "@/routes/_main/clients/-types"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -37,7 +41,7 @@ function DemandEdit() {
     const { t } = useTranslation()
     const { demand } = useDemandStore()
     const { closeModal } = useModal("edit-demand")
-    const { invalidateByExactMatch } = useRevalidate()
+    const { invalidateByExactMatch, invalidateByPatternMatch } = useRevalidate()
     const { patch, isPending } = useRequest()
 
     const form = useForm<DemandHeaderForm>({
@@ -58,35 +62,58 @@ function DemandEdit() {
             :   undefined,
     })
 
+    const { data: fullClient } = useGet<Client>(
+        demand ?
+            API.CLIENT.USERS.ID.INDEX.replace("{id}", String(demand.client.id))
+        :   "",
+        { options: { enabled: !!demand, staleTime: 0 } },
+    )
+
     const onSubmit = form.handleSubmit((vals) => {
         if (!demand) return
-        patch(
-            API.DEMANDS.ID.INDEX.replace("{id}", String(demand.id)),
-            vals,
-            {
-                onSuccess: () => {
-                    invalidateByExactMatch([API.DEMANDS.INDEX])
-                    invalidateByExactMatch([
-                        API.DEMANDS.ID.INDEX.replace(
-                            "{id}",
-                            String(demand.id),
-                        ),
-                    ])
-                    closeModal()
-                    toast.success(t("common.updatedSuccessfully"))
-                },
+        patch(API.DEMANDS.ID.INDEX.replace("{id}", String(demand.id)), vals, {
+            onSuccess: () => {
+                invalidateByExactMatch([API.DEMANDS.INDEX])
+                invalidateByExactMatch([
+                    API.DEMANDS.ID.INDEX.replace("{id}", String(demand.id)),
+                ])
+                // Posting / un-posting moves the client's balance.
+                invalidateByPatternMatch([
+                    API.CLIENT.USERS.INDEX,
+                    API.SALE.MUTUAL_SETTLEMENTS,
+                ])
+                closeModal()
+                toast.success(t("common.updatedSuccessfully"))
             },
-        )
+        })
     })
 
     if (!demand) return null
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <CardTitle>
-                {t("common.editEntity", { entity: t("entity.demand") })} №
-                {demand.number}
-            </CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <CardTitle>
+                    {t("common.editEntity", { entity: t("entity.demand") })} №
+                    {demand.number}
+                </CardTitle>
+                <div className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground">
+                        {demand.client.company_name || demand.client.full_name}
+                    </span>
+                    {fullClient?.balances && (
+                        <ClientBalanceChip
+                            balances={fullClient.balances}
+                            currency={toCurrencyCode(demand.currency?.currency)}
+                            labels={{
+                                advance: t("client.advance"),
+                                debt: t("client.debt"),
+                                zero: t("cashFlow.balance"),
+                            }}
+                        />
+                    )}
+                </div>
+            </div>
 
             <div className="grid grid-cols-3 gap-4">
                 <DatepickerField

@@ -109,7 +109,8 @@
         "machine": "Stanok",
         "financeCategory": "Kirim/Chiqim",
         "demands": "Otgruzkalar",
-        "cashFlow": "Pul harakati"
+        "cashFlow": "Pul harakati",
+        "mutualSettlements": "O‘zaro hisob-kitob"
     },
     "finCat": {
         "categories": "Kategoriyalar",
@@ -396,5 +397,28 @@
         "sectionGoods": "Tovar",
         "sectionTerms": "Shartlar",
         "specsHint": "Har bir qator «Nomi: Qiymati» ko'rinishida."
+    },
+    "client": {
+        "openingBalance": "Boshlang‘ich qoldiq",
+        "openingBalanceDate": "Boshlang‘ich qoldiq sanasi",
+        "openingBalanceHint": "Musbat — mijoz avans to‘lagan (biz qarzdormiz). Manfiy — mijoz bizga qarzdor. Shu sanadan oldingi harakatlar boshlang‘ich qoldiqqa kiradi.",
+        "balances": "O‘zaro hisob-kitob",
+        "ledger": "Hisob-kitob tarixi",
+        "advance": "Avans",
+        "debt": "Qarz",
+        "noMovements": "Bu davrda harakatlar yo‘q"
+    },
+    "mutual": {
+        "title": "Xaridorlar bilan o‘zaro hisob-kitob",
+        "client": "Kontragent",
+        "opening": "Boshlang‘ich qoldiq",
+        "income": "Kirim",
+        "expense": "Chiqim",
+        "closing": "Yakuniy qoldiq",
+        "totalOwedToUs": "Mijozlar bizga qarzdor",
+        "totalWeOwe": "Biz mijozlarga qarzdormiz",
+        "kindShipment": "Otgruzka",
+        "kindPayment": "Kirim",
+        "kindAdjustment": "Tuzatish"
     }
 }

@@ -1,5 +1,6 @@
 import FormAction from "@/components/custom/form-action"
 import Modal from "@/components/custom/modal"
+import DatepickerField from "@/components/form/datepicker-field"
 import NumberField from "@/components/form/number-field"
 import PhoneField from "@/components/form/phone-field"
 import SelectField from "@/components/form/select-field"
@@ -77,6 +78,10 @@ function Content({ modalKey, onCreated }: Props) {
             email: "",
             notes: "",
             balance: null,
+            opening_balance_usd: 0,
+            opening_balance_uzs: 0,
+            opening_balance_rub: 0,
+            opening_balance_date: null,
         },
         values: client ? { ...client } : undefined,
     })
@@ -220,13 +225,47 @@ function Content({ modalKey, onCreated }: Props) {
                     label="Email"
                     optional
                 />
-                <NumberField
-                    methods={form}
-                    name="balance"
-                    label="Balance"
-                    optional
-                    allowNegative
-                />
+            </div>
+
+            <div className="rounded-lg border p-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("client.openingBalance")}
+                </p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                    <NumberField
+                        methods={form}
+                        name="opening_balance_usd"
+                        label="USD"
+                        optional
+                        allowNegative
+                        allowZero
+                    />
+                    <NumberField
+                        methods={form}
+                        name="opening_balance_uzs"
+                        label="UZS"
+                        optional
+                        allowNegative
+                        allowZero
+                    />
+                    <NumberField
+                        methods={form}
+                        name="opening_balance_rub"
+                        label="RUB"
+                        optional
+                        allowNegative
+                        allowZero
+                    />
+                    <DatepickerField
+                        methods={form}
+                        name="opening_balance_date"
+                        label={t("client.openingBalanceDate")}
+                        optional
+                    />
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                    {t("client.openingBalanceHint")}
+                </p>
             </div>
 
             <textarea

@@ -41,6 +41,7 @@ import { Route as MainFinanceIncomeIndexRouteImport } from './routes/_main/finan
 import { Route as MainFinanceExpenceIndexRouteImport } from './routes/_main/finance/expence/index'
 import { Route as MainFinanceDashboardIndexRouteImport } from './routes/_main/finance/dashboard/index'
 import { Route as MainFinanceCashFlowIndexRouteImport } from './routes/_main/finance/cash-flow/index'
+import { Route as MainClientsMutualSettlementsIndexRouteImport } from './routes/_main/clients/mutual-settlements/index'
 import { Route as MainSettingsProductsCategoryIdIndexRouteImport } from './routes/_main/settings/products/$categoryId/index'
 import { Route as MainSettingsProductsCategoryIdSubcategoryIdIndexRouteImport } from './routes/_main/settings/products/$categoryId/$subcategoryId/index'
 
@@ -212,6 +213,12 @@ const MainFinanceCashFlowIndexRoute =
     path: '/finance/cash-flow/',
     getParentRoute: () => MainRoute,
   } as any)
+const MainClientsMutualSettlementsIndexRoute =
+  MainClientsMutualSettlementsIndexRouteImport.update({
+    id: '/clients/mutual-settlements/',
+    path: '/clients/mutual-settlements/',
+    getParentRoute: () => MainRoute,
+  } as any)
 const MainSettingsProductsCategoryIdIndexRoute =
   MainSettingsProductsCategoryIdIndexRouteImport.update({
     id: '/settings/products/$categoryId/',
@@ -244,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof MainSettingsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
   '/task-manager': typeof MainTaskManagerIndexRoute
+  '/clients/mutual-settlements': typeof MainClientsMutualSettlementsIndexRoute
   '/finance/cash-flow': typeof MainFinanceCashFlowIndexRoute
   '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
   '/finance/expence': typeof MainFinanceExpenceIndexRoute
@@ -278,6 +286,7 @@ export interface FileRoutesByTo {
   '/settings': typeof MainSettingsIndexRoute
   '/suppliers': typeof MainSuppliersIndexRoute
   '/task-manager': typeof MainTaskManagerIndexRoute
+  '/clients/mutual-settlements': typeof MainClientsMutualSettlementsIndexRoute
   '/finance/cash-flow': typeof MainFinanceCashFlowIndexRoute
   '/finance/dashboard': typeof MainFinanceDashboardIndexRoute
   '/finance/expence': typeof MainFinanceExpenceIndexRoute
@@ -315,6 +324,7 @@ export interface FileRoutesById {
   '/_main/settings/': typeof MainSettingsIndexRoute
   '/_main/suppliers/': typeof MainSuppliersIndexRoute
   '/_main/task-manager/': typeof MainTaskManagerIndexRoute
+  '/_main/clients/mutual-settlements/': typeof MainClientsMutualSettlementsIndexRoute
   '/_main/finance/cash-flow/': typeof MainFinanceCashFlowIndexRoute
   '/_main/finance/dashboard/': typeof MainFinanceDashboardIndexRoute
   '/_main/finance/expence/': typeof MainFinanceExpenceIndexRoute
@@ -351,6 +361,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/suppliers'
     | '/task-manager'
+    | '/clients/mutual-settlements'
     | '/finance/cash-flow'
     | '/finance/dashboard'
     | '/finance/expence'
@@ -385,6 +396,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/suppliers'
     | '/task-manager'
+    | '/clients/mutual-settlements'
     | '/finance/cash-flow'
     | '/finance/dashboard'
     | '/finance/expence'
@@ -421,6 +433,7 @@ export interface FileRouteTypes {
     | '/_main/settings/'
     | '/_main/suppliers/'
     | '/_main/task-manager/'
+    | '/_main/clients/mutual-settlements/'
     | '/_main/finance/cash-flow/'
     | '/_main/finance/dashboard/'
     | '/_main/finance/expence/'
@@ -668,6 +681,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainFinanceCashFlowIndexRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/clients/mutual-settlements/': {
+      id: '/_main/clients/mutual-settlements/'
+      path: '/clients/mutual-settlements'
+      fullPath: '/clients/mutual-settlements'
+      preLoaderRoute: typeof MainClientsMutualSettlementsIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/settings/products/$categoryId/': {
       id: '/_main/settings/products/$categoryId/'
       path: '/settings/products/$categoryId'
@@ -713,6 +733,7 @@ interface MainRouteChildren {
   MainSettingsIndexRoute: typeof MainSettingsIndexRoute
   MainSuppliersIndexRoute: typeof MainSuppliersIndexRoute
   MainTaskManagerIndexRoute: typeof MainTaskManagerIndexRoute
+  MainClientsMutualSettlementsIndexRoute: typeof MainClientsMutualSettlementsIndexRoute
   MainFinanceCashFlowIndexRoute: typeof MainFinanceCashFlowIndexRoute
   MainFinanceDashboardIndexRoute: typeof MainFinanceDashboardIndexRoute
   MainFinanceExpenceIndexRoute: typeof MainFinanceExpenceIndexRoute
@@ -747,6 +768,8 @@ const MainRouteChildren: MainRouteChildren = {
   MainSettingsIndexRoute: MainSettingsIndexRoute,
   MainSuppliersIndexRoute: MainSuppliersIndexRoute,
   MainTaskManagerIndexRoute: MainTaskManagerIndexRoute,
+  MainClientsMutualSettlementsIndexRoute:
+    MainClientsMutualSettlementsIndexRoute,
   MainFinanceCashFlowIndexRoute: MainFinanceCashFlowIndexRoute,
   MainFinanceDashboardIndexRoute: MainFinanceDashboardIndexRoute,
   MainFinanceExpenceIndexRoute: MainFinanceExpenceIndexRoute,

@@ -109,7 +109,8 @@
         "machine": "Станок",
         "financeCategory": "Приход/Расход",
         "demands": "Отгрузки",
-        "cashFlow": "Движение средств"
+        "cashFlow": "Движение средств",
+        "mutualSettlements": "Взаиморасчёты"
     },
     "finCat": {
         "categories": "Категории",
@@ -396,5 +397,28 @@
         "sectionGoods": "Товар",
         "sectionTerms": "Условия",
         "specsHint": "Каждая строка в формате «Название: Значение»."
+    },
+    "client": {
+        "openingBalance": "Начальный остаток",
+        "openingBalanceDate": "Дата начального остатка",
+        "openingBalanceHint": "Плюс — клиент внёс аванс (мы должны ему). Минус — клиент должен нам. Движения до этой даты входят в начальный остаток.",
+        "balances": "Взаиморасчёты",
+        "ledger": "История взаиморасчётов",
+        "advance": "Аванс",
+        "debt": "Долг",
+        "noMovements": "Нет движений за период"
+    },
+    "mutual": {
+        "title": "Взаиморасчёты с покупателями",
+        "client": "Контрагент",
+        "opening": "Начальный остаток",
+        "income": "Приход",
+        "expense": "Расход",
+        "closing": "Конечный остаток",
+        "totalOwedToUs": "Клиенты должны нам",
+        "totalWeOwe": "Мы должны клиентам",
+        "kindShipment": "Отгрузка",
+        "kindPayment": "Приход",
+        "kindAdjustment": "Корректировка"
     }
 }

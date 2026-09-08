@@ -1,4 +1,4 @@
-export type CashCurrency = "UZS" | "USD"
+export type CashCurrency = "UZS" | "USD" | "RUB"
 
 export type CashFlowRow = {
     id: number
