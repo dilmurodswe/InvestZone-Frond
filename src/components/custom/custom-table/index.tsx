@@ -45,6 +45,8 @@ interface DataTableProps<TData, TValue> extends IPaginationProps<TData> {
     rowClassName?: (item: TData) => string
     onRowClick?: (item: TData) => void
     disableNumeration?: boolean
+    /** Count down from `count` — for newest-first lists, so the latest row keeps the highest №. */
+    descendingNumeration?: boolean
     onEdit?: (data: Row<TData>) => void
     onDelete?: (data: Row<TData>) => void
     onUndo?: (data: Row<TData>) => void
@@ -71,6 +73,7 @@ export function CustomTable<TData, TValue>({
     rowClassName,
     onRowClick,
     disableNumeration = false,
+    descendingNumeration = false,
     onDelete,
     onEdit,
     onUndo,
@@ -155,6 +158,10 @@ export function CustomTable<TData, TValue>({
     const pageSizeValue =
         // @ts-expect-error sdfs
         pageSize || search[pageSizeKey] || rowsPerPageOptions[0].id
+    const rowNumber = (i: number) => {
+        const offset = (page - 1) * pageSizeValue + i
+        return descendingNumeration && count ? count - offset : offset + 1
+    }
 
     const virtualRows =
         enableVirtualization ? rowVirtualizer.getVirtualItems() : null
@@ -263,10 +270,7 @@ export function CustomTable<TData, TValue>({
                                                     fixed="left"
                                                     className="w-4 text-center"
                                                 >
-                                                    {(page - 1) *
-                                                        pageSizeValue +
-                                                        i +
-                                                        1}
+                                                    {rowNumber(i)}
                                                 </TableCell>
                                             )}
                                             {row.getVisibleCells().map((c) => {
@@ -326,9 +330,7 @@ export function CustomTable<TData, TValue>({
                                                 fixed="left"
                                                 className="w-4 text-center"
                                             >
-                                                {(page - 1) * pageSizeValue +
-                                                    i +
-                                                    1}
+                                                {rowNumber(i)}
                                             </TableCell>
                                         )}
                                         {row.getVisibleCells().map((c) => {

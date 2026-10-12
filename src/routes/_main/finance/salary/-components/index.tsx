@@ -22,6 +22,8 @@ import { useTranslation } from "react-i18next"
 import { usePayrollQuery } from "../-hooks/use-salary-queries"
 import type { PayrollRow, SalaryTransaction } from "../-types"
 import SalaryIssueModal from "./salary-issue-modal"
+import SalaryPostDialog from "./salary-post-dialog"
+import SalaryPrint from "./salary-print"
 import SalaryTransactionsModal from "./salary-transactions-modal"
 
 const pad = (n: number) => String(n).padStart(2, "0")
@@ -43,6 +45,11 @@ const UZ_MONTHS = [
     "Dekabr",
 ]
 
+const monthLabel = (d: Date, isUz: boolean, locale: string) =>
+    isUz ?
+        `${UZ_MONTHS[d.getMonth()]} ${d.getFullYear()}`
+    :   d.toLocaleDateString(locale, { month: "long", year: "numeric" })
+
 /** Reliable month picker: a dropdown of the last year + the next two months. */
 function MonthSelect({
     value,
@@ -60,14 +67,10 @@ function MonthSelect({
         const list: { value: string; label: string }[] = []
         for (let i = 2; i >= -12; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
-            const label =
-                isUz ?
-                    `${UZ_MONTHS[d.getMonth()]} ${d.getFullYear()}`
-                :   d.toLocaleDateString(locale, {
-                        month: "long",
-                        year: "numeric",
-                    })
-            list.push({ value: monthKey(d), label })
+            list.push({
+                value: monthKey(d),
+                label: monthLabel(d, isUz, locale),
+            })
         }
         return list
     }, [isUz, locale])
@@ -94,7 +97,7 @@ function MonthSelect({
 const num = (v: unknown) => formatNumber(v, { decimalScale: 0 })
 
 export default function SalaryPage() {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const [month, setMonth] = useState(() => thisMonth())
     const [search, setSearch] = useState("")
     const { payrollList: allRows, isFetching } = usePayrollQuery(month)
@@ -110,6 +113,7 @@ export default function SalaryPage() {
     const txnsModal = useModal("salary-transactions")
 
     const [editingTxn, setEditingTxn] = useState<SalaryTransaction | null>(null)
+    const [posting, setPosting] = useState<PayrollRow | null>(null)
     const [activeEmployee, setActiveEmployee] = useState<{
         id: number
         name: string
@@ -155,6 +159,12 @@ export default function SalaryPage() {
     )
 
     const payoutDate = allRows.find((r) => r.payout_date)?.payout_date ?? ""
+    const [year, mon] = month.split("-").map(Number)
+    const printMonth = monthLabel(
+        new Date(year, mon - 1, 1),
+        !!i18n.language?.startsWith("uz"),
+        i18n.language?.startsWith("ru") ? "ru-RU" : "en-US",
+    )
 
     return (
         <>
@@ -266,6 +276,7 @@ export default function SalaryPage() {
                                         row={row}
                                         onPatch={patchRow}
                                         onOpenTxns={() => openTxns(row)}
+                                        onRequestPost={() => setPosting(row)}
                                     />
                                 ))}
                             </tbody>
@@ -297,6 +308,23 @@ export default function SalaryPage() {
                     </div>
                 }
 
+                <SalaryPrint
+                    rows={payrollList}
+                    totals={totals}
+                    monthLabel={printMonth}
+                    payoutDate={payoutDate}
+                />
+                <SalaryPostDialog
+                    row={posting}
+                    onClose={() => setPosting(null)}
+                    onConfirm={async (row, paymentType) => {
+                        await patchRow(row.id, {
+                            posted: true,
+                            payment_type: paymentType,
+                        })
+                        setPosting(null)
+                    }}
+                />
                 <SalaryIssueModal transaction={editingTxn} />
                 <SalaryTransactionsModal
                     employee={activeEmployee}
@@ -322,11 +350,13 @@ function Row({
     row,
     onPatch,
     onOpenTxns,
+    onRequestPost,
 }: {
     index: number
     row: PayrollRow
     onPatch: (id: number, patch: Record<string, unknown>) => Promise<void>
     onOpenTxns: () => void
+    onRequestPost: () => void
 }) {
     const { t } = useTranslation()
     const [worked, setWorked] = useState(row.worked ?? "")
@@ -450,10 +480,24 @@ function Row({
                     type="checkbox"
                     className="size-4 accent-primary"
                     checked={row.posted}
-                    onChange={(e) =>
-                        onPatch(row.id, { posted: e.target.checked })
-                    }
+                    onChange={(e) => {
+                        if (e.target.checked) {
+                            // Posting books a Расход — ask for the kassa first.
+                            if (Number(row.payout_amount) > 0) onRequestPost()
+                            else onPatch(row.id, { posted: true })
+                        } else if (
+                            !row.payout_payment_type ||
+                            window.confirm(t("salary.unpostConfirm"))
+                        ) {
+                            onPatch(row.id, { posted: false })
+                        }
+                    }}
                 />
+                {row.posted && row.payout_payment_type_name && (
+                    <span className="block text-[10px] text-muted-foreground">
+                        {row.payout_payment_type_name}
+                    </span>
+                )}
             </td>
         </tr>
     )

@@ -17,6 +17,11 @@ import { useIncomePrefillStore } from "../-hooks/use-income-prefill-store"
 import { useIncomesQuery } from "../-hooks/use-incomes-query"
 import type { Income } from "../-types"
 import { useBulkSelect } from "../../-hooks/use-bulk-select"
+import {
+    DISPLAY_CURRENCY_KEY,
+    DISPLAY_CURRENCY_OPTIONS,
+    useDisplayCurrency,
+} from "../../-hooks/use-display-currency"
 import IncomeAddEditModal from "./income-add-edit-modal"
 import { getIncomeCols } from "./income-columns"
 import IncomeDeleteModal from "./income-delete-modal"
@@ -27,6 +32,7 @@ export default function IncomePage() {
     const addModal = useModal("add-income")
     const deleteModal = useModal("delete-income")
     const { t } = useTranslation()
+    const { convert } = useDisplayCurrency()
     const bulk = useBulkSelect<Income>()
     const { removeAsync, isPending: deleting } = useRequest()
     const { invalidateByPatternMatch } = useRevalidate()
@@ -49,6 +55,7 @@ export default function IncomePage() {
                 setSelected(income)
                 deleteModal.openModal()
             },
+            convert,
         ),
     ]
 
@@ -67,10 +74,6 @@ export default function IncomePage() {
         toast.success(t("common.deletedSuccessfully"))
     }
 
-    const expenseOptions = [
-        { id: "uzs", name: "UZS" },
-        { id: "usd", name: "USD" },
-    ]
     const paymentOptions = [
         { id: "naxt", name: "NAXT" },
         { id: "card", name: "CARD" },
@@ -88,9 +91,9 @@ export default function IncomePage() {
                 <Group className="flex justify-between mb-4">
                     <div className="flex gap-x-3">
                         <FilterSelect
-                            filterKey="currency"
+                            filterKey={DISPLAY_CURRENCY_KEY}
                             placeholder="Currency"
-                            options={expenseOptions}
+                            options={DISPLAY_CURRENCY_OPTIONS}
                         />
                         <FilterSelect
                             filterKey="payment_type"
@@ -128,6 +131,7 @@ export default function IncomePage() {
                         columns={cols}
                         data={incomeList}
                         count={data?.count}
+                        descendingNumeration
                         isLoading={isFetching}
                     />
                 )}

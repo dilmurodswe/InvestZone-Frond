@@ -55,4 +55,8 @@ export type PayrollRow = {
     accrued: string
     comment: string | null
     posted: boolean
+    /** What ticking «Проведено» books as a Расход (earned − аванс). */
+    payout_amount: string
+    payout_payment_type: number | null
+    payout_payment_type_name: string | null
 }

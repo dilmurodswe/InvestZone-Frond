@@ -2,24 +2,25 @@ import i18n from "@/lib/i18n/request"
 import { formatNumber } from "@/lib/utils/format-number"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Expense } from "../-types"
+import ConvertedAmount from "../../-components/converted-amount"
 import OriginBadge from "../../-components/origin-badge"
+import type { ConvertedAmount as Converted } from "../../-hooks/use-display-currency"
 
 import { ExpenseActions } from "./expense-actions"
 
 export const getExpenseCols = (
     onEdit: (expense: Expense) => void,
     onDelete: (expense: Expense) => void,
+    convert: (expense: Expense) => Converted,
 ): ColumnDef<Expense>[] => [
     {
         accessorKey: "amount",
         header: i18n.t("table.amount"),
         cell: ({ row: { original } }) => (
-            <span className="text-sm font-semibold tabular-nums text-red-600 dark:text-red-500">
-                {formatNumber(original.amount, {
-                    decimalScale: 2,
-                    isShowZero: true,
-                })}
-            </span>
+            <ConvertedAmount
+                value={convert(original)}
+                className="text-red-600 dark:text-red-500"
+            />
         ),
     },
     {

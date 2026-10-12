@@ -3,13 +3,14 @@ import { API } from "@/lib/constants/api-endpoints"
 import { getArray } from "@/lib/utils/get-array"
 import { useSearch } from "@tanstack/react-router"
 import type { Income } from "../-types"
+import { withoutDisplayCurrency } from "../../-hooks/use-display-currency"
 
 export const useIncomesQuery = () => {
     const params = useSearch({ strict: false })
     const res = useGet<{ count: number; results: Income[] }>(
         API.FINANCE.INCOME.INDEX,
         {
-            params: { page_size: 20, ...params },
+            params: { page_size: 20, ...withoutDisplayCurrency(params) },
         },
     )
     const incomeList = getArray<Income>(res.data?.results)

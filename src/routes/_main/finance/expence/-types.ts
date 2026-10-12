@@ -10,8 +10,8 @@ export type CategoryRef = {
     name: string
 } | null
 
-/** Set when the row was auto-created from a salary transaction. */
-export type FinanceOrigin = "advance" | "bonus" | "penalty" | null
+/** Set when the row was auto-created from a salary transaction / payout. */
+export type FinanceOrigin = "advance" | "bonus" | "penalty" | "salary" | null
 
 export type Expense = {
     id: number

@@ -29,7 +29,9 @@ export const useCashFlowQuery = ({
 
     return {
         ...res,
-        rows: res.data?.rows ?? [],
+        // The backend walks oldest → newest to build the running balance; show
+        // the newest operation on top.
+        rows: [...(res.data?.rows ?? [])].reverse(),
         opening: res.data?.opening ?? {},
         closing: res.data?.closing ?? {},
     }

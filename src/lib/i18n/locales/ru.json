@@ -132,6 +132,12 @@
         "rateSourceSystem": "система"
     },
     "salary": {
+        "postTitle": "Провести зарплату",
+        "payoutAmount": "К выплате (пойдёт в Расход)",
+        "payoutHint": "Начислено за отработанное минус выданный аванс. Аванс, премия и штраф уже учтены отдельно.",
+        "postConfirm": "Провести",
+        "unpostConfirm": "Снять проведение? Расход по зарплате будет удалён.",
+        "salary": "Зарплата",
         "title": "Зарплата",
         "payroll": "Ведомость",
         "issue": "Выдача",
@@ -167,6 +173,8 @@
         "incomeVsExpense": "Приход и расход",
         "paymentByType": "По кассам",
         "kassaBalances": "Остатки по кассам",
+        "now": "Сейчас",
+        "total": "Итого",
         "sales": "Продажи",
         "week": "Неделя",
         "month": "Месяц",
@@ -194,7 +202,8 @@
         "balance": "Остаток",
         "openingBalanceUzs": "Начальный остаток, UZS",
         "openingBalanceUsd": "Начальный остаток, USD",
-        "openingBalanceDate": "Дата начального остатка"
+        "openingBalanceDate": "Дата начального остатка",
+        "noRate": "нет курса"
     },
     "table": {
         "active": "Активный",
@@ -440,5 +449,17 @@
         "kindShipment": "Отгрузка",
         "kindPayment": "Приход",
         "kindAdjustment": "Корректировка"
+    },
+    "income": {
+        "paidDocs": "Оплаченные документы",
+        "distribute": "Распределить",
+        "demand": "Отгрузка",
+        "toPay": "К оплате",
+        "unpaid": "Не оплачено",
+        "paidFromThis": "Оплачено из этого платежа",
+        "noUnpaid": "Нет неоплаченных отгрузок в этой валюте",
+        "allocated": "Привязано",
+        "unallocated": "Не привязано",
+        "overAllocated": "Привязано больше суммы платежа"
     }
 }

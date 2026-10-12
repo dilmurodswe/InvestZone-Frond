@@ -32,7 +32,8 @@ import { CalendarIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useCashFlowQuery } from "../-hooks/use-cash-flow"
-import type { CashCurrency } from "../-types"
+import type { CashCurrency, CashFlowRow } from "../-types"
+import CashFlowDetail from "./cash-flow-detail"
 
 const today = new Date()
 const DEFAULT_START = format(startOfMonth(today), "yyyy-MM-dd")
@@ -79,6 +80,7 @@ export default function CashFlowPage() {
     const { t } = useTranslation()
     const [paymentType, setPaymentType] = useState<string>("all")
     const [currency, setCurrency] = useState<CashCurrency | "">("")
+    const [opened, setOpened] = useState<CashFlowRow | null>(null)
     const [dates, setDates] = useState({
         start: DEFAULT_START,
         end: DEFAULT_END,
@@ -226,7 +228,11 @@ export default function CashFlowPage() {
                                     {rows.map((r) => {
                                         const income = r.type === "income"
                                         return (
-                                            <TableRow key={`${r.type}-${r.id}`}>
+                                            <TableRow
+                                                key={`${r.type}-${r.id}`}
+                                                className="cursor-pointer"
+                                                onClick={() => setOpened(r)}
+                                            >
                                                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                                                     {r.date}
                                                 </TableCell>
@@ -236,7 +242,7 @@ export default function CashFlowPage() {
                                                 <TableCell className="whitespace-nowrap text-xs">
                                                     {r.payment_type_name}
                                                 </TableCell>
-                                                <TableCell className="max-w-md text-xs">
+                                                <TableCell className="max-w-md text-xs whitespace-normal break-words">
                                                     {r.purpose}
                                                 </TableCell>
                                                 <TableCell
@@ -250,6 +256,19 @@ export default function CashFlowPage() {
                                                     {income ? "+" : "−"}
                                                     {money(r.amount)}{" "}
                                                     {r.currency}
+                                                    {r.original_currency && (
+                                                        <span className="block text-xs font-normal text-muted-foreground">
+                                                            {r.converted ===
+                                                                false &&
+                                                                `${t("cashFlow.noRate")} · `}
+                                                            {money(
+                                                                r.original_amount,
+                                                            )}{" "}
+                                                            {
+                                                                r.original_currency
+                                                            }
+                                                        </span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell className="whitespace-nowrap text-right text-sm tabular-nums">
                                                     {money(r.balance_after)}{" "}
@@ -275,6 +294,7 @@ export default function CashFlowPage() {
                         </CardContent>
                     </Card>
                 </div>
+                <CashFlowDetail row={opened} onClose={() => setOpened(null)} />
             </Layout>
         </>
     )

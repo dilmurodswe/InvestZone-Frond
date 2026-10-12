@@ -20,13 +20,14 @@ import {
 } from "@/components/ui/select"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
+import { useSaleClientsQuery } from "@/hooks/react-query/use-sale-refs"
 import { useModal } from "@/hooks/use-modal"
 import { API } from "@/lib/constants/api-endpoints"
 import { cn } from "@/lib/utils/shadcn"
 import { toFormData } from "@/lib/utils/to-form-data"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { NumericFormat } from "react-number-format"
@@ -37,6 +38,7 @@ import { useOrdersMiniQuery } from "../-hooks/use-orders-mini-query"
 import { usePaymentTypesQuery } from "../-hooks/use-payment-types-query"
 import type { Income, IncomeForm } from "../-types"
 import CurrencyRateField from "../../-components/currency-rate-field"
+import IncomeAllocations, { type AllocationMap } from "./income-allocations"
 
 interface Props {
     income: Income | null
@@ -64,7 +66,7 @@ function IncomeFormInner({ income }: Props) {
     const { t } = useTranslation()
     const { closeModal } = useModal("add-income")
     const { invalidateByPatternMatch } = useRevalidate()
-    const { post, patch, isPending } = useRequest()
+    const { postAsync, patchAsync, putAsync, isPending } = useRequest()
     // Separate instance for multipart: clears the JSON Content-Type default so
     // the browser sets `multipart/form-data` with a boundary.
     const fileReq = useRequest({
@@ -73,11 +75,14 @@ function IncomeFormInner({ income }: Props) {
     const { currencyList, isLoading: currLoading } = useCurrenciesQuery()
     const { paymentTypeList, isLoading: payLoading } = usePaymentTypesQuery()
     const { orderList, isLoading: ordersLoading } = useOrdersMiniQuery()
+    const { clientList } = useSaleClientsQuery()
+    const [allocations, setAllocations] = useState<AllocationMap>({})
 
     const listsLoaded = !currLoading && !payLoading && !ordersLoading
     const form = useForm<IncomeForm>({
         defaultValues: {
             payment_type: null,
+            client: income?.client ?? null,
             currency: income?.currency?.id ?? null,
             order: income?.order ?? null,
             category: null,
@@ -92,8 +97,13 @@ function IncomeFormInner({ income }: Props) {
         },
     })
 
-    const orderId = useWatch({ control: form.control, name: "order" })
-    const selectedOrder = orderList.find((o) => o.id === Number(orderId))
+    const clientId = useWatch({ control: form.control, name: "client" })
+    const currencyId = useWatch({ control: form.control, name: "currency" })
+    const amount = useWatch({ control: form.control, name: "amount" })
+    const currencyCode =
+        currencyList
+            .find((c) => c.id === Number(currencyId))
+            ?.currency?.toUpperCase() ?? null
 
     useEffect(() => {
         if (!income || !listsLoaded) return
@@ -101,6 +111,7 @@ function IncomeFormInner({ income }: Props) {
             payment_type:
                 paymentTypeList.find((p) => p.name === income.payment_type)
                     ?.id ?? null,
+            client: income.client ?? null,
             currency: income.currency?.id ?? null,
             order: income.order ?? null,
             category: null,
@@ -121,6 +132,7 @@ function IncomeFormInner({ income }: Props) {
         form.setValue("order", id)
         const order = orderList.find((o) => o.id === id)
         if (!order) return
+        if (order.client?.id) form.setValue("client", order.client.id)
         if (order.grand_total)
             form.setValue("amount", String(order.grand_total))
         if (order.currency?.id) form.setValue("currency", order.currency.id)
@@ -150,6 +162,7 @@ function IncomeFormInner({ income }: Props) {
             // An order-linked income is a Приход on that client's Взаиморасчёты.
             API.CLIENT.USERS.INDEX,
             API.SALE.MUTUAL_SETTLEMENTS,
+            API.FINANCE.INCOME.CLIENT_DEMANDS,
         ])
         closeModal()
         toast.success(
@@ -159,29 +172,55 @@ function IncomeFormInner({ income }: Props) {
         )
     }
 
-    const onSubmit = form.handleSubmit((vals) => {
+    const allocList = Object.entries(allocations)
+        .filter(([, v]) => Number(v) > 0)
+        .map(([demand, v]) => ({ demand: Number(demand), amount: v }))
+    const overAllocated =
+        allocList.reduce((sum, a) => sum + Number(a.amount), 0) >
+        Number(amount || 0)
+
+    const onSubmit = form.handleSubmit(async (vals) => {
+        if (overAllocated) {
+            toast.error(t("income.overAllocated"))
+            return
+        }
         const { attachment, ...rest } = vals
         const hasFile = attachment instanceof File
         const payload = hasFile ? toFormData({ ...rest, attachment }) : rest
-        const { post: doPost, patch: doPatch } =
-            hasFile ? fileReq : { post, patch }
+        const req = hasFile ? fileReq : { postAsync, patchAsync }
 
-        if (income) {
-            doPatch(
-                API.FINANCE.INCOME.ID.INDEX.replace("{id}", String(income.id)),
-                payload,
-                { onSuccess },
-            )
-        } else {
-            doPost(API.FINANCE.INCOME.INDEX, payload, { onSuccess })
+        let saved: Income
+        try {
+            saved =
+                income ?
+                    await req.patchAsync(
+                        API.FINANCE.INCOME.ID.INDEX.replace(
+                            "{id}",
+                            String(income.id),
+                        ),
+                        payload,
+                    )
+                :   await req.postAsync(API.FINANCE.INCOME.INDEX, payload)
+        } catch {
+            return // useRequest already shows the API error.
         }
+
+        // «Оплаченные документы» — which Отгрузки this payment covers. The
+        // Приход itself is saved either way, so close the form even if this
+        // fails (its error is toasted) rather than invite a duplicate.
+        if (vals.client && (allocList.length || Number(income?.allocated))) {
+            await putAsync(
+                API.FINANCE.INCOME.ID.ALLOCATIONS.replace(
+                    "{id}",
+                    String(saved.id),
+                ),
+                allocList,
+            ).catch(() => undefined)
+        }
+        onSuccess()
     })
 
     const entity = t("entity.income")
-    const clientName =
-        selectedOrder?.client?.full_name ||
-        selectedOrder?.client?.company_name ||
-        "—"
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-5">
@@ -227,9 +266,32 @@ function IncomeFormInner({ income }: Props) {
 
                 <div className="flex min-w-0 flex-col gap-1.5">
                     <Label>{t("table.client")}</Label>
-                    <div className="flex h-9 items-center text-sm text-muted-foreground">
-                        {clientName}
-                    </div>
+                    <Controller
+                        control={form.control}
+                        name="client"
+                        render={({ field }) => (
+                            <Select
+                                value={field.value ? String(field.value) : ""}
+                                onValueChange={(v) => field.onChange(Number(v))}
+                            >
+                                <SelectTrigger className="w-full min-w-0">
+                                    <SelectValue
+                                        placeholder={t("common.select")}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {clientList.map((c) => (
+                                        <SelectItem
+                                            key={c.id}
+                                            value={String(c.id)}
+                                        >
+                                            {c.full_name || c.company_name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
                 </div>
 
                 <div className="flex min-w-0 flex-col gap-1.5">
@@ -405,6 +467,15 @@ function IncomeFormInner({ income }: Props) {
                         </a>
                     )}
                 </div>
+
+                <IncomeAllocations
+                    clientId={clientId ? Number(clientId) : null}
+                    currency={currencyCode}
+                    incomeId={income?.id ?? null}
+                    amount={Number(amount || 0)}
+                    value={allocations}
+                    onChange={setAllocations}
+                />
             </div>
 
             <FormAction

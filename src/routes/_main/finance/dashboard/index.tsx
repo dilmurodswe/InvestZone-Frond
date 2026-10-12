@@ -31,6 +31,7 @@ import {
     XAxis,
     YAxis,
 } from "recharts"
+import { useReferenceRates } from "../-hooks/use-reference-rates"
 import TrendWidget, { type Granularity } from "./-components/trend-widget"
 
 export const Route = createFileRoute("/_main/finance/dashboard/")({
@@ -63,6 +64,10 @@ type PaymentBucket = {
     items: { name: string; income: number; expense: number }[]
 }
 type PaymentStats = Record<string, PaymentBucket>
+type KassaBalance = {
+    payment_type: number
+    name: string
+} & Partial<Record<Currency, string>>
 
 const money = (v: unknown) => formatNumber(v, { decimalScale: 0 })
 const compact = (v: number) => {
@@ -190,6 +195,12 @@ function RouteComponent() {
         API.DASHBOARD.INCOME_STATS,
         { params, options: opts },
     )
+    // Balance of every kassa right now (not limited to the date range),
+    // converted into the picked currency.
+    const { data: kassaData } = useGet<KassaBalance[]>(
+        API.DASHBOARD.KASSA_BALANCES,
+        { params: { currency: cur }, options: opts },
+    )
     const { data: paymentData, isLoading: paymentLoading } =
         useGet<PaymentStats>(API.DASHBOARD.PAYMENT_TYPE_STATS, {
             params,
@@ -216,12 +227,19 @@ function RouteComponent() {
         }))
     }, [incomeData, expenseData])
 
+    const { convert } = useReferenceRates()
     const mutual = useMemo(() => {
+        // A client can owe in several currencies — sum them all, converted
+        // into the picked one at the reference rate.
         const rows = (mutualData?.results ?? [])
             .map((r) => ({
                 id: r.client_id,
                 name: r.client_name,
-                closing: Number(r.closing[cur] ?? 0),
+                closing: CURRENCIES.reduce(
+                    (sum, c) =>
+                        sum + convert(Number(r.closing[c] ?? 0), c, cur),
+                    0,
+                ),
             }))
             .filter((r) => r.closing)
         let owedToUs = 0
@@ -234,7 +252,7 @@ function RouteComponent() {
             .sort((a, b) => Math.abs(b.closing) - Math.abs(a.closing))
             .slice(0, 6)
         return { owedToUs, weOwe, top }
-    }, [mutualData, cur])
+    }, [mutualData, cur, convert])
 
     const chartLoading = expenseLoading || incomeLoading
 
@@ -484,10 +502,16 @@ function RouteComponent() {
                         <CardHeader className="pb-2">
                             <CardTitle className="flex items-center gap-2 text-base">
                                 <Wallet className="h-4 w-4 text-indigo-500" />
-                                {t("dash.paymentByType")}
+                                {t("dash.paymentByType")} · {cur}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="flex flex-col gap-6">
+                            {!!kassaData?.length && (
+                                <KassaBalances
+                                    rows={kassaData}
+                                    currency={cur}
+                                />
+                            )}
                             {paymentLoading ?
                                 <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
                                     {t("common.loading")}
@@ -499,21 +523,7 @@ function RouteComponent() {
                                 <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
                                     {t("common.noData")}
                                 </div>
-                            :   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                    {(["UZS", "USD", "RUB"] as const).map(
-                                        (currency) => {
-                                            const bucket = paymentData[currency]
-                                            if (!bucket) return null
-                                            return (
-                                                <PaymentBucketBlock
-                                                    key={currency}
-                                                    currency={currency}
-                                                    bucket={bucket}
-                                                />
-                                            )
-                                        },
-                                    )}
-                                </div>
+                            :   <PaymentBucketBlock bucket={paymentData[cur]} />
                             }
                         </CardContent>
                     </Card>
@@ -605,26 +615,57 @@ function Donut({
     )
 }
 
-function PaymentBucketBlock({
+function KassaBalances({
+    rows,
     currency,
-    bucket,
 }: {
-    currency: string
-    bucket: PaymentBucket
+    rows: KassaBalance[]
+    currency: Currency
 }) {
     const { t } = useTranslation()
-    const expenseData = bucket.items
+    const total = rows.reduce((s, r) => s + Number(r[currency] ?? 0), 0)
+    const tile = (key: string | number, label: string, value: number) => (
+        <div key={key} className="rounded-lg border p-3">
+            <p className="truncate text-xs text-muted-foreground">{label}</p>
+            <p
+                className={cn(
+                    "text-lg font-bold tabular-nums",
+                    value < 0 && "text-red-600",
+                )}
+            >
+                {money(value)} {currency}
+            </p>
+        </div>
+    )
+
+    return (
+        <div className="flex flex-col gap-2">
+            <span className="text-xs font-semibold text-muted-foreground">
+                {t("dash.kassaBalances")} · {t("dash.now")}
+            </span>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+                {tile("total", t("dash.total"), total)}
+                {rows.map((r) =>
+                    tile(r.payment_type, r.name, Number(r[currency] ?? 0)),
+                )}
+            </div>
+        </div>
+    )
+}
+
+function PaymentBucketBlock({ bucket }: { bucket: PaymentBucket | undefined }) {
+    const { t } = useTranslation()
+    const items = bucket?.items ?? []
+    const expenseData = items
         .filter((i) => i.expense > 0)
         .map((i) => ({ name: i.name, value: i.expense }))
-    const incomeData = bucket.items
+    const incomeData = items
         .filter((i) => i.income > 0)
         .map((i) => ({ name: i.name, value: i.income }))
     const hasAny = expenseData.length > 0 || incomeData.length > 0
 
     return (
-        <div className="flex flex-col gap-3 rounded-xl border p-4">
-            <span className="text-sm font-semibold">{currency}</span>
-
+        <div className="flex flex-col gap-3">
             {!hasAny ?
                 <p className="py-6 text-center text-xs text-muted-foreground">
                     {t("common.noData")}

@@ -39,7 +39,10 @@ export type Income = {
     subcategory: CategoryRef
     order: number | null
     order_number: string | null
+    client: number | null
     client_name: string | null
+    /** «Привязано» — part of the payment that covers Отгрузки. */
+    allocated: string | number
     attachment: string | null
     current_rate: string
     custom_rate: string
@@ -52,6 +55,7 @@ export type Income = {
 
 export type IncomeForm = {
     payment_type: number | null
+    client: number | null
     currency: number | null
     order: number | null
     category: number | null
@@ -63,4 +67,15 @@ export type IncomeForm = {
     sales_agent: number | null
     amount: string
     comment: string
+}
+
+/** One Отгрузка in the «Оплаченные документы» picker. */
+export type ClientDemandRow = {
+    demand: number
+    number: string
+    date: string
+    currency: string
+    total: string
+    unpaid: string
+    allocated: string
 }

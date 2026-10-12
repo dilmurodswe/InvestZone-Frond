@@ -132,6 +132,12 @@
         "rateSourceSystem": "tizim"
     },
     "salary": {
+        "postTitle": "Oylikni o'tkazish",
+        "payoutAmount": "To'lanadi (Xarajatga tushadi)",
+        "payoutHint": "Ishlangan qism minus berilgan avans. Avans, mukofot va jarima alohida hisobga olingan.",
+        "postConfirm": "O'tkazish",
+        "unpostConfirm": "O'tkazishni bekor qilasizmi? Oylik xarajati o'chiriladi.",
+        "salary": "Oylik",
         "title": "Oylik",
         "payroll": "Oylik varaqasi",
         "issue": "Berish",
@@ -167,6 +173,8 @@
         "incomeVsExpense": "Kirim va chiqim",
         "paymentByType": "Kassa bo'yicha",
         "kassaBalances": "Kassa qoldiqlari",
+        "now": "Hozir",
+        "total": "Jami",
         "sales": "Sotuvlar",
         "week": "Hafta",
         "month": "Oy",
@@ -194,7 +202,8 @@
         "balance": "Qoldiq",
         "openingBalanceUzs": "Boshlang'ich qoldiq, UZS",
         "openingBalanceUsd": "Boshlang'ich qoldiq, USD",
-        "openingBalanceDate": "Boshlang'ich qoldiq sanasi"
+        "openingBalanceDate": "Boshlang'ich qoldiq sanasi",
+        "noRate": "kurs yo'q"
     },
     "table": {
         "active": "Faol",
@@ -440,5 +449,17 @@
         "kindShipment": "Otgruzka",
         "kindPayment": "Kirim",
         "kindAdjustment": "Tuzatish"
+    },
+    "income": {
+        "paidDocs": "To'langan hujjatlar",
+        "distribute": "Taqsimlash",
+        "demand": "Jo'natma",
+        "toPay": "To'lanishi kerak",
+        "unpaid": "To'lanmagan",
+        "paidFromThis": "Shu to'lovdan",
+        "noUnpaid": "Bu valyutada to'lanmagan jo'natma yo'q",
+        "allocated": "Bog'langan",
+        "unallocated": "Bog'lanmagan",
+        "overAllocated": "Bog'langan summa to'lovdan katta"
     }
 }

@@ -132,6 +132,12 @@
         "rateSourceSystem": "system"
     },
     "salary": {
+        "postTitle": "Post salary",
+        "payoutAmount": "Payout (booked as an expense)",
+        "payoutHint": "Earned for days worked minus advances issued. Advances, bonuses and penalties are already booked separately.",
+        "postConfirm": "Post",
+        "unpostConfirm": "Unpost? The salary expense will be deleted.",
+        "salary": "Salary",
         "title": "Salary",
         "payroll": "Payroll sheet",
         "issue": "Issue",
@@ -167,6 +173,8 @@
         "incomeVsExpense": "Income vs expense",
         "paymentByType": "By cash register",
         "kassaBalances": "Cash register balances",
+        "now": "Now",
+        "total": "Total",
         "sales": "Sales",
         "week": "Week",
         "month": "Month",
@@ -194,7 +202,8 @@
         "balance": "Balance",
         "openingBalanceUzs": "Opening balance, UZS",
         "openingBalanceUsd": "Opening balance, USD",
-        "openingBalanceDate": "Opening balance date"
+        "openingBalanceDate": "Opening balance date",
+        "noRate": "no rate"
     },
     "table": {
         "active": "Active",
@@ -440,5 +449,17 @@
         "kindShipment": "Shipment",
         "kindPayment": "Payment",
         "kindAdjustment": "Adjustment"
+    },
+    "income": {
+        "paidDocs": "Paid documents",
+        "distribute": "Distribute",
+        "demand": "Shipment",
+        "toPay": "To pay",
+        "unpaid": "Unpaid",
+        "paidFromThis": "Paid from this payment",
+        "noUnpaid": "No unpaid shipments in this currency",
+        "allocated": "Allocated",
+        "unallocated": "Unallocated",
+        "overAllocated": "Allocated more than the payment amount"
     }
 }

@@ -163,7 +163,13 @@ export const API = {
         },
         INCOME: {
             INDEX: "finance/income",
-            ID: { INDEX: "finance/income/{id}" },
+            ID: {
+                INDEX: "finance/income/{id}",
+                // GET / PUT [{demand, amount}] — Отгрузки this Приход pays.
+                ALLOCATIONS: "finance/income/{id}/allocations",
+            },
+            // ?client=&currency=&income= — Отгрузки still to be paid.
+            CLIENT_DEMANDS: "finance/income/client-demands",
         },
         CATEGORIES: {
             INDEX: "finance/categories",
