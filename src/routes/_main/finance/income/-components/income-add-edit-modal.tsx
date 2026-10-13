@@ -18,6 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { useRequest } from "@/hooks/react-query/use-request"
 import { useRevalidate } from "@/hooks/react-query/use-revalidate"
 import { useSaleClientsQuery } from "@/hooks/react-query/use-sale-refs"
@@ -43,6 +44,20 @@ import IncomeAllocations, { type AllocationMap } from "./income-allocations"
 interface Props {
     income: Income | null
 }
+
+/** «Включая НДС» rates; "" = Без НДС. 12% is Uzbekistan's standard rate. */
+const VAT_RATES = ["0", "12", "20"]
+
+/** VAT contained in a gross amount: amount × rate / (100 + rate). */
+const vatOf = (amount: string, rate: string | null) => {
+    const a = Number(amount) || 0
+    const r = Number(rate) || 0
+    return rate ? String(Math.round(((a * r) / (100 + r)) * 100) / 100) : "0"
+}
+
+/** Normalise a stored rate ("12.00") to a VAT_RATES key ("12"). */
+const rateKey = (rate: string | null | undefined) =>
+    rate == null || rate === "" ? null : String(Number(rate))
 
 export default function IncomeAddEditModal({ income }: Props) {
     const { isOpen } = useModal("add-income")
@@ -94,12 +109,18 @@ function IncomeFormInner({ income }: Props) {
             sales_agent: null,
             amount: income?.amount ?? "",
             comment: income?.comment ?? "",
+            vat_rate: rateKey(income?.vat_rate),
+            vat_amount: income?.vat_amount ?? "0",
+            incoming_number: income?.incoming_number ?? "",
+            incoming_date: income?.incoming_date ?? null,
+            purpose: income?.purpose ?? "",
         },
     })
 
     const clientId = useWatch({ control: form.control, name: "client" })
     const currencyId = useWatch({ control: form.control, name: "currency" })
     const amount = useWatch({ control: form.control, name: "amount" })
+    const vatRate = useWatch({ control: form.control, name: "vat_rate" })
     const currencyCode =
         currencyList
             .find((c) => c.id === Number(currencyId))
@@ -123,8 +144,19 @@ function IncomeFormInner({ income }: Props) {
             sales_agent: null,
             amount: income.amount ?? "",
             comment: income.comment ?? "",
+            vat_rate: rateKey(income.vat_rate),
+            vat_amount: income.vat_amount ?? "0",
+            incoming_number: income.incoming_number ?? "",
+            incoming_date: income.incoming_date ?? null,
+            purpose: income.purpose ?? "",
         })
     }, [listsLoaded]) // eslint-disable-line
+
+    // The VAT part follows the amount and the rate (still editable by hand).
+    const setAmount = (value: string) => {
+        form.setValue("amount", value)
+        form.setValue("vat_amount", vatOf(value, form.getValues("vat_rate")))
+    }
 
     // Picking an order pre-fills amount / currency / rate from it (all editable).
     const onPickOrder = (value: string) => {
@@ -133,8 +165,7 @@ function IncomeFormInner({ income }: Props) {
         const order = orderList.find((o) => o.id === id)
         if (!order) return
         if (order.client?.id) form.setValue("client", order.client.id)
-        if (order.grand_total)
-            form.setValue("amount", String(order.grand_total))
+        if (order.grand_total) setAmount(String(order.grand_total))
         if (order.currency?.id) form.setValue("currency", order.currency.id)
         if (order.client_currency) {
             form.setValue("current_rate", String(order.client_currency))
@@ -305,7 +336,10 @@ function IncomeFormInner({ income }: Props) {
                                 value={field.value ?? ""}
                                 getInputRef={field.ref}
                                 onBlur={field.onBlur}
-                                onValueChange={(v) => field.onChange(v.value)}
+                                onValueChange={(v, src) => {
+                                    if (src.source === "event")
+                                        setAmount(v.value)
+                                }}
                                 thousandSeparator=" "
                                 decimalScale={2}
                                 allowNegative={false}
@@ -384,50 +418,122 @@ function IncomeFormInner({ income }: Props) {
                     />
                 </div>
 
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("income.vat")}</Label>
+                    <div className="flex gap-2">
+                        <Controller
+                            control={form.control}
+                            name="vat_rate"
+                            render={({ field }) => (
+                                <Select
+                                    value={field.value ?? "none"}
+                                    onValueChange={(v) => {
+                                        const rate = v === "none" ? null : v
+                                        field.onChange(rate)
+                                        form.setValue(
+                                            "vat_amount",
+                                            vatOf(
+                                                form.getValues("amount"),
+                                                rate,
+                                            ),
+                                        )
+                                    }}
+                                >
+                                    <SelectTrigger className="w-32 shrink-0">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">
+                                            {t("income.noVat")}
+                                        </SelectItem>
+                                        {VAT_RATES.map((r) => (
+                                            <SelectItem key={r} value={r}>
+                                                {r}%
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        <Controller
+                            control={form.control}
+                            name="vat_amount"
+                            render={({ field }) => (
+                                <NumericFormat
+                                    customInput={Input}
+                                    value={field.value ?? ""}
+                                    getInputRef={field.ref}
+                                    onBlur={field.onBlur}
+                                    onValueChange={(v) =>
+                                        field.onChange(v.value || "0")
+                                    }
+                                    thousandSeparator=" "
+                                    decimalScale={2}
+                                    allowNegative={false}
+                                    disabled={!vatRate}
+                                    placeholder="0"
+                                />
+                            )}
+                        />
+                    </div>
+                </div>
+
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <Label>{t("income.incomingNumber")}</Label>
+                    <div className="flex items-center gap-2">
+                        <Input
+                            {...form.register("incoming_number")}
+                            className="min-w-0 flex-1"
+                            placeholder="№"
+                        />
+                        <span className="text-sm text-muted-foreground">
+                            {t("income.incomingDate")}
+                        </span>
+                        <Controller
+                            control={form.control}
+                            name="incoming_date"
+                            render={({ field }) => (
+                                <DateField
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    className="w-40 shrink-0"
+                                />
+                            )}
+                        />
+                    </div>
+                </div>
+
                 <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2">
                     <Label>{t("table.date")}</Label>
                     <Controller
                         control={form.control}
                         name="date"
                         render={({ field }) => (
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        className={cn(
-                                            "w-full justify-start text-left font-normal",
-                                            !field.value &&
-                                                "text-muted-foreground",
-                                        )}
-                                    >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {field.value ?
-                                            field.value
-                                        :   t("common.pickDate")}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                        mode="single"
-                                        selected={
-                                            field.value ?
-                                                new Date(field.value)
-                                            :   undefined
-                                        }
-                                        onSelect={(d) =>
-                                            field.onChange(
-                                                d ?
-                                                    format(d, "yyyy-MM-dd")
-                                                :   "",
-                                            )
-                                        }
-                                        autoFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
+                            <DateField
+                                value={field.value}
+                                onChange={(v) => field.onChange(v ?? "")}
+                            />
                         )}
                     />
                 </div>
+
+                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2">
+                    <Label>{t("income.purpose")}</Label>
+                    <Textarea
+                        {...form.register("purpose")}
+                        className="h-16"
+                        placeholder={t("common.enterValue")}
+                    />
+                </div>
+
+                <IncomeAllocations
+                    clientId={clientId ? Number(clientId) : null}
+                    currency={currencyCode}
+                    incomeId={income?.id ?? null}
+                    amount={Number(amount || 0)}
+                    value={allocations}
+                    onChange={setAllocations}
+                />
 
                 <div className="flex min-w-0 flex-col gap-1.5">
                     <Label>{t("table.comment")}</Label>
@@ -435,8 +541,10 @@ function IncomeFormInner({ income }: Props) {
                         control={form.control}
                         name="comment"
                         render={({ field }) => (
-                            <Input
+                            <Textarea
                                 {...field}
+                                value={field.value ?? ""}
+                                className="h-16"
                                 placeholder={t("common.enterValue")}
                             />
                         )}
@@ -467,15 +575,6 @@ function IncomeFormInner({ income }: Props) {
                         </a>
                     )}
                 </div>
-
-                <IncomeAllocations
-                    clientId={clientId ? Number(clientId) : null}
-                    currency={currencyCode}
-                    incomeId={income?.id ?? null}
-                    amount={Number(amount || 0)}
-                    value={allocations}
-                    onChange={setAllocations}
-                />
             </div>
 
             <FormAction
@@ -483,5 +582,45 @@ function IncomeFormInner({ income }: Props) {
                 loading={isPending || fileReq.isPending}
             />
         </form>
+    )
+}
+
+function DateField({
+    value,
+    onChange,
+    className,
+}: {
+    value: string | null
+    onChange: (value: string | null) => void
+    className?: string
+}) {
+    const { t } = useTranslation()
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !value && "text-muted-foreground",
+                        className,
+                    )}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {value || t("common.pickDate")}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+                <Calendar
+                    mode="single"
+                    selected={value ? new Date(value) : undefined}
+                    onSelect={(d) =>
+                        onChange(d ? format(d, "yyyy-MM-dd") : null)
+                    }
+                    autoFocus
+                />
+            </PopoverContent>
+        </Popover>
     )
 }

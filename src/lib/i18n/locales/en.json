@@ -191,7 +191,35 @@
         "vsPrevYear": "vs last year",
         "mutualSettlements": "Mutual settlements",
         "viewAll": "View all",
-        "cashFlow": "Cash flow"
+        "cashFlow": "Cash flow",
+        "overdueOrders": "Overdue orders",
+        "unpaidDemands": "Unpaid shipments",
+        "ordersCount": "Orders",
+        "demandsCount": "Shipments",
+        "counterparty": "Counterparty",
+        "order": "Order",
+        "demand": "Shipment",
+        "sum": "Amount",
+        "term": "Overdue",
+        "days": "days",
+        "money": "Money",
+        "kassa": "Cash register",
+        "balance": "Balance",
+        "recentDocs": "Recent documents",
+        "document": "Document",
+        "posted": "Posted",
+        "docDate": "Date",
+        "changed": "Changed",
+        "noOverdue": "Nothing overdue",
+        "vsPrevDayShort": "vs yesterday",
+        "docType": {
+            "income": "Incoming payment",
+            "expense": "Outgoing payment",
+            "order": "Sales order",
+            "demand": "Shipment"
+        },
+        "weekdays": "Mon,Tue,Wed,Thu,Fri,Sat,Sun",
+        "monthsShort": "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec"
     },
     "cashFlow": {
         "title": "Cash flow",
@@ -460,6 +488,13 @@
         "noUnpaid": "No unpaid shipments in this currency",
         "allocated": "Allocated",
         "unallocated": "Unallocated",
-        "overAllocated": "Allocated more than the payment amount"
+        "overAllocated": "Allocated more than the payment amount",
+        "vat": "Incl. VAT",
+        "vatRate": "VAT rate",
+        "noVat": "No VAT",
+        "incomingNumber": "Incoming number",
+        "incomingDate": "dated",
+        "purpose": "Payment purpose",
+        "bindHint": "Tick a shipment — the amount fills in automatically"
     }
 }

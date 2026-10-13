@@ -191,7 +191,35 @@
         "vsPrevYear": "o‘tgan yilga nisbatan",
         "mutualSettlements": "O‘zaro hisob-kitob",
         "viewAll": "Barchasi",
-        "cashFlow": "Pul harakati"
+        "cashFlow": "Pul harakati",
+        "overdueOrders": "Muddati o‘tgan buyurtmalar",
+        "unpaidDemands": "To‘lanmagan jo‘natmalar",
+        "ordersCount": "Buyurtma",
+        "demandsCount": "Jo‘natma",
+        "counterparty": "Kontragent",
+        "order": "Buyurtma",
+        "demand": "Jo‘natma",
+        "sum": "Summa",
+        "term": "Muddat",
+        "days": "kun",
+        "money": "Pul",
+        "kassa": "Kassa",
+        "balance": "Qoldiq",
+        "recentDocs": "So‘nggi hujjatlar",
+        "document": "Hujjat",
+        "posted": "O‘tk.",
+        "docDate": "Sana",
+        "changed": "O‘zgartirilgan",
+        "noOverdue": "Muddati o‘tganlar yo‘q",
+        "vsPrevDayShort": "kechaga nisbatan",
+        "docType": {
+            "income": "Kiruvchi to‘lov",
+            "expense": "Chiquvchi to‘lov",
+            "order": "Mijoz buyurtmasi",
+            "demand": "Jo‘natma"
+        },
+        "weekdays": "Du,Se,Cho,Pa,Ju,Sha,Ya",
+        "monthsShort": "Yan,Fev,Mar,Apr,May,Iyn,Iyl,Avg,Sen,Okt,Noy,Dek"
     },
     "cashFlow": {
         "title": "Pul mablag'lari harakati",
@@ -460,6 +488,13 @@
         "noUnpaid": "Bu valyutada to'lanmagan jo'natma yo'q",
         "allocated": "Bog'langan",
         "unallocated": "Bog'lanmagan",
-        "overAllocated": "Bog'langan summa to'lovdan katta"
+        "overAllocated": "Bog'langan summa to'lovdan katta",
+        "vat": "Shu jumladan QQS",
+        "vatRate": "QQS stavkasi",
+        "noVat": "QQSsiz",
+        "incomingNumber": "Kiruvchi raqam",
+        "incomingDate": "sanasi",
+        "purpose": "To'lov maqsadi",
+        "bindHint": "Jo'natmani belgilang — summa avtomatik qo'yiladi"
     }
 }

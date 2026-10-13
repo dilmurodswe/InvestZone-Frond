@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useGet } from "@/hooks/react-query/use-get"
@@ -22,6 +23,8 @@ type Props = {
     onChange: (next: AllocationMap) => void
 }
 
+const round2 = (n: number) => Math.round(n * 100) / 100
+
 const money = (v: unknown) =>
     formatNumber(v, { decimalScale: 2, isShowZero: true })
 
@@ -29,6 +32,10 @@ const money = (v: unknown) =>
  * МойСклад's «Оплаченные документы» on an incoming payment: the client's
  * Отгрузки in the payment currency, with К оплате / Не оплачено and an
  * editable «Оплачено из этого платежа». Footer = Привязано / Не привязано.
+ *
+ * Ticking a row fills it with what is left of the payment (capped at its
+ * Не оплачено). A new payment is spread over the oldest Отгрузки
+ * automatically as the amount changes, until the user edits a row by hand.
  */
 export default function IncomeAllocations({
     clientId,
@@ -66,6 +73,12 @@ export default function IncomeAllocations({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data, clientId, currency, incomeId])
 
+    // Hand edits stop the automatic spread; a new client/currency resets it.
+    const touched = useRef(false)
+    useEffect(() => {
+        touched.current = false
+    }, [clientId, currency])
+
     const allocated = rows.reduce(
         (s, r) => s + (Number(value[r.demand]) || 0),
         0,
@@ -73,16 +86,42 @@ export default function IncomeAllocations({
     const unallocated = amount - allocated
 
     // Spread the payment over the oldest unpaid Отгрузки first.
-    const distribute = () => {
+    const spread = (): AllocationMap => {
         let left = amount
         const next: AllocationMap = {}
         for (const r of rows) {
             if (left <= 0) break
             const take = Math.min(left, Number(r.unpaid))
-            if (take > 0) next[r.demand] = String(take)
+            if (take > 0) next[r.demand] = String(round2(take))
             left -= take
         }
+        return next
+    }
+
+    const distribute = () => {
+        touched.current = false
+        onChange(spread())
+    }
+
+    useEffect(() => {
+        if (incomeId || touched.current || !data) return
+        onChange(spread())
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [amount, data, incomeId])
+
+    const setRow = (demand: number, v: string) => {
+        touched.current = true
+        const next = { ...value }
+        if (v) next[demand] = v
+        else delete next[demand]
         onChange(next)
+    }
+
+    const toggle = (r: ClientDemandRow, on: boolean) => {
+        if (!on) return setRow(r.demand, "")
+        const others = allocated - (Number(value[r.demand]) || 0)
+        const take = Math.min(Number(r.unpaid), Math.max(amount - others, 0))
+        setRow(r.demand, take > 0 ? String(round2(take)) : "")
     }
 
     if (!clientId) return null
@@ -107,6 +146,7 @@ export default function IncomeAllocations({
                 <table className="w-full text-xs">
                     <thead className="bg-muted/60 text-muted-foreground">
                         <tr className="[&_th]:px-2 [&_th]:py-1.5 [&_th]:font-medium">
+                            <th className="w-8" />
                             <th className="text-left">{t("income.demand")}</th>
                             <th className="text-left">{t("table.date")}</th>
                             <th className="text-right">{t("income.toPay")}</th>
@@ -123,8 +163,22 @@ export default function IncomeAllocations({
                             return (
                                 <tr
                                     key={r.demand}
-                                    className="border-t [&_td]:px-2 [&_td]:py-1"
+                                    className={cn(
+                                        "border-t [&_td]:px-2 [&_td]:py-1",
+                                        Number(v) > 0 && "bg-primary/5",
+                                    )}
                                 >
+                                    <td>
+                                        <Checkbox
+                                            checked={Number(v) > 0}
+                                            disabled={
+                                                !amount && !(Number(v) > 0)
+                                            }
+                                            onCheckedChange={(on) =>
+                                                toggle(r, on === true)
+                                            }
+                                        />
+                                    </td>
                                     <td className="whitespace-nowrap font-medium">
                                         №{r.number}
                                     </td>
@@ -141,12 +195,10 @@ export default function IncomeAllocations({
                                         <NumericFormat
                                             customInput={Input}
                                             value={v}
-                                            onValueChange={(x) =>
-                                                onChange({
-                                                    ...value,
-                                                    [r.demand]: x.value,
-                                                })
-                                            }
+                                            onValueChange={(x, src) => {
+                                                if (src.source === "event")
+                                                    setRow(r.demand, x.value)
+                                            }}
                                             thousandSeparator=" "
                                             decimalScale={2}
                                             allowNegative={false}
@@ -164,7 +216,7 @@ export default function IncomeAllocations({
                         {!rows.length && (
                             <tr>
                                 <td
-                                    colSpan={5}
+                                    colSpan={6}
                                     className="px-2 py-4 text-center text-muted-foreground"
                                 >
                                     {isFetching ?
@@ -176,6 +228,12 @@ export default function IncomeAllocations({
                     </tbody>
                 </table>
             </div>
+
+            {!!rows.length && (
+                <p className="text-xs text-muted-foreground">
+                    {t("income.bindHint")}
+                </p>
+            )}
 
             <div className="flex flex-col items-end gap-0.5 text-sm">
                 <span>

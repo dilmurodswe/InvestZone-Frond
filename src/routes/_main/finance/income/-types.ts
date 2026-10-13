@@ -51,6 +51,14 @@ export type Income = {
     amount: string
     comment: string
     origin: FinanceOrigin
+    /** «Включая НДС»: rate in % (null = без НДС) and the VAT part of amount. */
+    vat_rate: string | null
+    vat_amount: string
+    /** Payer's own document number / date («Входящий номер … от …»). */
+    incoming_number: string
+    incoming_date: string | null
+    /** «Назначение платежа» — separate from the internal comment. */
+    purpose: string
 }
 
 export type IncomeForm = {
@@ -67,6 +75,11 @@ export type IncomeForm = {
     sales_agent: number | null
     amount: string
     comment: string
+    vat_rate: string | null
+    vat_amount: string
+    incoming_number: string
+    incoming_date: string | null
+    purpose: string
 }
 
 /** One Отгрузка in the «Оплаченные документы» picker. */
