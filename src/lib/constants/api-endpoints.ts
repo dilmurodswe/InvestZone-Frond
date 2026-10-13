@@ -205,6 +205,11 @@ export const API = {
         // МойСклад-style Продажи/Приход/Расход widget: today vs prev day,
         // period vs prev period, daily series. ?metric=&granularity=&currency=
         TREND_STATS: "dashboard/trend-stats",
+        // МойСклад «Показатели» blocks; all take ?currency= and convert.
+        OVERDUE_ORDERS: "dashboard/overdue-orders",
+        UNPAID_DEMANDS: "dashboard/unpaid-demands",
+        MONEY_CHART: "dashboard/money-chart",
+        RECENT_DOCUMENTS: "dashboard/recent-documents",
     },
     ROLLING_PLANS: {
         INDEX: "rolling-plans",
