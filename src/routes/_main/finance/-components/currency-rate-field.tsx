@@ -38,6 +38,19 @@ type Props<T extends FieldValues> = {
     autoFill: boolean
 }
 
+/**
+ * A UZS or USD document's rate is the USD↔UZS rate (~12 000) whichever
+ * currency the reference uses as its base, so it always reads
+ * `1 USD = 12 000 UZS`; other currencies read against the base.
+ */
+const rateLabel = (code: string, base: string, rate: number) => {
+    const value = formatNumber(rate, { isShowZero: true })
+    const upper = code.toUpperCase()
+    if ((upper === "UZS" || upper === "USD") && rate > 1)
+        return `1 USD = ${value} UZS`
+    return `1 ${code} = ${value} ${base}`
+}
+
 /** The currency everything is converted to — the one whose rate is 1. */
 const baseCurrency = (list: RateCurrency[]) =>
     list.find((c) => Number(c.current_rate) === 1)?.currency ?? "UZS"
@@ -103,24 +116,24 @@ export default function CurrencyRateField<T extends FieldValues>({
             <Label>{t("table.currencyRate")}</Label>
 
             {selected ?
-                <div className="flex h-9 items-center gap-2 text-sm">
+                <div className="flex h-10 items-center justify-between gap-2 rounded-md border border-input bg-muted/40 px-3 text-sm">
                     <span className="truncate">
-                        1 {selected.currency} ={" "}
-                        {formatNumber(override ?? refRate ?? 0, {
-                            isShowZero: true,
-                        })}{" "}
-                        {base}
+                        {rateLabel(
+                            selected.currency,
+                            base,
+                            override ?? refRate ?? 0,
+                        )}
                     </span>
                     <button
                         type="button"
                         onClick={openModal}
-                        className="shrink-0 rounded p-1 text-primary hover:bg-muted"
+                        className="-mr-1 shrink-0 rounded p-1 text-primary hover:bg-background"
                         title={t("common.changeRate")}
                     >
                         <PencilIcon className="h-4 w-4" />
                     </button>
                 </div>
-            :   <div className="flex h-9 items-center text-sm text-muted-foreground">
+            :   <div className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm text-muted-foreground">
                     —
                 </div>
             }

@@ -493,8 +493,10 @@
         "vatRate": "QQS stavkasi",
         "noVat": "QQSsiz",
         "incomingNumber": "Kiruvchi raqam",
-        "incomingDate": "sanasi",
+        "incomingDate": "sana",
         "purpose": "To'lov maqsadi",
-        "bindHint": "Jo'natmani belgilang — summa avtomatik qo'yiladi"
+        "bindHint": "Jo'natmani belgilang — summa avtomatik qo'yiladi",
+        "sectionMain": "Asosiy",
+        "sectionAmount": "Summa va QQS"
     }
 }

@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils/shadcn"
 import { toFormData } from "@/lib/utils/to-form-data"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { NumericFormat } from "react-number-format"
@@ -254,277 +254,300 @@ function IncomeFormInner({ income }: Props) {
     const entity = t("entity.income")
 
     return (
-        <form onSubmit={onSubmit} className="flex flex-col gap-5">
-            <CardTitle>
-                {income ?
-                    t("common.editEntity", { entity })
-                :   t("common.addEntity", { entity })}
-            </CardTitle>
-
-            <div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 sm:grid-cols-2">
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("entity.order")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="order"
-                        render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={onPickOrder}
-                            >
-                                <SelectTrigger className="w-full min-w-0">
-                                    <SelectValue
-                                        placeholder={t("common.select")}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {orderList.map((o) => (
-                                        <SelectItem
-                                            key={o.id}
-                                            value={String(o.id)}
-                                        >
-                                            №{o.number}
-                                            {o.client?.full_name ?
-                                                ` — ${o.client.full_name}`
-                                            :   ""}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("table.client")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="client"
-                        render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(v) => field.onChange(Number(v))}
-                            >
-                                <SelectTrigger className="w-full min-w-0">
-                                    <SelectValue
-                                        placeholder={t("common.select")}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {clientList.map((c) => (
-                                        <SelectItem
-                                            key={c.id}
-                                            value={String(c.id)}
-                                        >
-                                            {c.full_name || c.company_name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("table.amount")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="amount"
-                        render={({ field }) => (
-                            <NumericFormat
-                                customInput={Input}
-                                value={field.value ?? ""}
-                                getInputRef={field.ref}
-                                onBlur={field.onBlur}
-                                onValueChange={(v, src) => {
-                                    if (src.source === "event")
-                                        setAmount(v.value)
-                                }}
-                                thousandSeparator=" "
-                                decimalScale={2}
-                                allowNegative={false}
-                                placeholder="0"
-                            />
-                        )}
-                    />
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("table.currency")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="currency"
-                        render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(v) => field.onChange(Number(v))}
-                            >
-                                <SelectTrigger className="w-full min-w-0">
-                                    <SelectValue
-                                        placeholder={t("common.select")}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {currencyList.map((c) => (
-                                        <SelectItem
-                                            key={c.id}
-                                            value={String(c.id)}
-                                        >
-                                            {c.currency} ({c.current_rate})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
-                <CurrencyRateField
-                    form={form}
-                    currencyName="currency"
-                    currentRateName="current_rate"
-                    customRateName="custom_rate"
-                    currencyList={currencyList}
-                    autoFill={!income}
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+            {/* МойСклад header: «Входящий платёж … от [дата]» */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pr-8">
+                <CardTitle className="text-lg">
+                    {income ?
+                        t("common.editEntity", { entity })
+                    :   t("common.addEntity", { entity })}
+                </CardTitle>
+                <Controller
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                        <DateField
+                            value={field.value}
+                            onChange={(v) => field.onChange(v ?? "")}
+                            className="w-40"
+                            compact
+                        />
+                    )}
                 />
+            </div>
 
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("finCat.kassa")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="payment_type"
-                        render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(v) => field.onChange(Number(v))}
-                            >
-                                <SelectTrigger className="w-full min-w-0">
-                                    <SelectValue
-                                        placeholder={t("common.select")}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {paymentTypeList.map((p) => (
-                                        <SelectItem
-                                            key={p.id}
-                                            value={String(p.id)}
-                                        >
-                                            {p.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("income.vat")}</Label>
-                    <div className="flex gap-2">
+            <div className="-mr-3 -ml-1 flex max-h-[calc(100vh-15rem)] flex-col gap-4 overflow-y-auto pr-3 pb-1 pl-1">
+                <Section title={t("income.sectionMain")}>
+                    <Field label={t("entity.order")}>
                         <Controller
                             control={form.control}
-                            name="vat_rate"
+                            name="order"
                             render={({ field }) => (
                                 <Select
-                                    value={field.value ?? "none"}
-                                    onValueChange={(v) => {
-                                        const rate = v === "none" ? null : v
-                                        field.onChange(rate)
-                                        form.setValue(
-                                            "vat_amount",
-                                            vatOf(
-                                                form.getValues("amount"),
-                                                rate,
-                                            ),
-                                        )
-                                    }}
+                                    value={
+                                        field.value ? String(field.value) : ""
+                                    }
+                                    onValueChange={onPickOrder}
                                 >
-                                    <SelectTrigger className="w-32 shrink-0">
-                                        <SelectValue />
+                                    <SelectTrigger className={TRIGGER}>
+                                        <SelectValue
+                                            placeholder={t("common.select")}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="none">
-                                            {t("income.noVat")}
-                                        </SelectItem>
-                                        {VAT_RATES.map((r) => (
-                                            <SelectItem key={r} value={r}>
-                                                {r}%
+                                        {orderList.map((o) => (
+                                            <SelectItem
+                                                key={o.id}
+                                                value={String(o.id)}
+                                            >
+                                                №{o.number}
+                                                {o.client?.full_name ?
+                                                    ` — ${o.client.full_name}`
+                                                :   ""}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             )}
                         />
+                    </Field>
+
+                    <Field label={t("table.client")}>
                         <Controller
                             control={form.control}
-                            name="vat_amount"
+                            name="client"
+                            render={({ field }) => (
+                                <Select
+                                    value={
+                                        field.value ? String(field.value) : ""
+                                    }
+                                    onValueChange={(v) =>
+                                        field.onChange(Number(v))
+                                    }
+                                >
+                                    <SelectTrigger className={TRIGGER}>
+                                        <SelectValue
+                                            placeholder={t("common.select")}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {clientList.map((c) => (
+                                            <SelectItem
+                                                key={c.id}
+                                                value={String(c.id)}
+                                            >
+                                                {c.full_name || c.company_name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                    </Field>
+
+                    <Field label={t("finCat.kassa")}>
+                        <Controller
+                            control={form.control}
+                            name="payment_type"
+                            render={({ field }) => (
+                                <Select
+                                    value={
+                                        field.value ? String(field.value) : ""
+                                    }
+                                    onValueChange={(v) =>
+                                        field.onChange(Number(v))
+                                    }
+                                >
+                                    <SelectTrigger className={TRIGGER}>
+                                        <SelectValue
+                                            placeholder={t("common.select")}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {paymentTypeList.map((p) => (
+                                            <SelectItem
+                                                key={p.id}
+                                                value={String(p.id)}
+                                            >
+                                                {p.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                    </Field>
+
+                    <Field label={t("income.incomingNumber")}>
+                        <div className="flex min-w-0 items-center gap-2">
+                            <Input
+                                {...form.register("incoming_number")}
+                                inputWrapperClassName="min-w-0 flex-1"
+                                className={TEXT}
+                                placeholder="№"
+                            />
+                            <span className="shrink-0 text-sm text-muted-foreground">
+                                {t("income.incomingDate")}
+                            </span>
+                            <Controller
+                                control={form.control}
+                                name="incoming_date"
+                                render={({ field }) => (
+                                    <DateField
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        className="w-36 shrink-0"
+                                        compact
+                                    />
+                                )}
+                            />
+                        </div>
+                    </Field>
+                </Section>
+
+                <Section title={t("income.sectionAmount")}>
+                    <Field label={t("table.amount")}>
+                        <Controller
+                            control={form.control}
+                            name="amount"
                             render={({ field }) => (
                                 <NumericFormat
                                     customInput={Input}
                                     value={field.value ?? ""}
                                     getInputRef={field.ref}
                                     onBlur={field.onBlur}
-                                    onValueChange={(v) =>
-                                        field.onChange(v.value || "0")
-                                    }
+                                    onValueChange={(v, src) => {
+                                        if (src.source === "event")
+                                            setAmount(v.value)
+                                    }}
                                     thousandSeparator=" "
                                     decimalScale={2}
                                     allowNegative={false}
-                                    disabled={!vatRate}
                                     placeholder="0"
+                                    className={cn(
+                                        TEXT,
+                                        "text-right font-semibold tabular-nums",
+                                    )}
                                 />
                             )}
                         />
-                    </div>
-                </div>
+                    </Field>
 
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("income.incomingNumber")}</Label>
-                    <div className="flex items-center gap-2">
-                        <Input
-                            {...form.register("incoming_number")}
-                            className="min-w-0 flex-1"
-                            placeholder="№"
-                        />
-                        <span className="text-sm text-muted-foreground">
-                            {t("income.incomingDate")}
-                        </span>
+                    <Field label={t("table.currency")}>
                         <Controller
                             control={form.control}
-                            name="incoming_date"
+                            name="currency"
                             render={({ field }) => (
-                                <DateField
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    className="w-40 shrink-0"
-                                />
+                                <Select
+                                    value={
+                                        field.value ? String(field.value) : ""
+                                    }
+                                    onValueChange={(v) =>
+                                        field.onChange(Number(v))
+                                    }
+                                >
+                                    <SelectTrigger className={TRIGGER}>
+                                        <SelectValue
+                                            placeholder={t("common.select")}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencyList.map((c) => (
+                                            <SelectItem
+                                                key={c.id}
+                                                value={String(c.id)}
+                                            >
+                                                {c.currency}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             )}
                         />
-                    </div>
-                </div>
+                    </Field>
 
-                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2">
-                    <Label>{t("table.date")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="date"
-                        render={({ field }) => (
-                            <DateField
-                                value={field.value}
-                                onChange={(v) => field.onChange(v ?? "")}
-                            />
-                        )}
+                    <CurrencyRateField
+                        form={form}
+                        currencyName="currency"
+                        currentRateName="current_rate"
+                        customRateName="custom_rate"
+                        currencyList={currencyList}
+                        autoFill={!income}
                     />
-                </div>
 
-                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2">
-                    <Label>{t("income.purpose")}</Label>
+                    <Field label={t("income.vat")}>
+                        {/* One control: rate on the left, VAT sum on the right */}
+                        <div className="flex h-10 min-w-0 overflow-hidden rounded-md border border-input bg-background shadow-xs">
+                            <Controller
+                                control={form.control}
+                                name="vat_rate"
+                                render={({ field }) => (
+                                    <Select
+                                        value={field.value ?? "none"}
+                                        onValueChange={(v) => {
+                                            const rate = v === "none" ? null : v
+                                            field.onChange(rate)
+                                            form.setValue(
+                                                "vat_amount",
+                                                vatOf(
+                                                    form.getValues("amount"),
+                                                    rate,
+                                                ),
+                                            )
+                                        }}
+                                    >
+                                        <SelectTrigger className="h-full w-28 shrink-0 rounded-none border-0 border-r bg-muted/40 shadow-none data-[size=default]:h-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">
+                                                {t("income.noVat")}
+                                            </SelectItem>
+                                            {VAT_RATES.map((r) => (
+                                                <SelectItem key={r} value={r}>
+                                                    {r}%
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            <Controller
+                                control={form.control}
+                                name="vat_amount"
+                                render={({ field }) => (
+                                    <NumericFormat
+                                        customInput={Input}
+                                        value={field.value ?? ""}
+                                        getInputRef={field.ref}
+                                        onBlur={field.onBlur}
+                                        onValueChange={(v) =>
+                                            field.onChange(v.value || "0")
+                                        }
+                                        thousandSeparator=" "
+                                        decimalScale={2}
+                                        allowNegative={false}
+                                        disabled={!vatRate}
+                                        placeholder="0"
+                                        inputWrapperClassName="min-w-0 flex-1"
+                                        className={cn(
+                                            TEXT,
+                                            "h-full rounded-none border-0 text-right tabular-nums shadow-none disabled:bg-transparent",
+                                        )}
+                                    />
+                                )}
+                            />
+                        </div>
+                    </Field>
+                </Section>
+
+                <Field label={t("income.purpose")} className="sm:col-span-2">
                     <Textarea
                         {...form.register("purpose")}
-                        className="h-16"
+                        className={cn(TEXT, "h-20 resize-none")}
                         placeholder={t("common.enterValue")}
                     />
-                </div>
+                </Field>
 
                 <IncomeAllocations
                     clientId={clientId ? Number(clientId) : null}
@@ -535,49 +558,51 @@ function IncomeFormInner({ income }: Props) {
                     onChange={setAllocations}
                 />
 
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("table.comment")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="comment"
-                        render={({ field }) => (
-                            <Textarea
-                                {...field}
-                                value={field.value ?? ""}
-                                className="h-16"
-                                placeholder={t("common.enterValue")}
-                            />
-                        )}
-                    />
-                </div>
+                <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">
+                    <Field label={t("table.comment")}>
+                        <Controller
+                            control={form.control}
+                            name="comment"
+                            render={({ field }) => (
+                                <Textarea
+                                    {...field}
+                                    value={field.value ?? ""}
+                                    className={cn(TEXT, "h-20 resize-none")}
+                                    placeholder={t("common.enterValue")}
+                                />
+                            )}
+                        />
+                    </Field>
 
-                <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label>{t("finCat.attachFile")}</Label>
-                    <Controller
-                        control={form.control}
-                        name="attachment"
-                        render={({ field }) => (
-                            <FileInput
-                                value={field.value}
-                                onChange={field.onChange}
-                                placeholder={t("finCat.attachFile")}
-                            />
+                    <Field label={t("finCat.attachFile")}>
+                        <Controller
+                            control={form.control}
+                            name="attachment"
+                            render={({ field }) => (
+                                <FileInput
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    placeholder={t("finCat.attachFile")}
+                                    className="h-20 justify-center border-dashed"
+                                />
+                            )}
+                        />
+                        {income?.attachment && (
+                            <a
+                                href={income.attachment}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-xs text-primary underline"
+                            >
+                                {t("finCat.currentFile")}
+                            </a>
                         )}
-                    />
-                    {income?.attachment && (
-                        <a
-                            href={income.attachment}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs text-primary underline"
-                        >
-                            {t("finCat.currentFile")}
-                        </a>
-                    )}
+                    </Field>
                 </div>
             </div>
 
             <FormAction
+                className="mt-0 border-t pt-4"
                 submitName={income ? t("common.save") : t("common.add")}
                 loading={isPending || fileReq.isPending}
             />
@@ -585,16 +610,61 @@ function IncomeFormInner({ income }: Props) {
     )
 }
 
+/** One text size for inputs and selects (inputs default to text-base). */
+const TEXT = "text-sm md:text-sm placeholder:text-sm md:placeholder:text-sm"
+
+/** Same height for every select in the form (inputs are h-10). */
+const TRIGGER = "w-full min-w-0 data-[size=default]:h-10"
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+    return (
+        <fieldset className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-4">
+            <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {title}
+            </legend>
+            <div className="grid grid-cols-1 items-start gap-x-5 gap-y-4 sm:grid-cols-2">
+                {children}
+            </div>
+        </fieldset>
+    )
+}
+
+function Field({
+    label,
+    className,
+    children,
+}: {
+    label: string
+    className?: string
+    children: ReactNode
+}) {
+    return (
+        <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
+            <Label className="text-sm font-medium">{label}</Label>
+            {children}
+        </div>
+    )
+}
+
 function DateField({
     value,
     onChange,
     className,
+    compact,
 }: {
     value: string | null
     onChange: (value: string | null) => void
     className?: string
+    /** Short dd.MM.yyyy label for tight rows. */
+    compact?: boolean
 }) {
     const { t } = useTranslation()
+    const label =
+        value ?
+            compact ? format(new Date(value), "dd.MM.yyyy")
+            :   value
+        : compact ? t("table.date")
+        : t("common.pickDate")
     return (
         <Popover>
             <PopoverTrigger asChild>
@@ -602,16 +672,16 @@ function DateField({
                     type="button"
                     variant="outline"
                     className={cn(
-                        "w-full justify-start text-left font-normal",
+                        "h-10 w-full justify-start gap-2 px-3 text-left text-sm font-normal tabular-nums md:text-sm",
                         !value && "text-muted-foreground",
                         className,
                     )}
                 >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {value || t("common.pickDate")}
+                    <CalendarIcon className="h-4 w-4 shrink-0 opacity-60" />
+                    <span className="truncate">{label}</span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent className="w-auto p-0" align="end">
                 <Calendar
                     mode="single"
                     selected={value ? new Date(value) : undefined}

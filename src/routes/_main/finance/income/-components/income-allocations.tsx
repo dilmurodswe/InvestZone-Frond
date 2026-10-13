@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { useGet } from "@/hooks/react-query/use-get"
 import { API } from "@/lib/constants/api-endpoints"
 import { formatNumber } from "@/lib/utils/format-number"
@@ -127,9 +126,14 @@ export default function IncomeAllocations({
     if (!clientId) return null
 
     return (
-        <div className="flex flex-col gap-2 sm:col-span-2">
+        <fieldset className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-4">
+            <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("income.paidDocs")}
+            </legend>
             <div className="flex items-center justify-between gap-2">
-                <Label>{t("income.paidDocs")}</Label>
+                <p className="text-xs text-muted-foreground">
+                    {rows.length ? t("income.bindHint") : ""}
+                </p>
                 <Button
                     type="button"
                     size="sm"
@@ -142,7 +146,7 @@ export default function IncomeAllocations({
                 </Button>
             </div>
 
-            <div className="overflow-auto rounded-md border">
+            <div className="overflow-auto rounded-md border bg-background">
                 <table className="w-full text-xs">
                     <thead className="bg-muted/60 text-muted-foreground">
                         <tr className="[&_th]:px-2 [&_th]:py-1.5 [&_th]:font-medium">
@@ -204,7 +208,7 @@ export default function IncomeAllocations({
                                             allowNegative={false}
                                             placeholder="0"
                                             className={cn(
-                                                "h-7 text-right text-xs tabular-nums",
+                                                "h-8 text-right text-xs tabular-nums placeholder:text-xs md:text-xs md:placeholder:text-xs",
                                                 over &&
                                                     "border-red-500 text-red-600",
                                             )}
@@ -229,22 +233,32 @@ export default function IncomeAllocations({
                 </table>
             </div>
 
-            {!!rows.length && (
-                <p className="text-xs text-muted-foreground">
-                    {t("income.bindHint")}
-                </p>
-            )}
-
-            <div className="flex flex-col items-end gap-0.5 text-sm">
-                <span>
+            <div className="flex flex-wrap justify-end gap-x-8 gap-y-1 text-sm">
+                <span className="text-muted-foreground">
                     {t("income.allocated")}:{" "}
-                    <b className="tabular-nums">{money(allocated)}</b>
+                    <b className="text-foreground tabular-nums">
+                        {money(allocated)}
+                    </b>
                 </span>
-                <span className={cn(unallocated < 0 && "text-red-600")}>
+                <span
+                    className={cn(
+                        "text-muted-foreground",
+                        unallocated < 0 && "text-red-600",
+                    )}
+                >
                     {t("income.unallocated")}:{" "}
-                    <b className="tabular-nums">{money(unallocated)}</b>
+                    <b
+                        className={cn(
+                            "tabular-nums",
+                            unallocated < 0 ? "text-red-600" : (
+                                "text-foreground"
+                            ),
+                        )}
+                    >
+                        {money(unallocated)}
+                    </b>
                 </span>
             </div>
-        </div>
+        </fieldset>
     )
 }
